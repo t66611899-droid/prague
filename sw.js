@@ -1,5 +1,5 @@
 /* service worker: האפליקציה, הנתונים והמפה של מרכז פראג עובדים גם בלי קליטה */
-const V = "prg-v22";
+const V = "prg-v23";
 const SHELL = ["./", "index.html", "styles.css", "data.js", "routes.js", "manifest.webmanifest",
   "js/config.js", "js/core.js", "js/map.js", "js/ui.js", "js/chat.js", "js/flow.js", "js/safety.js", "js/updates.js", "js/more.js", "js/gallery.js", "js/journal.js", "js/arrive.js", "js/tickets.js", "js/ask.js", "js/prep.js", "js/import.js", "js/harel.js", "js/docs.js", "family.html", "js/splash.js", "js/extras.js", "prague.ics",
   "vendor/maplibre-gl.js", "vendor/maplibre-gl.css", "icons/icon.svg", "icons/icon-192.png", "icons/icon-512.png", "icons/icon-180.png"];

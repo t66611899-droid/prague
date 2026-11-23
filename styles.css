@@ -871,3 +871,7 @@ body.replay > :not(#map):not(#grp):not(#gv){visibility:hidden!important}
 .hrl-pol b{font:700 1.7rem/1.2 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.04em}
 .hrl .row .btn{flex:1}
 .btn.hrl-call{background:var(--blue);color:#fff}
+.dc-prog{margin:12px 0 0}
+.dc-prog .arr-bar{height:10px;border-radius:5px;margin:0 0 6px}
+.dc-prog .arr-bar i{background:var(--blue);transition:width .2s linear}
+.dc-prog small{color:var(--mut);font-size:.84rem;font-variant-numeric:tabular-nums}

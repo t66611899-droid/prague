@@ -198,7 +198,7 @@ async function journalPublic(req, env, key, sub, cors) {
 }
 
 /* ---------- תיבת מסירה זמנית (מסמכים לטלפון) ----------
-   חבילה מוצפנת (AES-GCM, הקוד נשאר אצל עומר) נשמרת ב-KV עם מזהה אקראי, ונמחקת בהורדה הראשונה או אחרי 24 שעות.
+   חבילה מוצפנת (AES-GCM, הקוד נשאר אצל עומר) נשמרת ב-KV עם מזהה אקראי, ונמחקת כשהטלפון מאשר שהייבוא הצליח, או אחרי 24 שעות.
    העלאה רק עם DROP_TOKEN (סוד ב-Cloudflare). השרת לא יכול לפענח את התוכן. */
 async function dropBox(req, env, id, cors) {
   if (!env.LIMITS) return json({ error: "no storage" }, 503, cors);
@@ -211,9 +211,10 @@ async function dropBox(req, env, id, cors) {
   }
   if (req.method === "GET" && /^[a-f0-9]{32}$/.test(id || "")) {
     const buf = await env.LIMITS.get("drop:" + id, "arrayBuffer"); if (!buf) return json({ error: "gone" }, 404, cors);
-    await env.LIMITS.delete("drop:" + id); // הורדה אחת בלבד
+    // לא מוחקים כאן: אם החיבור נופל באמצע, אפשר לנסות שוב. הטלפון מוחק (DELETE) אחרי שהפענוח והשמירה הצליחו, ואם לא, KV מוחק אחרי 24 שעות.
     return new Response(buf, { status: 200, headers: { "content-type": "application/octet-stream", "cache-control": "no-store", ...cors } });
   }
+  if (req.method === "DELETE" && /^[a-f0-9]{32}$/.test(id || "")) { await env.LIMITS.delete("drop:" + id); return json({ ok: true }, 200, cors); }
   return json({ error: "not found" }, 404, cors);
 }
 

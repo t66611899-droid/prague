@@ -1,7 +1,7 @@
 /* journal: יומן טיול להורים. רגעים עם תמונות, תור העלאה לאופליין, קישור סודי לדף ההורים, תגובות, מיקום כללי, הורדת זיפ.
    התמונות המלאות נשמרות בטלפון (IndexedDB) ועולות לשרת רק עם הסיסמה. מחליף את openDiary. */
 "use strict";
-const apiUrl = () => (QS.get("api") || me.chatUrl || CONFIG.chatUrl || "").replace(/\/+$/, "");
+const apiUrl = () => (QS.get("api") || (me.chatUrl && !/workers\.dev/.test(me.chatUrl) ? me.chatUrl : "") || CONFIG.chatUrl || "").replace(/\/+$/, ""); // כתובת workers.dev ישנה לא עובדת אצל חלק מהספקים
 const apiTok = () => (me.chatTok || "").trim();
 let jr = LS.get("jr", []), jrShare = LS.get("jrShare", ""), jrRe = LS.get("jrRe", {}), jrBusy = false;
 const saveJr = () => { try { localStorage.setItem("prg.jr", JSON.stringify(jr)); } catch (e) { toast("נגמר המקום בטלפון ליומן"); } };

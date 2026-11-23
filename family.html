@@ -85,7 +85,7 @@ body.replay .hd,body.replay .pill,body.replay .play{display:none}
 <script>
 "use strict";
 /* דף הצפייה של ההורים. קורא רק דרך הקישור הסודי (‎#k=…), בלי הרשמה ובלי סודות בקוד. */
-const QS = new URLSearchParams(location.search), API = (QS.get("api") || "https://prague-chat.bloombarber.workers.dev").replace(/\/+$/, "");
+const QS = new URLSearchParams(location.search), API = (QS.get("api") || "https://prague-api.pages.dev").replace(/\/+$/, "");
 const KEY = (/k=([a-f0-9]{32})/.exec(location.hash) || [])[1] || "", $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
 const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const DAYS = ["2026-11-30", "2026-12-01", "2026-12-02", "2026-12-03", "2026-12-04"], DT = ["טסים", "העיר הישנה והסירה", "נהר, תצפיות ו-EPIC", "קניות ו-Duplex", "חוזרים"], HE = ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"];

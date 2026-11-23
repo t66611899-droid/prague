@@ -5,8 +5,10 @@ const CONFIG = {
   // כדי להפעיל בעתיד את הצ'אט הפנימי, חיפוש האירועים וההתראות: לשנות ל-true ולהגדיר את המפתחות ב-Cloudflare.
   server: false,
   // פיד התקלות הציבורי של התחבורה בפראג (PID). עובר דרך השרת רק כי לפיד עצמו אין CORS. בלי מפתח ובלי סודות.
-  pidUrl: "https://prague-chat.bloombarber.workers.dev/pid",
-  chatUrl: "https://prague-chat.bloombarber.workers.dev",
+  // הכתובת היא pages.dev ולא workers.dev: חלק מהספקים הסלולריים בישראל לא פותרים *.workers.dev.
+  // prague-api.pages.dev רק מעביר כל בקשה ל-Worker (prague-chat), אז הקוד, האחסון והסודות נשארים במקום אחד.
+  pidUrl: "https://prague-api.pages.dev/pid",
+  chatUrl: "https://prague-api.pages.dev",
   // מפתח ציבורי של Web Push (לא סוד)
   vapidPublic: "BL1wKzVNWdylek1wLHayfBEwohzmUqydt-HzwKBf94lTeNoJAcdvZpq93BiAj7Xex35SbxXVUfU4d0vlgErjONA"
 };

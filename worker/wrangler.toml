@@ -7,6 +7,8 @@ workers_dev = true
 [vars]
 ALLOWED_ORIGIN = "https://t66611899-droid.github.io"
 DAILY_LIMIT = "40"
+# המפתח הציבורי של ההתראות. הפרטי (VAPID_JWK) שמור כ-Secret ב-Cloudflare בלבד
+VAPID_PUBLIC = "BL1wKzVNWdylek1wLHayfBEwohzmUqydt-HzwKBf94lTeNoJAcdvZpq93BiAj7Xex35SbxXVUfU4d0vlgErjONA"
 
 [[kv_namespaces]]
 binding = "LIMITS"

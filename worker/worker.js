@@ -69,7 +69,43 @@ async function findEvents(env, manual) {
   items = items.filter(e => e && typeof e.name === "string" && /^2026-1[12]-\d\d$/.test(e.date || "") && typeof e.lat === "number" && typeof e.lng === "number" && e.lat > 49.94 && e.lat < 50.18 && e.lng > 14.22 && e.lng < 14.71)
     .slice(0, 25).map(e => ({ name: e.name.slice(0, 90), date: e.date, time: String(e.time || "").slice(0, 5), place: String(e.place || "").slice(0, 70), lat: +e.lat.toFixed(5), lng: +e.lng.toFixed(5), price: String(e.price || "").slice(0, 30), url: /^https:\/\//.test(e.url || "") ? e.url.slice(0, 300) : "", why: String(e.why || "").slice(0, 160), score: Math.max(1, Math.min(5, Math.round(+e.score) || 3)) }));
   if (items.length) await env.LIMITS.put("events", JSON.stringify({ updated: new Date().toISOString(), items }));
+  if (items.length) { try { await notifyHot(env, items); } catch (e) { console.log("push", String(e)); } }
   return { ok: true, found: items.length };
+}
+
+/* ---------- Web Push: התראה רק על אירועים עם ציון 5, עד 2 ביום ----------
+   שולחים Push בלי תוכן (רק חתימת VAPID), וה-service worker מושך את הטקסט מ-/push/latest. כך אין צורך בהצפנת תוכן. */
+const b64u = buf => btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+const PUSH_HOSTS = /(^|\.)(fcm\.googleapis\.com|push\.apple\.com|push\.services\.mozilla\.com|notify\.windows\.com)$/;
+async function vapidHeader(env, endpoint) {
+  const key = await crypto.subtle.importKey("jwk", JSON.parse(env.VAPID_JWK), { name: "ECDSA", namedCurve: "P-256" }, false, ["sign"]);
+  const enc = o => b64u(new TextEncoder().encode(JSON.stringify(o)));
+  const unsigned = enc({ typ: "JWT", alg: "ES256" }) + "." + enc({ aud: new URL(endpoint).origin, exp: Math.floor(Date.now() / 1000) + 12 * 3600, sub: env.ALLOWED_ORIGIN && env.ALLOWED_ORIGIN !== "*" ? env.ALLOWED_ORIGIN + "/prague/" : "https://example.com/" });
+  const sig = await crypto.subtle.sign({ name: "ECDSA", hash: "SHA-256" }, key, new TextEncoder().encode(unsigned));
+  return `vapid t=${unsigned}.${b64u(sig)}, k=${env.VAPID_PUBLIC}`;
+}
+async function sendPush(env, msg) {
+  if (!env.VAPID_JWK || !env.VAPID_PUBLIC || !env.LIMITS) return { ok: false, error: "push לא מוגדר" };
+  await env.LIMITS.put("pushmsg", JSON.stringify(msg), { expirationTtl: 86400 });
+  const subs = JSON.parse((await env.LIMITS.get("pushsubs")) || "[]"), keep = []; let sent = 0; const status = [];
+  for (const ep of subs) {
+    try {
+      const r = await fetch(ep, { method: "POST", headers: { Authorization: await vapidHeader(env, ep), TTL: "14400", Urgency: "normal", "Content-Length": "0" } });
+      status.push(r.status); if (r.status === 404 || r.status === 410) continue; keep.push(ep); if (r.ok) sent++;
+    } catch (e) { keep.push(ep); status.push("err"); }
+  }
+  if (keep.length !== subs.length) await env.LIMITS.put("pushsubs", JSON.stringify(keep));
+  return { ok: sent > 0, sent, devices: subs.length, status };
+}
+async function notifyHot(env, items) { // רק ציון 5, רק אירועים שעוד לא הודענו עליהם, מקסימום 2 ביום
+  const today = new Date().toLocaleDateString("en-CA", { timeZone: "Europe/Prague" }), ck = "pushcount:" + today;
+  let count = +(await env.LIMITS.get(ck)) || 0; const told = JSON.parse((await env.LIMITS.get("pushtold")) || "[]");
+  for (const e of items) {
+    if (count >= 2) break; if (e.score < 5 || e.date < today || told.includes(e.name)) continue;
+    const r = await sendPush(env, { title: "🔥 " + e.name, body: [e.date.slice(8) + "." + e.date.slice(5, 7), e.time, e.place, e.why].filter(Boolean).join(" · ").slice(0, 180) });
+    told.push(e.name); if (r.ok) count++;
+  }
+  await env.LIMITS.put(ck, String(count), { expirationTtl: 172800 }); await env.LIMITS.put("pushtold", JSON.stringify(told.slice(-60)));
 }
 
 export default {
@@ -87,7 +123,22 @@ export default {
       if (!env.APP_TOKEN || !same(req.headers.get("x-app-token") || "", env.APP_TOKEN)) return json({ error: "unauthorized" }, 401, cors);
       return json(await findEvents(env, true), 200, cors);
     }
-    if (req.method === "GET") return json({ ok: true, ready: !!(env.ANTHROPIC_API_KEY && env.APP_TOKEN), events: !!env.LIMITS }, 200, cors);
+    if (req.method === "GET" && path.endsWith("/push/latest")) { // הטקסט של ההתראה האחרונה, בשביל ה-service worker
+      const v = env.LIMITS ? await env.LIMITS.get("pushmsg") : null;
+      return new Response(v || "{}", { status: 200, headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store", ...cors } });
+    }
+    if (req.method === "POST" && (path.endsWith("/push/subscribe") || path.endsWith("/push/test"))) {
+      if (!env.APP_TOKEN || !same(req.headers.get("x-app-token") || "", env.APP_TOKEN)) return json({ error: "unauthorized" }, 401, cors);
+      if (!env.LIMITS) return json({ error: "no storage" }, 503, cors);
+      if (path.endsWith("/push/test")) return json(await sendPush(env, { title: "🔥 התראת בדיקה", body: "ככה תיראה התראה על אירוע עם ציון 5. הכול עובד." }), 200, cors);
+      let b; try { b = await req.json(); } catch (e) { return json({ error: "bad json" }, 400, cors); }
+      let u; try { u = new URL(String(b.endpoint || "")); } catch (e) { return json({ error: "bad endpoint" }, 400, cors); }
+      if (u.protocol !== "https:" || !PUSH_HOSTS.test(u.hostname) || u.href.length > 600) return json({ error: "bad endpoint" }, 400, cors); // רק שירותי Push מוכרים
+      const subs = JSON.parse((await env.LIMITS.get("pushsubs")) || "[]").filter(x => x !== u.href); subs.push(u.href);
+      await env.LIMITS.put("pushsubs", JSON.stringify(subs.slice(-3))); // עד 3 מכשירים
+      return json({ ok: true, devices: Math.min(3, subs.length) }, 200, cors);
+    }
+    if (req.method === "GET") return json({ ok: true, ready: !!(env.ANTHROPIC_API_KEY && env.APP_TOKEN), events: !!env.LIMITS, push: !!(env.VAPID_JWK && env.VAPID_PUBLIC) }, 200, cors);
     if (req.method !== "POST") return json({ error: "method" }, 405, cors);
     if (allow !== "*" && origin && origin !== allow) return json({ error: "origin" }, 403, cors);
     if (!env.ANTHROPIC_API_KEY || !env.APP_TOKEN) return json({ error: "השרת עוד לא הוגדר: חסרים ANTHROPIC_API_KEY ו-APP_TOKEN." }, 503, cors);

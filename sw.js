@@ -1,5 +1,5 @@
 /* service worker: האפליקציה, הנתונים והמפה של מרכז פראג עובדים גם בלי קליטה */
-const V = "prg-v4";
+const V = "prg-v5";
 const SHELL = ["./", "index.html", "styles.css", "data.js", "routes.js", "manifest.webmanifest",
   "js/config.js", "js/core.js", "js/map.js", "js/ui.js", "js/chat.js", "js/extras.js",
   "vendor/maplibre-gl.js", "vendor/maplibre-gl.css", "icons/icon.svg", "icons/icon-192.png", "icons/icon-512.png", "icons/icon-180.png"];
@@ -47,6 +47,19 @@ self.addEventListener("fetch", e => {
   if (u.hostname === "fonts.gstatic.com" || u.hostname === "upload.wikimedia.org") { e.respondWith(cacheFirst(req, MEDIA).catch(() => Response.error())); return; }
   if (u.hostname === "en.wikipedia.org") { e.respondWith(staleWhileRevalidate(req, MEDIA)); return; }
   // מזג אוויר, חיפוש, ניתוב וצ'אט: תמיד מהרשת (האפליקציה שומרת בעצמה מה שצריך)
+});
+
+// Web Push: ההתראה מגיעה בלי תוכן, ואת הטקסט מושכים מהשרת. אם אין קליטה באותו רגע, מציגים הודעה כללית.
+try { importScripts("js/config.js"); } catch (e) {}
+self.addEventListener("push", e => {
+  e.waitUntil((async () => {
+    let d = { title: "🔥 אירוע חדש בפראג", body: "פותחים את האפליקציה לפרטים" };
+    try {
+      const base = (typeof CONFIG !== "undefined" && CONFIG.chatUrl) || "";
+      if (base) { const ctl = new AbortController(), to = setTimeout(() => ctl.abort(), 6000); const r = await fetch(base + "/push/latest", { signal: ctl.signal, cache: "no-store" }); clearTimeout(to); const j = await r.json(); if (j && j.title) d = j; }
+    } catch (err) {}
+    await self.registration.showNotification(String(d.title).slice(0, 80), { body: String(d.body || "").slice(0, 200), icon: "icons/icon-192.png", badge: "icons/icon-192.png", tag: "prague-event", renotify: true, dir: "rtl", lang: "he" });
+  })());
 });
 
 self.addEventListener("notificationclick", e => {

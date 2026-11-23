@@ -282,6 +282,7 @@ function openSettings() {
   openModal(`<h2>⚙️ הגדרות</h2>
     ${sw("spont", "מצב ספונטני", "בלי שעות. התחנה הבאה היא הכי קרובה אליך")}
     ${sw("eco", "חיסכון בסוללה", "מיקום כל ~12 שניות בדיוק נמוך, בלי תלת-ממד ובלי אנימציות. נדלק לבד מתחת ל-20%")}
+    ${sw("push", "התראות על אירועים חמים", "רק אירועים עם ציון 5, עד 2 ביום. מגיע גם כשהאפליקציה סגורה")}
     ${sw("remind", "תזכורות", "20 דק' לפני טיסה, מסיבה או יציאה לשדה. עובד כשהאפליקציה פתוחה")}
     <label class="fld">מראה<select id="thSel"><option value="auto">אוטומטי (לפי הטלפון, וכהה אחרי השקיעה)</option><option value="light">בהיר</option><option value="dark">כהה</option></select></label>
     <div class="row wrap"><button class="btn" id="rsPlan">↩︎ התוכנית המקורית</button><button class="btn" id="rsMarks">לנקות סימוני "בוצע"</button></div>
@@ -290,6 +291,7 @@ function openSettings() {
   $$("#mbody [data-s]").forEach(c => c.onchange = async () => {
     settings[c.dataset.s] = c.checked; saveSet(); buzz(8);
     if (c.dataset.s === "eco") { restartGPS(); if (map.getLayer("b3d")) map.setLayoutProperty("b3d", "visibility", tilt() && !settings.eco ? "visible" : "none"); }
+    if (c.dataset.s === "push") { if (c.checked) { const r = await enablePush(); if (!r.ok) { settings.push = false; saveSet(); c.checked = false; toast(r.msg, 4200); } else toast("התראות האירועים פעילות ✓ שולח התראת בדיקה…", 3600); } else disablePush(); }
     if (c.dataset.s === "remind" && c.checked) { const ok = "Notification" in window && (await Notification.requestPermission()) === "granted"; if (!ok) { settings.remind = false; saveSet(); c.checked = false; toast("הטלפון לא אישר התראות. באייפון צריך קודם להוסיף למסך הבית"); } else toast("תזכורות פעילות ✓"); }
     renderAll();
   });
@@ -302,6 +304,23 @@ function openInstall() {
     <div class="card soft"><b>אנדרואיד (Chrome)</b><p class="desc">1. פותחים את הקישור ב-Chrome.<br>2. לוחצים על שלוש הנקודות למעלה.<br>3. בוחרים "הוספה למסך הבית" או "התקנת האפליקציה".<br>4. מאשרים.</p></div>
     <p class="sub">אחרי ההתקנה פותחים פעם אחת עם אינטרנט ונכנסים ל"עוד" ← "בלי אינטרנט", כדי שהכול יישמר במכשיר.</p>`, "tall");
 }
+
+/* ---------- Web Push: התראות על אירועים עם ציון 5 (עובד באייפון רק כשהאפליקציה במסך הבית) ---------- */
+function b64uToBytes(s) { const p = "=".repeat((4 - s.length % 4) % 4), b = atob((s + p).replace(/-/g, "+").replace(/_/g, "/")); return Uint8Array.from(b, c => c.charCodeAt(0)); }
+async function enablePush() {
+  if (!("serviceWorker" in navigator) || !("PushManager" in window) || !("Notification" in window)) return { ok: false, msg: /iPhone|iPad/.test(navigator.userAgent) ? "באייפון זה עובד רק אחרי \"הוסף למסך הבית\", ופותחים מהאייקון" : "הדפדפן הזה לא תומך בהתראות" };
+  if (!chatUrl() || !chatTok()) return { ok: false, msg: "קודם מחברים את Claude (\"עוד\" ← \"חיבור Claude\"), כי ההתראות יוצאות מאותו שרת" };
+  if (isOffline()) return { ok: false, msg: "צריך אינטרנט כדי להפעיל התראות" };
+  if ((await Notification.requestPermission()) !== "granted") return { ok: false, msg: "הטלפון לא אישר התראות. אפשר לשנות בהגדרות הטלפון" };
+  try {
+    const reg = await navigator.serviceWorker.ready, sub = (await reg.pushManager.getSubscription()) || (await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64uToBytes(CONFIG.vapidPublic) }));
+    const base = chatUrl().replace(/\/+$/, ""), h = { "content-type": "application/json", "x-app-token": chatTok() };
+    const r = await fetch(base + "/push/subscribe", { method: "POST", headers: h, body: JSON.stringify({ endpoint: sub.endpoint }) });
+    if (!r.ok) return { ok: false, msg: r.status === 401 ? "הסיסמה לא תואמת לזו שבשרת" : "השרת לא שמר את ההרשמה" };
+    fetch(base + "/push/test", { method: "POST", headers: h }).catch(() => {}); return { ok: true };
+  } catch (e) { return { ok: false, msg: "ההרשמה להתראות נכשלה. לנסות שוב עוד רגע" }; }
+}
+async function disablePush() { try { const reg = await navigator.serviceWorker.ready, sub = await reg.pushManager.getSubscription(); if (sub) await sub.unsubscribe(); } catch (e) {} toast("התראות האירועים כבויות"); }
 
 /* ---------- תזכורות ---------- */
 function checkReminders() {

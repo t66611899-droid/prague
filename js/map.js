@@ -275,7 +275,7 @@ function flyTo(l, zoom = 16.3) {
   if (REDUCED) map.jumpTo(o); else map.flyTo({ ...o, duration: 1300, essential: true });
 }
 /* רשת ביטחון: אם המפה נשארה רחוק מפראג (אנימציה שנעצרה באמצע, שגיאה), קופצים ישר לעיר */
-function ensurePrague(delay) { setTimeout(() => { try { if (!map) return; const c = map.getCenter(); if (Math.abs(c.lng - 14.42) > 0.9 || Math.abs(c.lat - 50.08) > 0.6 || map.getZoom() < 8.5) { map.stop(); flyDay(curDay, true); } } catch (e) { try { map.jumpTo({ center: [14.4213, 50.0875], zoom: 12.5, pitch: 0, bearing: 0 }); } catch (e2) {} } }, delay); }
+function ensurePrague(delay) { setTimeout(() => { try { if (!map || (typeof CN !== "undefined" && CN)) return; const c = map.getCenter(); if (Math.abs(c.lng - 14.42) > 0.9 || Math.abs(c.lat - 50.08) > 0.6 || map.getZoom() < 8.5) { map.stop(); flyDay(curDay, true); } } catch (e) { try { map.jumpTo({ center: [14.4213, 50.0875], zoom: 12.5, pitch: 0, bearing: 0 }); } catch (e2) {} } }, delay); }
 function openingFlight() { // מבט פתיחה: טיסה קצרה מעל העיר אל התחנה הבאה
   ensurePrague(4200);
   const L = live(curDay), s = (L.today && (L.next || L.cur)) || plan[curDay].stops.find(x => loc(x) && !isAirport(loc(x))), l = s && loc(s);

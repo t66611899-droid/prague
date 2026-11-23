@@ -55,10 +55,20 @@ function statusLine() {
   if (T.phase === "during") return `יום ${T.dayIdx + 1} מתוך ${plan.length}`;
   return "הטיול מאחוריך 🇨🇿";
 }
+/* שורת הסטטוס בפס העליון, בשתי שורות קצרות שלא נחתכות: "✈️ 7 ימים" ומתחת "ו-3 שע' לטיסה" */
+function statusParts() {
+  const T = tripNow(), w = T.w;
+  if (T.phase === "before" || (T.dayIdx === 0 && w.getTime() < FLIGHT)) {
+    const ms = FLIGHT - w.getTime(), d = Math.floor(ms / 864e5), h = Math.floor(ms % 864e5 / 36e5), mi = Math.floor(ms % 36e5 / 6e4);
+    return d > 0 ? ["✈️ " + (d === 1 ? "יום אחד" : d + " ימים"), `ו-${h} שע'`] : h > 0 ? [`✈️ ${h} שע'`, `ו-${mi} דק'`] : [`✈️ ${mi} דק'`, "להמראה"]; // ✈️ כבר אומר "לטיסה", והפס צר
+  }
+  if (T.phase === "during") return [`יום ${T.dayIdx + 1}`, `מתוך ${plan.length}`];
+  return ["הטיול", "מאחוריך 🇨🇿"];
+}
 function renderTop() {
   const w = wall();
   $("#ck").textContent = String(w.getUTCHours()).padStart(2, "0") + ":" + String(w.getUTCMinutes()).padStart(2, "0");
-  $("#st").textContent = statusLine();
+  const sp = statusParts(); $("#st").innerHTML = `<b>${sp[0]}</b><small>${sp[1]}</small>`; $("#st").setAttribute("aria-label", statusLine());
   const wx = typeof wxChip === "function" ? wxChip(plan[curDay].date) : ""; $("#wx").innerHTML = wx || "🌡️";
 }
 function renderDays() {

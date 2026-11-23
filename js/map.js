@@ -85,7 +85,7 @@ function buildVectorStyle(base, dark) {
   const P = PAL[dark ? "night" : "day"], st = JSON.parse(JSON.stringify(base)), out = [];
   for (const l of st.layers) {
     if (l.id === "natural_earth" || l.id === "building-3d" || /shield|one_way/.test(l.id)) continue;
-    if (l.type === "symbol" && l.layout && l.layout["text-field"] && /highway-name|label_|poi|water_name|waterway/.test(l.id)) l.layout["text-field"] = ["coalesce", ["get", "name"], ["get", "name:latin"]]; // שמות כמו על השלטים
+    if (l.type === "symbol" && l.layout && l.layout["text-field"] && /highway-name|label_|poi|water_name|waterway/.test(l.id)) l.layout["text-field"] = ["coalesce", ["get", "name:latin"], ["get", "name"]]; // שם לועזי/מקומי כמו על השלטים (חיפה = Hefa, לא עברית הפוכה)
     out.push(l);
     if (l.id === "water") out.push({ id: "water-bank", type: "line", source: "openmaptiles", "source-layer": "water", paint: { "line-color": P.bank, "line-width": ["interpolate", ["linear"], ["zoom"], 11, 1.5, 16, 5], "line-blur": 3, "line-opacity": 0.55 } }); // הצללה עדינה בגדות
     if (l.id === "building") out.push({ id: "b3d", type: "fill-extrusion", source: "openmaptiles", "source-layer": "building", minzoom: 14, filter: ["!", ["has", "hide_3d"]], layout: { visibility: settings.is3d && !saver ? "visible" : "none" },
@@ -129,6 +129,7 @@ async function initMap() {
   const libP = loadMapLib(); // במקביל לסגנון המפה
   baseStyle = QS.get("raster") === "1" ? null : await fetchBase(); isRaster = !baseStyle;
   await libP;
+  try { if (maplibregl.getRTLTextPluginStatus && maplibregl.getRTLTextPluginStatus() === "unavailable") maplibregl.setRTLTextPlugin(new URL("vendor/mapbox-gl-rtl-text.js" + (MAPLIB_V ? "?v=" + MAPLIB_V : ""), location.href).href, false); } catch (e) {} /* עברית/ערבית מימין לשמאל ובאותיות מחוברות. נטען מיד (מהמטמון), כדי שיעבוד גם בלי רשת */
   map = new maplibregl.Map({
     container: "map", style: baseStyle ? buildVectorStyle(baseStyle, mapDark) : rasterStyle(mapDark), center: [14.4185, 50.0855], zoom: 12.4, pitch: 0,
     attributionControl: false, maxPitch: 70, fadeDuration: 150
@@ -161,7 +162,7 @@ function addArrow() {
   }
 }
 function zoomClass() { const z = map.getZoom(), m = $("#map"); m.classList.toggle("vfar", z < 9.3); m.classList.toggle("far", z < 13.4); m.classList.toggle("mid", z < 14.8); }
-const buzz = p => { try { if (navigator.vibrate) navigator.vibrate(p); } catch (e) {} };
+const buzz = p => { try { if (navigator.vibrate) navigator.vibrate(p); else if (window.__haptic) window.__haptic(p); } catch (e) {} };
 
 /* מעבר יום/לילה הדרגתי: מחליפים צבעים במקום, בלי לטעון סגנון מחדש */
 function applyTheme() {
@@ -239,6 +240,7 @@ function poiFeatures() {
 }
 function drawPoi() { if (map && map.getSource("poi")) map.getSource("poi").setData({ type: "FeatureCollection", features: poiFeatures() }); }
 function poiTap(e) { // נגיעה ליד נקודה קטנה פותחת את הכרטיס שלה
+  const tg = e && e.originalEvent && e.originalEvent.target; if (tg && tg.closest && tg.closest(".maplibregl-marker")) return false; /* נגעו בסימן: הוא מטפל בזה, לא המפה */
   if (!map.getLayer("poi-dot")) return false; const p = e.point, fs = map.queryRenderedFeatures([[p.x - 16, p.y - 16], [p.x + 16, p.y + 16]], { layers: ["poi-dot"] }); if (!fs.length) return false;
   const [t, id] = fs[0].properties.ref.split(":"); buzz(6);
   if (t === "p") openPlace({ placeKey: id }); else if (t === "x") openPlace({ extraId: id }); else { const ev = eventsFor(plan[curDay].date).find(x => x.id === id); if (ev) openPlace({ near: ev }); }
@@ -316,6 +318,9 @@ const czName = p => p.cz || (p.q ? p.q.split(",")[0] : p.name);
 
 /* ---------- GPS ---------- */
 let watchId = null, lastProc = 0, lowPower = false, lastMove = { t: 0, p: null }, userWantsFollow = false;
+/* רחוק מפראג (יותר מ-300 ק"מ, למשל עוד בבית): המפה נשארת על פראג, המיקום לא מזיז אותה */
+const PRG_C = { lat: 50.0875, lng: 14.4213 };
+const gpsNear = () => !!(gps && hav(gps, PRG_C) < 300000);
 function startGPS(userTap) {
   const f = /^(-?[\d.]+),(-?[\d.]+)$/.exec(QS.get("gps") || "");
   if (f) { settings.gps = true; onPos({ coords: { latitude: +f[1], longitude: +f[2], accuracy: 18 } }); return; }
@@ -351,6 +356,7 @@ function onPos(pos) {
   } else meMarker.setLngLat([gps.lng, gps.lat]);
   drawAcc(); trackPoint(); autoArrive(); if (typeof flowOnPos === "function") flowOnPos();
   if (first && userWantsFollow) { follow = true; userWantsFollow = false; }
+  if (follow && !gpsNear()) { follow = false; }
   if (follow && !playRaf) map.easeTo({ center: [gps.lng, gps.lat], zoom: Math.max(map.getZoom(), 15.5), duration: REDUCED ? 0 : 700, padding: mapPad() });
   updateFab(); if (typeof renderLive === "function") renderLive();
 }
@@ -361,6 +367,7 @@ function drawAcc() {
 function locateTap() {
   askCompass();
   if (!gps) { userWantsFollow = true; startGPS(true); toast("מחפש אותך…"); return; }
+  if (!follow && gps && !gpsNear()) { toast("אתה רחוק מפראג, אז המפה נשארת על פראג. בפראג היא תעקוב אחריך", 3600); flyDay(curDay); return; }
   if (follow) { follow = false; toast("המעקב כבוי. המפה חופשית"); }
   else { follow = true; map.flyTo({ center: [gps.lng, gps.lat], zoom: Math.max(map.getZoom(), 16), ...camOpts(), padding: mapPad(), duration: REDUCED ? 0 : 900 }); }
   updateFab();

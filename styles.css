@@ -931,3 +931,13 @@ body.replay > :not(#map):not(#grp):not(#gv){visibility:hidden!important}
 @media (max-width:380px){#top{gap:4px;padding-inline-start:9px}#top .tbtn,#top .tbtn.now{padding:0 7px;font-size:.78rem}#top .tbtn.sos{padding:0 6px}.clock b{font-size:1.3rem}#st b{font-size:.8rem}#st small{font-size:.66rem}}
 /* WebKit מצייר מעט רחב יותר: עד 430px השעון קצת קטן כדי ש"7 ימים" לא ייחתך */
 @media (max-width:430px){.clock b{font-size:1.38rem}#top .tbtn,#top .tbtn.now{padding:0 8px}#st{min-width:3.6em}}
+
+/* ---------- תחושת אפליקציה: בלי זום, בלי הבהובים, בלי בחירת טקסט בטעות ---------- */
+html{touch-action:manipulation;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+input,select,textarea{font-size:max(16px,1em)!important}
+button,a,.btn,label,summary,[data-act],[data-q],[data-c],[data-in],.day,.st-main,.tbtn,.fab,#grab,#nextCard,.menu button,.menu-top button,#quick button{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+#map,#map .maplibregl-canvas-container{touch-action:none}
+#sheet,#sheetBody,.mbox{overscroll-behavior:contain}
+#sheetBody,.mbox{touch-action:pan-y}
+.st-main{touch-action:pan-y}
+img{-webkit-user-drag:none}

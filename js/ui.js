@@ -56,6 +56,12 @@ function statusLine() {
   return "הטיול מאחוריך 🇨🇿";
 }
 /* שורת הסטטוס בפס העליון, בשתי שורות קצרות שלא נחתכות: "✈️ 7 ימים" ומתחת "ו-3 שע' לטיסה" */
+/* "בעוד…" בגיליון: אותו חישוב כמו בפס העליון. יום הטיסה = הזמן עד ההמראה; יום אחר = הזמן עד תחילת היום */
+function untilText(day) {
+  try { const T = tripNow(), w = T.w.getTime(), d0 = Date.UTC(...day.date.split("-").map((v, i) => i === 1 ? v - 1 : +v)), target = day.date === plan[0].date ? FLIGHT : d0;
+    const ms = target - w; if (ms <= 0) return "היום"; const dd = Math.floor(ms / 864e5), hh = Math.floor(ms % 864e5 / 36e5);
+    return dd >= 1 ? `בעוד ${dd === 1 ? "יום" : dd + " ימים"} ו-${hh} שע'` : `בעוד ${hh} שע'`; } catch (e) { return ""; }
+}
 function statusParts() {
   const T = tripNow(), w = T.w;
   if (T.phase === "before" || (T.dayIdx === 0 && w.getTime() < FLIGHT)) {
@@ -108,7 +114,7 @@ function renderNext() {
     top = `<div class="nx-top"><span class="nx-k">יום ${curDay + 1}</span><span class="nx-when">זהו להיום</span></div><div class="nx-row"><div class="nx-main static"><span class="nx-ic">🌙</span><span class="nx-tx"><b>אין עוד תחנות</b><small>לנוח זה גם חלק מהטיול</small></span></div><button class="btn pri nx-go" data-act="summary">סיכום</button></div>${T.night ? homeRow() : ""}`;
   } else {
     const f = day.stops[0], ms = x => Date.UTC(...x.split("-").map((v, i) => i === 1 ? v - 1 : +v)), days = Math.round((ms(day.date) - ms(T.date)) / 864e5);
-    top = `<div class="nx-top"><span class="nx-k">יום ${curDay + 1} · ${dd.dow} ${dd.dm}</span><span class="nx-when">${L.past ? "מאחוריך" : days === 1 ? "מחר" : `בעוד ${days} ימים`}</span></div>
+    top = `<div class="nx-top"><span class="nx-k">יום ${curDay + 1} · ${dd.dow} ${dd.dm}</span><span class="nx-when">${L.past ? "מאחוריך" : untilText(day)}</span></div>
       <div class="nx-row"><div class="nx-main static"><span class="nx-ic" style="--c:${DAYC[curDay]}">${sinfo(f).ic}</span><span class="nx-tx"><b>${bd(day.title)}</b><small>${day.stops.length} תחנות · מתחילים ב-${fmtT(f.m)}</small></span></div>
       ${L.past ? `<button class="btn pri nx-go" data-act="summary">סיכום</button>` : `<button class="btn pri nx-go" data-act="play">▶ נגן</button>`}</div>`;
     more = `<div class="nx-btns"><button class="btn" data-act="today">☀️ היום שלי</button><button class="btn" data-act="pack">🎒 מה לקחת</button></div>`;
@@ -163,7 +169,7 @@ function goNow() {
   if (T.phase === "before") { selectDay(0); toast("הטיול עוד לא התחיל. הנה היום הראשון"); return; }
   if (T.phase === "after") { selectDay(plan.length - 1); toast("הטיול כבר מאחוריך"); return; }
   selectDay(T.dayIdx, true); const L = live(T.dayIdx);
-  if (gps) { follow = true; map.flyTo({ center: [gps.lng, gps.lat], zoom: 15.8, ...camOpts(), padding: mapPad() }); updateFab(); }
+  if (gps && gpsNear()) { follow = true; map.flyTo({ center: [gps.lng, gps.lat], zoom: 15.8, ...camOpts(), padding: mapPad() }); updateFab(); }
   else if (L.next && loc(L.next)) flyTo(loc(L.next), 15.5); else if (L.cur && loc(L.cur)) flyTo(loc(L.cur), 15.5);
   const li = L.next && $(`#list .st[data-id="${L.next.id}"]`); if (li && sheetState === "full") li.scrollIntoView({ block: "center", behavior: REDUCED ? "auto" : "smooth" });
 }

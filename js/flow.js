@@ -61,7 +61,7 @@ function renderNext() {
   } else {
     if (!day.stops.length) { $("#nextCard").innerHTML = `<div class="nx-top"><span class="nx-k">יום ${curDay + 1} · ${dd.dow} ${dd.dm}</span></div><div class="nx-row"><div class="nx-main static"><span class="nx-ic">🗺️</span><span class="nx-tx"><b>יום פתוח</b><small>אין כאן כלום עדיין. אפשר להוסיף, או סתם להסתובב</small></span></div><button class="btn pri nx-go" data-act="what">מה עכשיו?</button></div>`; $("#nxMore").innerHTML = ""; return; }
     const fs = day.stops[0], ms = x => Date.UTC(...x.split("-").map((v, i) => i === 1 ? v - 1 : +v)), days = Math.round((ms(day.date) - ms(T.date)) / 864e5);
-    top = `<div class="nx-top"><span class="nx-k">יום ${curDay + 1} · ${dd.dow} ${dd.dm}</span><span class="nx-when">${L.past ? "מאחוריך" : days === 1 ? "מחר" : `בעוד ${days} ימים`}</span></div>
+    top = `<div class="nx-top"><span class="nx-k">יום ${curDay + 1} · ${dd.dow} ${dd.dm}</span><span class="nx-when">${L.past ? "מאחוריך" : untilText(day)}</span></div>
       <div class="nx-row"><div class="nx-main static"><span class="nx-ic" style="--c:${DAYC[curDay]}">${sinfo(fs).ic}</span><span class="nx-tx"><b>${bd(day.title)}</b><small>${day.stops.length} רעיונות · מתחילים ב${partOfDay(fs.m)}</small></span></div>
       ${L.past ? `<button class="btn pri nx-go" data-act="summary">סיכום</button>` : `<button class="btn pri nx-go" data-act="play">▶ נגן</button>`}</div>`;
     more = `<div class="nx-btns"><button class="btn" data-act="today">☀️ היום שלי</button><button class="btn" data-act="pack">🎒 מה לקחת</button></div>`;

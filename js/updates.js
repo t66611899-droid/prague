@@ -34,10 +34,11 @@ async function loadPid() {
   try { const j = await fetchJson(CONFIG.pidUrl, 9000); if (Array.isArray(j.items)) { pid = { t: Date.now(), items: j.items.slice(0, 120) }; LS.set("pid", pid); refreshUpdates(); } } catch (e) {}
 }
 function pidRelevant() {
-  if (!pid) return []; const T = tripNow(), now = Date.now(), di = T.dayIdx >= 0 ? T.dayIdx : curDay, air = plan[di].stops.some(s => s.at === "airport");
+  if (!pid) return []; const T = tripNow(), now = Date.now(); if (T.phase !== "during") return []; /* לפני הטיול אין מה להתריע */
+  const di = T.dayIdx, air = plan[di].stops.some(s => s.at === "airport" && (s.m == null || s.m >= T.min - 30));
   return pid.items.filter(x => {
     const lines = (x.lines || []).filter(l => MY_LINES.includes(l)); if (!lines.length) return false;
-    const a = x.from ? Date.parse(x.from) : 0, b = x.to ? Date.parse(x.to) : Infinity; if (isNaN(a) || (b && b < now) || a > now + 36 * 36e5) return false;
+    const a = x.from ? Date.parse(x.from) : 0, b = x.to ? Date.parse(x.to) : Infinity; if (isNaN(a) || (b && b < now) || a > now + 12 * 36e5) return false; /* רק מה שבתוקף עכשיו או ב-12 השעות הקרובות */
     x._lines = lines; x._home = lines.some(l => HOTEL_LINES.includes(l)); x._air = air && lines.some(l => AIRPORT_LINES.includes(l)); return true;
   }).sort((p, q) => (q._air ? 2 : q._home ? 1 : 0) - (p._air ? 2 : p._home ? 1 : 0) || (q.live ? 1 : 0) - (p.live ? 1 : 0)).slice(0, 6);
 }

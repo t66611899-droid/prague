@@ -15,6 +15,12 @@ const Gal = (() => {
 .gc3.ls{grid-template-columns:1fr 1fr;grid-template-rows:2fr 1fr;aspect-ratio:1/1}.gc3.ls .gc-i:first-child{grid-row:auto;grid-column:1/3}
 .gc4{grid-template-columns:2.2fr 1fr;grid-template-rows:1fr 1fr 1fr;aspect-ratio:4/3}.gc4 .gc-i:first-child{grid-row:1/4}
 .gc4.ls{grid-template-columns:1fr 1fr 1fr;grid-template-rows:2.2fr 1fr;aspect-ratio:1/1}.gc4.ls .gc-i:first-child{grid-row:auto;grid-column:1/4}
+.gc-i video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .4s;pointer-events:none}
+.gc-i video.on{opacity:1}
+.gc-dur{position:absolute;bottom:8px;inset-inline-start:8px;background:rgba(0,0,0,.6);color:#fff;border-radius:11px;padding:3px 9px;font:600 12px/1.5 inherit;pointer-events:none;direction:ltr}
+#gv .gv-z video{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;pointer-events:none;background:transparent}
+#gv .gv-play{position:absolute;left:50%;top:50%;width:76px;height:76px;margin:-38px;border-radius:50%;background:rgba(0,0,0,.5);color:#fff;font-size:30px;display:grid;place-items:center;pointer-events:none;opacity:0;transition:opacity .2s;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+#gv .gv-play.show{opacity:1}
 .gc-more{position:absolute;bottom:8px;inset-inline-end:8px;background:rgba(0,0,0,.62);color:#fff;border-radius:11px;padding:3px 10px;font:600 13px/1.5 inherit;pointer-events:none}
 .rv{opacity:.001;transform:translate3d(0,22px,0) scale(.985)}
 .rv.in{opacity:1;transform:none;transition:opacity .55s ease,transform .7s cubic-bezier(.2,.8,.2,1)}
@@ -31,6 +37,7 @@ const Gal = (() => {
 #gv .gv-x{position:absolute;top:calc(env(safe-area-inset-top,0px) + 10px);right:12px;width:46px;height:46px;border-radius:50%;border:0;background:rgba(40,40,40,.6);color:#fff;font-size:18px;pointer-events:auto;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
 #gv .gv-n{position:absolute;top:calc(env(safe-area-inset-top,0px) + 22px);left:0;right:0;text-align:center;font:600 14px/1 inherit;text-shadow:0 1px 4px rgba(0,0,0,.6);font-variant-numeric:tabular-nums}
 #gv .gv-c{position:absolute;left:0;right:0;bottom:0;padding:44px 20px calc(env(safe-area-inset-bottom,0px) + 22px);background:linear-gradient(transparent,rgba(0,0,0,.72));direction:rtl;text-align:start;font-size:15px;line-height:1.45}
+#gv .gv-c .vcap{display:block;font-weight:600;font-size:16px;margin-bottom:4px}
 #gv .gv-c b{display:block;font-size:13px;font-weight:500;opacity:.8;margin-top:3px}
 #gv .gv-c:empty{display:none}
 #grp{position:fixed;inset:0;z-index:9990;color:#fff;direction:rtl;font-family:inherit;user-select:none;-webkit-user-select:none;overflow:hidden}
@@ -80,7 +87,15 @@ const Gal = (() => {
   function collage(imgs, max = 4) {
     const n = Math.min(max, imgs.length); if (!n) return ""; const a0 = imgs[0].ar || 1.333, ls = a0 > 1.2;
     const cls = n === 1 ? "gc1" : n === 2 ? "gc2" + (imgs.slice(0, 2).every(i => (i.ar || 1.3) < 0.95) ? " pt" : "") : (n === 3 ? "gc3" : "gc4") + (ls ? " ls" : "");
-    return `<div class="gc ${cls}"${n === 1 ? ` style="--ar:${clamp(a0, 0.8, 1.78).toFixed(3)}"` : ""}>${imgs.slice(0, n).map(i => `<button class="gc-i" data-g="${esc(i.gid)}" aria-label="להגדיל תמונה"${i.ph ? ` style="background-image:url(${esc(i.ph)})"` : ""}><img ${i.src ? `src="${esc(i.src)}"` : ""} alt="" loading="lazy" decoding="async"></button>`).join("")}${imgs.length > n ? `<span class="gc-more">+${imgs.length - n}</span>` : ""}</div>`;
+    return `<div class="gc ${cls}"${n === 1 ? ` style="--ar:${clamp(a0, 0.8, 1.78).toFixed(3)}"` : ""}>${imgs.slice(0, n).map(i => `<button class="gc-i${i.vid ? " gc-v" : ""}" data-g="${esc(i.gid)}" aria-label="${i.vid ? "לנגן סרטון" : "להגדיל תמונה"}"${i.ph ? ` style="background-image:url(${esc(i.ph)})"` : ""}><img ${i.src ? `src="${esc(i.src)}"` : ""} alt="" loading="lazy" decoding="async">${i.vid ? `<video muted playsinline loop preload="none"${i.vsrc ? ` data-v="${esc(i.vsrc)}"` : ""}></video><span class="gc-dur">▶ ${i.dur ? "0:" + String(Math.round(i.dur)).padStart(2, "0") : ""}</span>` : ""}</button>`).join("")}${imgs.length > n ? `<span class="gc-more">+${imgs.length - n}</span>` : ""}</div>`;
+  }
+  let apIO = null;
+  function autoplay(root) {
+    if (!("IntersectionObserver" in window)) return;
+    if (!apIO) apIO = new IntersectionObserver(es => es.forEach(x => { const v = x.target;
+      if (x.isIntersecting && x.intersectionRatio >= 0.55 && !document.getElementById("gv") && !document.getElementById("grp")) { if (!v.getAttribute("src") && v.dataset.v) v.src = v.dataset.v; if (v.getAttribute("src")) v.play().catch(() => {}); }
+      else if (!v.paused) v.pause(); }), { threshold: [0, 0.55, 0.9] });
+    (root || document).querySelectorAll(".gc-v video").forEach(v => { if (v._ap) return; v._ap = 1; v.muted = true; v.addEventListener("playing", () => v.classList.add("on")); v.addEventListener("error", () => v.classList.remove("on")); apIO.observe(v); });
   }
   function reveal(root, sel) {
     const els = [...(root || document).querySelectorAll(sel)].filter(e => !e.classList.contains("rv")); if (!els.length) return;
@@ -105,8 +120,12 @@ const Gal = (() => {
     const setTr = x => { V.tx = x; tr.style.transform = `translate3d(${x}px,0,0)`; };
     const setZ = (anim) => { const el = zs[V.idx]; el.style.transition = anim ? "transform .28s cubic-bezier(.2,.8,.2,1)" : "none"; el.style.transform = `translate3d(${V.z.x}px,${V.z.y}px,0) scale(${V.z.s})`; };
     const load = i => { if (i < 0 || i >= items.length) return; const it = items[i], img = zs[i].querySelector("img"); if (it._l) return; it._l = 1;
+      if (it.vid) { Promise.resolve(typeof it.load === "function" ? it.load() : it.src).then(u => { if (!u || !V) return; const v = document.createElement("video"); v.playsInline = true; v.setAttribute("playsinline", ""); v.loop = true; v.preload = "auto"; v.src = u;
+          v.addEventListener("loadedmetadata", () => { if (!it.ar && v.videoWidth) { it.ar = v.videoWidth / v.videoHeight; const s = size(i); zs[i].style.width = s.fw + "px"; zs[i].style.height = s.fh + "px"; } });
+          zs[i].appendChild(v); const pl = document.createElement("div"); pl.className = "gv-play"; pl.textContent = "▶"; zs[i].appendChild(pl);
+          v.addEventListener("pause", () => pl.classList.add("show")); v.addEventListener("play", () => pl.classList.remove("show")); if (V && V.idx === i) v.play().catch(() => pl.classList.add("show")); }).catch(() => { it._l = 0; }); return; }
       Promise.resolve(typeof it.load === "function" ? it.load() : it.src).then(u => { if (!u || !V) return; img.onload = () => { img.classList.add("ld"); if (!it.ar && img.naturalWidth) { it.ar = img.naturalWidth / img.naturalHeight; const s = size(i); zs[i].style.width = s.fw + "px"; zs[i].style.height = s.fh + "px"; } }; img.src = u; }).catch(() => { it._l = 0; }); };
-    const ui = () => { const it = items[V.idx]; root.querySelector(".gv-n").textContent = items.length > 1 ? `${V.idx + 1} / ${items.length}` : ""; root.querySelector(".gv-c").innerHTML = it.cap || ""; load(V.idx); load(V.idx + 1); load(V.idx - 1); if (opts.onChange) opts.onChange(V.idx, it); };
+    const ui = () => { const it = items[V.idx]; root.querySelector(".gv-n").textContent = items.length > 1 ? `${V.idx + 1} / ${items.length}` : ""; root.querySelector(".gv-c").innerHTML = it.cap || ""; zs.forEach((z, j) => { const v = z.querySelector("video"); if (v) { if (j === V.idx) v.play().catch(() => {}); else v.pause(); } }); load(V.idx); load(V.idx + 1); load(V.idx - 1); if (opts.onChange) opts.onChange(V.idx, it); };
     const thumbOf = i => { const g = items[i].gid; if (!g) return null; const el = document.querySelector(`.gc-i[data-g="${CSS.escape(g)}"]`); if (!el) return null; const r = el.getBoundingClientRect(); return r.width && r.bottom > 0 && r.top < H ? { el, r } : null; };
     const flip = i => { const t = thumbOf(i); if (!t) return null; const { fw, fh } = size(i), r = t.r, sc = Math.max(r.width / fw, r.height / fh), vw = r.width / sc, vh = r.height / sc;
       return { el: t.el, tf: `translate3d(${r.left + r.width / 2 - W / 2}px,${r.top + r.height / 2 - H / 2}px,0) scale(${sc})`, clip: `inset(${Math.max(0, (fh - vh) / 2)}px ${Math.max(0, (fw - vw) / 2)}px round ${12 / sc}px)` }; };
@@ -118,7 +137,7 @@ const Gal = (() => {
     requestAnimationFrame(() => { bg.style.opacity = "1"; }); setTimeout(() => { bg.style.opacity = "1"; }, 60);
     const go = (n, v0) => { n = clamp(n, 0, items.length - 1); if (V.stop) V.stop(); if (n !== V.idx) { V.z = { s: 1, x: 0, y: 0 }; setZ(true); if (V.hid) { V.hid.style.visibility = ""; V.hid = null; } V.idx = n; ui(); } V.stop = spring(V.tx, -n * P, v0, setTr); };
     V.go = go;
-    V.close = (instant) => { if (!V) return; const v = V; V = null; removeEventListener("keydown", key); document.documentElement.style.overflow = v.prevOv; if (v.stop) v.stop();
+    V.close = (instant) => { if (!V) return; const v = V; V = null; zs.forEach(z => { const vd = z.querySelector("video"); if (vd) { vd.pause(); vd.removeAttribute("src"); vd.load(); } }); removeEventListener("keydown", key); document.documentElement.style.overflow = v.prevOv; if (v.stop) v.stop();
       const end = () => { if (v.hid) v.hid.style.visibility = ""; root.remove(); if (opts.onClose) opts.onClose(v.idx); }; if (instant) return end();
       const z = zs[v.idx], fl = flip(v.idx); root.classList.add("noui"); bg.style.transition = "opacity .3s"; bg.style.opacity = "0";
       if (fl) { if (v.hid && v.hid !== fl.el) v.hid.style.visibility = ""; fl.el.style.visibility = "hidden"; v.hid = fl.el; z.style.transition = "transform .32s cubic-bezier(.3,.8,.3,1),clip-path .32s cubic-bezier(.3,.8,.3,1)"; z.style.clipPath = "inset(0px 0px round 0px)"; void z.offsetWidth; z.style.transform = fl.tf; z.style.clipPath = fl.clip; }
@@ -148,7 +167,7 @@ const Gal = (() => {
       else if (was.m === "pan") { const b = bounds(); V.z.x = clamp(V.z.x, -b.mx, b.mx); V.z.y = clamp(V.z.y, -b.my, b.my); setZ(true); }
       else if (Math.abs(dx) < 8 && Math.abs(dy) < 8 && performance.now() - was.t0 < 300) { const now = performance.now(); clearTimeout(tapT);
         if (now - lastTap < 300) { lastTap = 0; if (V.z.s > 1.05) V.z = { s: 1, x: 0, y: 0 }; else { const s = 2.6; V.z = { s, x: (W / 2 - e.clientX) * (s - 1), y: (H / 2 - e.clientY) * (s - 1) }; const b = bounds(); V.z.x = clamp(V.z.x, -b.mx, b.mx); V.z.y = clamp(V.z.y, -b.my, b.my); } setZ(true); }
-        else { lastTap = now; tapT = setTimeout(() => { if (V) root.classList.toggle("noui"); }, 310); } } };
+        else { lastTap = now; const cv = zs[V.idx].querySelector("video"); if (cv) { cv.paused ? cv.play().catch(() => {}) : cv.pause(); return; } tapT = setTimeout(() => { if (V) root.classList.toggle("noui"); }, 310); } } };
     root.addEventListener("pointerup", up); root.addEventListener("pointercancel", up);
     root.addEventListener("wheel", e => { e.preventDefault(); if (Math.abs(e.deltaX) > 30 && !V.stop) go(V.idx + (e.deltaX > 0 ? 1 : -1), 0); }, { passive: false });
   }
@@ -186,5 +205,5 @@ const Gal = (() => {
     run(0);
   }
   function stopReplay() { if (!R) return; const r = R; R = null; r.tok++; r.el.remove(); document.body.classList.remove("replay"); if (r.o.map) setTimeout(() => r.o.map.resize(), 30); if (r.o.onClose) r.o.onClose(); }
-  return { open, close, collage, reveal, scan, replay, stopReplay, spring };
+  return { open, close, collage, reveal, scan, replay, stopReplay, spring, autoplay };
 })();

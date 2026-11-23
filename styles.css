@@ -875,3 +875,32 @@ body.replay > :not(#map):not(#grp):not(#gv){visibility:hidden!important}
 .dc-prog .arr-bar{height:10px;border-radius:5px;margin:0 0 6px}
 .dc-prog .arr-bar i{background:var(--blue);transition:width .2s linear}
 .dc-prog small{color:var(--mut);font-size:.84rem;font-variant-numeric:tabular-nums}
+
+/* ---------- יומן: קבצים, כיתובים, אחסון, אנימציית שליחה ---------- */
+.jr-items{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-top:10px}
+.jr-items:empty{display:none}
+.jr-it{position:relative;background:var(--card2);border-radius:14px;overflow:hidden;display:flex;flex-direction:column}
+.jr-it img,.jr-it video{width:100%;aspect-ratio:1;object-fit:cover;display:block;background:var(--line)}
+.jr-it input{border:0;border-top:1px solid var(--line);background:var(--card);padding:9px 10px;font:inherit;font-size:.86rem;color:var(--ink);min-height:44px;border-radius:0}
+.jr-it.bad{box-shadow:inset 0 0 0 3px var(--red)}
+.jr-x{position:absolute;top:6px;inset-inline-end:6px;width:34px;height:34px;border-radius:50%;border:0;background:rgba(0,0,0,.55);color:#fff;font-size:.9rem}
+.jr-v{position:absolute;top:8px;inset-inline-start:8px;background:rgba(0,0,0,.55);color:#fff;border-radius:9px;padding:2px 7px;font-size:.8rem}
+.bad-t{color:var(--red-ink)}
+.jm-caps{list-style:none;margin:0 0 6px;padding:0;font-size:.88rem;color:var(--mut);display:flex;flex-direction:column;gap:2px}
+.jr-use{background:var(--card2);border-radius:var(--r1);padding:10px 12px;margin:12px 0 0}
+.jr-use div{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:.82rem;color:var(--mut)}
+.jr-use b{color:var(--ink);font-size:.86rem;font-weight:600}
+.jr-use i{display:flex;height:6px;border-radius:3px;background:var(--line);overflow:hidden;margin-top:7px}
+.jr-use s{display:block;height:100%;background:var(--ok);text-decoration:none}
+.jr-use s.p{background:color-mix(in srgb,var(--ok) 40%,transparent)}
+.jr-use.warn s{background:var(--must)}.jr-use.bad s{background:var(--red)}
+.jr-use small{display:block;margin-top:6px;font-size:.8rem;color:var(--red-ink)}
+.jr-fly{position:fixed;z-index:9500;pointer-events:none;border-radius:18px;overflow:hidden;box-shadow:0 18px 40px rgba(0,0,0,.35);transform-origin:0 0;will-change:transform}
+.jr-fly img{width:100%;height:100%;object-fit:cover;display:block}
+.jr-fly b{position:absolute;left:50%;top:50%;width:64px;height:64px;margin:-32px;border-radius:50%;background:var(--ok);color:#fff;font-size:34px;display:grid;place-items:center;transform:scale(0);opacity:0}
+.jr-fly.done b{animation:jrok .9s cubic-bezier(.3,1.6,.5,1) forwards}
+.jr-fly.done{animation:jrfade .9s ease forwards}
+@keyframes jrok{30%{transform:scale(1.15);opacity:1}60%{transform:scale(1);opacity:1}100%{transform:scale(1);opacity:0}}
+@keyframes jrfade{0%,60%{opacity:1}100%{opacity:0}}
+.jb.pop{animation:jbpop .6s cubic-bezier(.3,1.6,.5,1)}
+@keyframes jbpop{40%{transform:scale(1.18)}}

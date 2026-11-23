@@ -12,16 +12,16 @@ async function impDecrypt(payload, pin) {
   const key = await crypto.subtle.deriveKey({ name: "PBKDF2", salt, iterations: IMP_ITER, hash: "SHA-256" }, base, { name: "AES-GCM", length: 256 }, false, ["decrypt"]);
   return JSON.parse(new TextDecoder().decode(await crypto.subtle.decrypt({ name: "AES-GCM", iv }, key, ct)));
 }
-const IMP_LBL = { rc: "קוד דלת הקבלה", ec: "קוד כניסת החדרים", h1: "חירום מלון 1", h2: "חירום מלון 2", room: "מספר החדר", ins: "מוקד הביטוח", pol: "מספר פוליסה" };
+const IMP_LBL = { chatTok: "🔑 סיסמת היומן להורים", rc: "קוד דלת הקבלה", ec: "קוד כניסת החדרים", h1: "חירום מלון 1", h2: "חירום מלון 2", room: "מספר החדר", ins: "מוקד הביטוח", pol: "מספר פוליסה" };
 function impRows(d) {
   const r = [], m = d.me || {}; if (m.hotel && m.hotel.q) r.push(["🏨 כתובת המלון", m.hotel.q]);
-  Object.keys(IMP_LBL).forEach(k => { if (m[k]) r.push([IMP_LBL[k], m[k]]); });
+  Object.keys(IMP_LBL).forEach(k => { if (m[k]) r.push([IMP_LBL[k], k === "chatTok" ? "•".repeat(10) + " (מוסתרת)" : m[k]]); });
   (m.contactsAll || []).forEach(c => { if (c && c.p) r.push(["📞 " + (c.n || "איש קשר"), c.p]); });
   if (m.notes) r.push(["📝 מספרי הזמנה והערות", m.notes.split("\n").filter(Boolean).length + " שורות"]);
   return r;
 }
 function impApply(d) {
-  const m = d.me || {}; ["rc", "ec", "h1", "h2", "room", "ins", "pol"].forEach(k => { if (m[k]) me[k] = String(m[k]); });
+  const m = d.me || {}; ["chatTok", "rc", "ec", "h1", "h2", "room", "ins", "pol"].forEach(k => { if (m[k]) me[k] = String(m[k]); }); if (m.chatTok) { LS.del("jrErr"); setTimeout(() => { try { flushJournal(); pullReactions(true); } catch (e) {} }, 800); }
   if (m.hotel && typeof m.hotel.lat === "number" && typeof m.hotel.lng === "number") me.hotel = { lat: m.hotel.lat, lng: m.hotel.lng, q: String(m.hotel.q || "") };
   if (Array.isArray(m.contactsAll) && m.contactsAll.length) { me.contactsAll = [0, 1, 2].map(i => ({ n: String((m.contactsAll[i] || {}).n || ""), p: String((m.contactsAll[i] || {}).p || "") })); me.contacts = me.contactsAll.filter(c => waNum(c.p).length >= 9); }
   if (m.notes) { const cur = (me.notes || "").trim(); me.notes = !cur ? m.notes : cur.includes(m.notes.trim()) ? cur : cur + "\n" + m.notes; }

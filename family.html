@@ -67,6 +67,20 @@ article.act{box-shadow:0 0 0 2.5px var(--red),0 10px 28px rgba(10,14,34,.16)}
 #who button{min-height:58px;width:100%;margin-top:8px;border:0;border-radius:18px;background:var(--card2);font-size:1.1rem;font-weight:600}
 .pm{width:40px;height:40px;border-radius:50%;background:var(--red) center/cover;color:#fff;border:3px solid #fff;display:grid;place-items:center;font:700 13px Rubik,sans-serif;box-shadow:0 3px 10px rgba(0,0,0,.4);cursor:pointer;transition:transform .35s cubic-bezier(.3,1.5,.5,1),border-color .3s}
 .pm.act{transform:scale(1.32);border-color:var(--red);z-index:3}
+.caps{list-style:none;margin:0 0 6px;padding:0;color:var(--mut);font-size:.92rem;display:flex;flex-direction:column;gap:3px}
+.tag-new{position:absolute;z-index:2;top:12px;inset-inline-start:12px;background:var(--red);color:#fff;font:700 .78rem/1 Rubik,sans-serif;font-style:normal;padding:6px 10px;border-radius:12px;box-shadow:0 4px 12px rgba(212,42,51,.4);animation:tagIn .6s cubic-bezier(.3,1.6,.5,1) both .3s}
+article.nw{box-shadow:0 0 0 2px rgba(212,42,51,.55),0 10px 28px rgba(212,42,51,.18)}
+article.nw.rv.in{animation:nwIn .9s cubic-bezier(.2,.8,.2,1)}
+@keyframes tagIn{from{transform:scale(0) rotate(-12deg)}to{transform:none}}
+@keyframes nwIn{0%{transform:translate3d(0,26px,0) scale(.96)}60%{transform:translate3d(0,-4px,0) scale(1.01)}100%{transform:none}}
+#gv .gv-c .vcap{display:block;font-weight:600;font-size:16px;margin-bottom:4px}
+#intro{position:fixed;inset:0;z-index:9999;display:grid;place-items:center;text-align:center;color:#fff;background:radial-gradient(120% 90% at 50% 30%,#27306a 0%,#0c1536 60%,#070b1c 100%);transition:opacity .8s ease,transform .8s ease}
+#intro.out{opacity:0;transform:scale(1.06);pointer-events:none}
+#intro span{font-size:3.4rem;display:block;animation:introPop 1s cubic-bezier(.3,1.6,.5,1) both}
+#intro h2{margin:8px 0 6px;font-size:2.4rem;font-weight:700;letter-spacing:-.02em;animation:introUp .9s cubic-bezier(.2,.8,.2,1) both .25s}
+#intro p{margin:0;opacity:.8;font-size:1rem;animation:introUp .9s cubic-bezier(.2,.8,.2,1) both .45s}
+@keyframes introPop{from{transform:scale(.3);opacity:0}to{transform:none;opacity:1}}
+@keyframes introUp{from{transform:translate3d(0,18px,0);opacity:0}to{transform:none;opacity:1}}
 .foot{text-align:center;color:var(--mut);font-size:.76rem;margin-top:26px;line-height:1.6}
 .foot a{color:inherit}
 body.replay .mapw{position:fixed;inset:0;height:100dvh;z-index:9000;border-radius:0}
@@ -93,10 +107,13 @@ const dayName = d => { const x = new Date(d + "T00:00:00Z"); return `יום ${HE
 const NOW = QS.get("now") ? new Date(QS.get("now") + "Z").getTime() - Date.now() : 0; // לבדיקות בלבד
 const pragueNow = () => NOW ? new Date(Date.now() + NOW).toLocaleString("en-CA", { timeZone: "UTC", hour12: false, year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" }) : new Date().toLocaleString("en-CA", { timeZone: "Europe/Prague", hour12: false, year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" });
 const ago = t => { const m = Math.round((Date.now() - t) / 6e4); return m < 2 ? "ממש עכשיו" : m < 60 ? `לפני ${m} דק'` : m < 1440 ? `לפני ${Math.round(m / 60)} שעות` : `לפני ${Math.round(m / 1440)} ימים`; };
-let me = localStorage.getItem("fam.name") || "", data = null, map = null, markers = {}, lastSig = "", hearted = JSON.parse(localStorage.getItem("fam.h") || "{}"), wx = "", act = "", lineF = 0, lineStop = null, io = null, userMoved = 0;
+const firstVisit = !localStorage.getItem("fam.v1"); let me = localStorage.getItem("fam.name") || "", data = null, map = null, markers = {}, lastSig = "", hearted = JSON.parse(localStorage.getItem("fam.h") || "{}"), wx = "", act = "", lineF = 0, lineStop = null, io = null, userMoved = 0;
 const img = id => `${API}/j/${KEY}/img/${id}`;
 const pts = () => data.moments.filter(m => m.lat != null);
-const moImgs = m => m.imgs.map((id, i) => ({ gid: id, src: img(id), ar: (m.ar || [])[i], ph: (m.ph || [])[i] || "" }));
+const moImgs = m => m.media && m.media.length ? m.media.map(x => ({ gid: x.id, src: img(x.pv || x.id), full: img(x.full || !x.pv ? x.id : x.pv), ar: x.ar, ph: x.ph || "", vid: x.k === "v" && x.full, vsrc: x.k === "v" && x.full ? img(x.id) : "", dur: x.dur, cap: x.cap || "", wait: !x.full }))
+  : m.imgs.map((id, i) => ({ gid: id, src: img(id), full: img(id), ar: (m.ar || [])[i], ph: (m.ph || [])[i] || "" }));
+const nFiles = m => (m.media || m.imgs || []).length;
+let seen = new Set(JSON.parse(localStorage.getItem("fam.seen") || "[]")), firstRender = true;
 
 function header() {
   const [d, t] = pragueNow().split(", "), i = DAYS.indexOf(d), st = i >= 0 ? `יום ${i + 1} מתוך 5` : d < DAYS[0] ? "הטיול עוד לא התחיל" : "הטיול הסתיים";
@@ -110,14 +127,19 @@ async function weather() { try { const j = await (await fetch("https://api.open-
 function drawLine(f) { lineF = f; const p = pts(), src = map && map.getSource("line"); if (!src) return; const n = Math.floor(f), co = p.slice(0, n + 1).map(m => [m.lng, m.lat]);
   if (n < p.length - 1 && f > n) { const a = p[n], b = p[n + 1], k = f - n; co.push([a.lng + (b.lng - a.lng) * k, a.lat + (b.lat - a.lat) * k]); }
   src.setData({ type: "Feature", properties: {}, geometry: { type: "LineString", coordinates: co.length > 1 ? co : [] } }); }
+function intro() {
+  if (!firstVisit) return; localStorage.setItem("fam.v1", "1"); const el = document.createElement("div"); el.id = "intro";
+  el.innerHTML = `<div><span>🇨🇿</span><h2>עומר בפראג</h2><p>30.11 – 4.12.2026 · היומן של הטיול</p></div>`; document.body.appendChild(el);
+  setTimeout(() => el.classList.add("out"), 1900); setTimeout(() => el.remove(), 2700);
+}
 function initMap() {
-  map = new maplibregl.Map({ container: "map", style: "https://tiles.openfreemap.org/styles/liberty", center: [14.4213, 50.0845], zoom: 12.4, attributionControl: { compact: true }, cooperativeGestures: true, pitchWithRotate: false, dragRotate: false });
+  map = new maplibregl.Map({ container: "map", style: "https://tiles.openfreemap.org/styles/liberty", center: firstVisit ? [16, 49.6] : [14.4213, 50.0845], zoom: firstVisit ? 4.2 : 12.4, attributionControl: { compact: true }, cooperativeGestures: true, pitchWithRotate: false, dragRotate: false });
   map.on("load", () => { map.addSource("line", { type: "geojson", data: { type: "FeatureCollection", features: [] } }); map.addSource("ghost", { type: "geojson", data: { type: "FeatureCollection", features: [] } }); map.addSource("area", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
     map.addLayer({ id: "area", type: "circle", source: "area", paint: { "circle-radius": ["interpolate", ["exponential", 2], ["zoom"], 10, 14, 15, 220], "circle-color": "#2f7de1", "circle-opacity": 0.16, "circle-stroke-color": "#2f7de1", "circle-stroke-width": 1.5, "circle-stroke-opacity": 0.5 } });
     map.addLayer({ id: "ghost", type: "line", source: "ghost", layout: { "line-cap": "round", "line-join": "round" }, paint: { "line-color": "#d42a33", "line-width": 3, "line-opacity": 0.28, "line-dasharray": [0.5, 2] } });
     map.addLayer({ id: "line-c", type: "line", source: "line", layout: { "line-cap": "round", "line-join": "round" }, paint: { "line-color": "#fff", "line-width": 8, "line-opacity": 0.9 } });
     map.addLayer({ id: "line", type: "line", source: "line", layout: { "line-cap": "round", "line-join": "round" }, paint: { "line-color": "#d42a33", "line-width": 4.5 } });
-    const ac = document.querySelector(".maplibregl-ctrl-attrib"); if (ac) ac.classList.remove("maplibregl-compact-show"); if (data) drawMap(true); });
+    const ac = document.querySelector(".maplibregl-ctrl-attrib"); if (ac) ac.classList.remove("maplibregl-compact-show"); if (data) { if (firstVisit) { drawMap(false); setTimeout(() => fitAll(3600), 1500); setTimeout(() => drawLine(pts().length - 1), 4800); } else drawMap(true); } });
   map.on("dragstart", () => { userMoved = Date.now(); });
 }
 function fitAll(ms) { const all = [...pts().map(m => [m.lng, m.lat]), ...(data.loc ? [[data.loc.lng, data.loc.lat]] : [])]; if (all.length > 1) { const b = all.reduce((b, p) => b.extend(p), new maplibregl.LngLatBounds(all[0], all[0])); map.fitBounds(b, { padding: { top: 120, bottom: 80, left: 50, right: 50 }, maxZoom: 15, duration: ms == null ? 900 : ms, pitch: 0, bearing: 0 }); } else if (all.length === 1) map.easeTo({ center: all[0], zoom: 14.5, pitch: 0, bearing: 0 }); }
@@ -126,7 +148,7 @@ function drawMap(fit) {
   map.getSource("ghost").setData({ type: "Feature", properties: {}, geometry: { type: "LineString", coordinates: p.length > 1 ? p.map(m => [m.lng, m.lat]) : [] } });
   map.getSource("area").setData(data.loc ? { type: "Feature", properties: {}, geometry: { type: "Point", coordinates: [data.loc.lng, data.loc.lat] } } : { type: "FeatureCollection", features: [] });
   Object.values(markers).forEach(x => x.remove()); markers = {};
-  p.forEach(m => { const el = document.createElement("div"); el.className = "pm" + (m.id === act ? " act" : ""); if (m.imgs.length) el.style.backgroundImage = `url(${img(m.imgs[0])})`; else el.textContent = data.moments.indexOf(m) + 1;
+  p.forEach(m => { const el = document.createElement("div"); el.className = "pm" + (m.id === act ? " act" : ""); const c0 = moImgs(m)[0]; if (c0) el.style.backgroundImage = `url(${c0.src})`; else el.textContent = data.moments.indexOf(m) + 1;
     el.onclick = e => { e.stopPropagation(); const a = document.getElementById("m-" + m.id); if (a) { userMoved = 0; a.scrollIntoView({ behavior: "smooth", block: "center" }); setAct(m.id, true); } };
     markers[m.id] = new maplibregl.Marker({ element: el }).setLngLat([m.lng, m.lat]).addTo(map); });
   drawLine(Math.min(lineF, Math.max(0, p.length - 1))); if (fit) { fitAll(0); drawLine(p.length - 1); }
@@ -144,24 +166,28 @@ function watch() { if (io) io.disconnect(); if (!("IntersectionObserver" in wind
   $$("#feed article").forEach(a => io.observe(a)); }
 
 function render() {
-  const ms = data.moments, km = Object.values(data.stats || {}).reduce((a, s) => a + (s.km || 0), 0), places = new Set(ms.map(m => m.where).filter(Boolean)).size, photos = ms.reduce((a, m) => a + m.imgs.length, 0);
-  $("#pill").hidden = !ms.length; $("#play").hidden = !ms.length; $("#pill").innerHTML = `${km ? `<span><b>${km.toFixed(1)}</b>ק"מ</span>` : ""}<span><b>${places}</b>מקומות</span><span><b>${photos}</b>תמונות</span>`;
+  const ms = data.moments, km = Object.values(data.stats || {}).reduce((a, s) => a + (s.km || 0), 0), places = new Set(ms.map(m => m.where).filter(Boolean)).size, photos = ms.reduce((a, m) => a + nFiles(m), 0), vids = ms.reduce((a, m) => a + (m.media || []).filter(x => x.k === "v").length, 0);
+  $("#pill").hidden = !ms.length; $("#play").hidden = !ms.length; $("#pill").innerHTML = `${km ? `<span><b>${km.toFixed(1)}</b>ק"מ</span>` : ""}<span><b>${places}</b>מקומות</span><span><b>${photos - vids}</b>תמונות</span>${vids ? `<span><b>${vids}</b>סרטונים</span>` : ""}`;
   const byDay = {}; ms.forEach(m => (byDay[m.date] = byDay[m.date] || []).push(m));
-  $("#feed").innerHTML = Object.keys(byDay).sort().reverse().map(d => { const di = DAYS.indexOf(d), dm = byDay[d], cov = dm.map(m => moImgs(m)[0]).filter(Boolean)[0], s = (data.stats || {})[d] || {}, nph = dm.reduce((a, m) => a + m.imgs.length, 0);
-    return `<header class="day"${cov && cov.ph ? ` style="background-image:url(${cov.ph})"` : ""}>${cov ? `<img src="${cov.src}" alt="" loading="lazy" onload="this.classList.add('ld')">` : ""}<div><small>${di >= 0 ? "יום " + (di + 1) + " · " : ""}${dayName(d).replace("יום ", "")}</small><b>${di >= 0 ? DT[di] : dayName(d)}</b><span>${s.km ? s.km.toFixed(1) + ' ק"מ · ' : ""}${dm.length} ${dm.length === 1 ? "רגע" : "רגעים"} · ${nph} תמונות</span></div></header>` +
+  $("#feed").innerHTML = Object.keys(byDay).sort().reverse().map(d => { const di = DAYS.indexOf(d), dm = byDay[d], cov = dm.map(m => moImgs(m)[0]).filter(Boolean)[0], s = (data.stats || {})[d] || {}, nph = dm.reduce((a, m) => a + nFiles(m), 0);
+    return `<header class="day"${cov && cov.ph ? ` style="background-image:url(${cov.ph})"` : ""}>${cov ? `<img src="${cov.src}" alt="" loading="lazy" onload="this.classList.add('ld')">` : ""}<div><small>${di >= 0 ? "יום " + (di + 1) + " · " : ""}${dayName(d).replace("יום ", "")}</small><b>${di >= 0 ? DT[di] : dayName(d)}</b><span>${s.km ? s.km.toFixed(1) + ' ק"מ · ' : ""}${dm.length} ${dm.length === 1 ? "רגע" : "רגעים"} · ${nph} קבצים</span></div></header>` +
       dm.slice().reverse().map(m => { const re = (data.re || {})[m.id] || [], hearts = re.filter(r => r.h).length, n = ms.indexOf(m) + 1;
-      return `<article id="m-${m.id}"${m.id === act ? ' class="act"' : ""}>${Gal.collage(moImgs(m))}
-        <div class="bd">${m.text ? `<p dir="auto">${esc(m.text)}</p>` : ""}<small><span class="n">${n}</span>${esc(m.time)} · ${esc(m.where || "פראג")}</small>
+      const isNew = !seen.has(m.id) && !firstVisit, caps = (m.media || []).filter(x => x.cap);
+      return `<article id="m-${m.id}" class="${m.id === act ? "act" : ""}${isNew ? " nw" : ""}">${isNew ? `<i class="tag-new">חדש</i>` : ""}${Gal.collage(moImgs(m))}
+        <div class="bd">${m.text ? `<p dir="auto">${esc(m.text)}</p>` : ""}${caps.length ? `<ul class="caps">${caps.slice(0, 4).map(x => `<li dir="auto">${x.k === "v" ? "🎬" : "📷"} ${esc(x.cap)}</li>`).join("")}</ul>` : ""}<small><span class="n">${n}</span>${esc(m.time)} · ${esc(m.where || "פראג")}</small>
         ${re.filter(r => r.x).map(r => `<p class="re"><b>${esc(r.n)}:</b> ${esc(r.x)}</p>`).join("")}
         <div class="acts"><button class="hb${hearted[m.id] ? " on" : ""}" data-h="${m.id}">❤️ ${hearts || ""}</button><form class="cf" data-c="${m.id}"><input placeholder="תגובה קצרה…" maxlength="140" enterkeyhint="send" autocomplete="off"><button>שלח</button></form></div></div></article>`; }).join(""); }).join("")
     || `<div class="empty"><span>📷</span><b>עוד אין רגעים</b>כשעומר יעלה תמונה ראשונה מהטיול, היא תופיע כאן לבד.</div>`;
   $("#foot").innerHTML = `מתעדכן לבד כל דקה${data.updated ? " · עדכון אחרון " + ago(data.updated) : ""}<br>הקישור הזה סודי, בבקשה לא להעביר הלאה.<br>מפה: © <a href="https://openfreemap.org">OpenFreeMap</a> · <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>`;
-  header(); Gal.scan($("#feed")); Gal.reveal($("#feed"), "article,.day"); drawMap(!act); watch();
+  header(); Gal.scan($("#feed")); Gal.reveal($("#feed"), "article,.day"); Gal.autoplay($("#feed")); drawMap(!act); watch();
+  // מה שכבר הוצג נחשב "נראה": בביקור הבא לא יסומן כחדש
+  const ids = ms.map(m => m.id); setTimeout(() => { ids.forEach(i => seen.add(i)); try { localStorage.setItem("fam.seen", JSON.stringify([...seen].slice(-400))); } catch (e) {} }, 6000);
+  if (!firstRender && ms.some(m => !seen.has(m.id))) { try { navigator.vibrate && navigator.vibrate(20); } catch (e) {} } firstRender = false;
 }
-function viewer(gid) { const items = []; data.moments.forEach(m => moImgs(m).forEach(x => items.push({ gid: x.gid, ar: x.ar, thumb: x.ph, src: x.src, mid: m.id, cap: `${m.text ? esc(m.text) : ""}<b>${dayName(m.date)} · ${esc(m.time)} · ${esc(m.where || "פראג")}</b>` })));
+function viewer(gid) { const items = []; data.moments.forEach(m => moImgs(m).forEach(x => items.push({ gid: x.gid, ar: x.ar, thumb: x.ph, src: x.vid ? x.vsrc : x.full, vid: x.vid, mid: m.id, cap: `${x.cap ? `<span class="vcap">${esc(x.cap)}</span>` : ""}${m.text ? esc(m.text) : ""}${x.wait ? " · ⏳ הגרסה המלאה בדרך" : ""}<b>${dayName(m.date)} · ${esc(m.time)} · ${esc(m.where || "פראג")}</b>` })));
   Gal.open(items, Math.max(0, items.findIndex(x => x.gid === gid)), { onChange: (i, it) => setAct(it.mid) }); }
 function playTrip() { const ms = data.moments; if (!ms.length) return; drawLine(0);
-  Gal.replay({ map, title: "עומר בפראג 🇨🇿", endTitle: "זה הטיול עד עכשיו", endText: `${ms.length} רגעים · ${ms.reduce((a, m) => a + m.imgs.length, 0)} תמונות`, pitch: 45,
+  Gal.replay({ map, title: "עומר בפראג 🇨🇿", endTitle: "זה הטיול עד עכשיו", endText: `${ms.length} רגעים · ${ms.reduce((a, m) => a + nFiles(m), 0)} תמונות וסרטונים`, pitch: 45,
     steps: ms.map(m => { const di = DAYS.indexOf(m.date); return { id: m.id, lat: m.lat, lng: m.lng, kicker: `${di >= 0 ? "יום " + (di + 1) + " · " : ""}${dayName(m.date).replace("יום ", "")} ${m.time}`, title: m.where || "פראג", text: m.text, imgs: moImgs(m).map(x => ({ thumb: x.ph, src: x.src })) }; }),
     onStep: (i, s) => { const p = pts(), k = p.findIndex(m => m.id === s.id); if (k >= 0) { if (lineStop) lineStop(); lineStop = Gal.spring(lineF, k, 0, drawLine, null, 40, 13); Object.entries(markers).forEach(([id, mk]) => mk.getElement().classList.toggle("act", id === s.id)); } },
     onEnd: () => fitAll(1400), onClose: () => { fitAll(600); drawLine(pts().length - 1); } }); }
@@ -182,7 +208,7 @@ document.addEventListener("click", e => {
   if (e.target.closest("#play")) playTrip();
 });
 document.addEventListener("submit", e => { const f = e.target.closest("[data-c]"); if (!f) return; e.preventDefault(); const i = f.querySelector("input"), x = i.value.trim(); if (!x) return; i.value = ""; i.blur(); react(f.dataset.c, { text: x }); });
-load(); weather(); setInterval(load, 60000); setInterval(header, 30000); document.addEventListener("visibilitychange", () => { if (!document.hidden) load(); });
+intro(); load(); weather(); setInterval(load, 60000); setInterval(header, 30000); document.addEventListener("visibilitychange", () => { if (!document.hidden) load(); });
 </script>
 </body>
 </html>

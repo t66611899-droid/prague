@@ -130,30 +130,58 @@ const jGet = async (env, k, d) => { const v = await env.LIMITS.get(k); try { ret
 const jPut = (env, k, v) => env.LIMITS.put(k, JSON.stringify(v));
 const cut = (v, n) => String(v == null ? "" : v).slice(0, n);
 const okId = id => /^[a-z0-9]{6,24}$/.test(id || "");
+const JR_MAX = 24500000, JR_LIMIT = 1e9; // KV: עד 25MiB לערך, 1GB בחינם
+const okPh = x => typeof x === "string" && x.length < 1800 && /^data:image\/jpeg;base64,[A-Za-z0-9+\/=]+$/.test(x) ? x : "";
+const okCt = x => /^(image\/(jpeg|png|webp|gif|heic|heif)|video\/(mp4|quicktime|webm))$/.test(x || "") ? x : "";
+// כל המזהים של קבצים שקשורים לרגע (קובץ מלא + תצוגה מקדימה), כולל רגעים בפורמט הישן
+const moIds = m => [...(m.imgs || []), ...(m.media || []).flatMap(x => [x.id, x.pv].filter(Boolean))].filter((v, i, a) => okId(v) && a.indexOf(v) === i);
+const moBytes = m => (m.media || []).reduce((a, x) => a + (x.full ? +x.sz || 0 : 0) + (+x.psz || 0), 0);
+const usage = meta => meta.moments.reduce((a, m) => a + moBytes(m), 0);
+async function serveFile(req, env, key, cors) { // תומך ב-Range, כדי שסרטונים יתנגנו גם ב-Safari
+  const range = /bytes=(\d*)-(\d*)/.exec(req.headers.get("range") || "");
+  if (!range) {
+    const r = await env.LIMITS.getWithMetadata(key, "stream"); if (!r || !r.value) return new Response("not found", { status: 404, headers: cors });
+    const md = r.metadata || {};
+    return new Response(r.value, { status: 200, headers: { "content-type": md.ct || "image/jpeg", ...(md.sz ? { "content-length": String(md.sz) } : {}), "accept-ranges": "bytes", "cache-control": "private, max-age=604800", ...cors } });
+  }
+  const r = await env.LIMITS.getWithMetadata(key, "arrayBuffer"); if (!r || !r.value) return new Response("not found", { status: 404, headers: cors });
+  const n = r.value.byteLength, md = r.metadata || {}; let a = range[1] === "" ? Math.max(0, n - (+range[2] || 0)) : +range[1], b = range[1] !== "" && range[2] !== "" ? Math.min(+range[2], n - 1) : n - 1;
+  if (a >= n || a > b) return new Response(null, { status: 416, headers: { "content-range": `bytes */${n}`, ...cors } });
+  return new Response(new Uint8Array(r.value, a, b - a + 1), { status: 206, headers: { "content-type": md.ct || "application/octet-stream", "content-range": `bytes ${a}-${b}/${n}`, "content-length": String(b - a + 1), "accept-ranges": "bytes", "cache-control": "private, max-age=604800", ...cors } });
+}
 async function journalOwner(req, env, sub, cors) {
   if (!env.LIMITS) return json({ error: "no storage" }, 503, cors);
   if (!env.APP_TOKEN) return json({ error: "notset" }, 503, cors);
   if (!same(req.headers.get("x-app-token") || "", env.APP_TOKEN)) return json({ error: "unauthorized" }, 401, cors);
   const meta = await jGet(env, "jr:meta", { moments: [], stats: {}, loc: null }), M = req.method;
-  if (M === "GET" && sub === "") return json({ meta, re: await jGet(env, "jr:re", {}), share: (await env.LIMITS.get("jr:share")) || "" }, 200, cors);
+  if (M === "GET" && sub === "") return json({ meta, re: await jGet(env, "jr:re", {}), share: (await env.LIMITS.get("jr:share")) || "", usage: { bytes: usage(meta), limit: JR_LIMIT } }, 200, cors);
   if (M === "PUT" && sub.startsWith("/img/")) {
     const id = sub.slice(5); if (!okId(id)) return json({ error: "bad id" }, 400, cors);
-    const buf = await req.arrayBuffer(); if (buf.byteLength < 200 || buf.byteLength > 1900000) return json({ error: "size" }, 413, cors);
-    await env.LIMITS.put("jr:img:" + id, buf); return json({ ok: true, bytes: buf.byteLength }, 200, cors);
+    const len = +req.headers.get("content-length") || 0, ct = okCt((req.headers.get("content-type") || "").split(";")[0].trim()) || "image/jpeg";
+    if (len && (len < 100 || len > JR_MAX)) return json({ error: "size" }, 413, cors);
+    if (usage(meta) + len > JR_LIMIT * 0.985) return json({ error: "full" }, 507, cors);
+    if (len) await env.LIMITS.put("jr:img:" + id, req.body, { metadata: { ct, sz: len } }); // בזרם, בלי לטעון לזיכרון
+    else { const buf = await req.arrayBuffer(); if (buf.byteLength < 100 || buf.byteLength > JR_MAX) return json({ error: "size" }, 413, cors); await env.LIMITS.put("jr:img:" + id, buf, { metadata: { ct, sz: buf.byteLength } }); }
+    return json({ ok: true, bytes: len }, 200, cors);
   }
   if (M === "POST" && sub === "/moment") {
     let b; try { b = await req.json(); } catch (e) { return json({ error: "bad json" }, 400, cors); }
     if (!okId(b.id)) return json({ error: "bad id" }, 400, cors);
     const mo = { id: b.id, t: +b.t || Date.now(), date: /^\d{4}-\d\d-\d\d$/.test(b.date || "") ? b.date : "", time: cut(b.time, 5), text: cut(b.text, 400), where: cut(b.where, 80),
       lat: typeof b.lat === "number" ? +b.lat.toFixed(3) : null, lng: typeof b.lng === "number" ? +b.lng.toFixed(3) : null, imgs: (Array.isArray(b.imgs) ? b.imgs : []).filter(okId).slice(0, 6), vis: b.vis === "me" ? "me" : "p",
-      ar: (Array.isArray(b.ar) ? b.ar : []).slice(0, 6).map(x => Math.max(0.3, Math.min(4, +x || 1.333))), ph: (Array.isArray(b.ph) ? b.ph : []).slice(0, 6).map(x => typeof x === "string" && x.length < 1800 && /^data:image\/jpeg;base64,[A-Za-z0-9+\/=]+$/.test(x) ? x : "") };
+      ar: (Array.isArray(b.ar) ? b.ar : []).slice(0, 6).map(x => Math.max(0.3, Math.min(4, +x || 1.333))), ph: (Array.isArray(b.ph) ? b.ph : []).slice(0, 6).map(okPh) };
+    if (Array.isArray(b.media)) {
+      mo.media = b.media.filter(x => x && okId(x.id)).slice(0, 10).map(x => ({ id: x.id, k: x.k === "v" ? "v" : "i", cap: cut(x.cap, 200), ar: Math.max(0.2, Math.min(5, +x.ar || 1.333)), ph: okPh(x.ph), pv: okId(x.pv) ? x.pv : "",
+        ct: okCt(x.ct) || (x.k === "v" ? "video/mp4" : "image/jpeg"), sz: Math.max(0, Math.min(JR_MAX, +x.sz || 0)), psz: Math.max(0, Math.min(JR_MAX, +x.psz || 0)), dur: Math.max(0, Math.min(60, +x.dur || 0)), full: !!x.full }));
+      mo.imgs = mo.media.map(x => x.id); delete mo.ar; delete mo.ph;
+    }
     meta.moments = meta.moments.filter(x => x.id !== mo.id); meta.moments.push(mo); meta.moments.sort((a, c) => a.t - c.t); meta.moments = meta.moments.slice(-200);
     meta.updated = Date.now(); await jPut(env, "jr:meta", meta); return json({ ok: true, count: meta.moments.length }, 200, cors);
   }
   if (M === "DELETE" && sub.startsWith("/moment/")) {
     const id = sub.slice(8), mo = meta.moments.find(x => x.id === id); if (!mo) return json({ ok: true, gone: true }, 200, cors);
     meta.moments = meta.moments.filter(x => x.id !== id); meta.updated = Date.now(); await jPut(env, "jr:meta", meta);
-    for (const i of mo.imgs) await env.LIMITS.delete("jr:img:" + i);
+    for (const i of moIds(mo)) await env.LIMITS.delete("jr:img:" + i);
     const re = await jGet(env, "jr:re", {}); if (re[id]) { delete re[id]; await jPut(env, "jr:re", re); }
     return json({ ok: true }, 200, cors);
   }
@@ -182,9 +210,8 @@ async function journalPublic(req, env, key, sub, cors) {
   const meta = await jGet(env, "jr:meta", { moments: [], stats: {}, loc: null }), vis = meta.moments.filter(m => m.vis === "p");
   if (req.method === "GET" && sub === "") return json({ moments: vis, re: await jGet(env, "jr:re", {}), stats: meta.stats || {}, loc: meta.loc && Date.now() - meta.loc.t < 3 * 36e5 ? meta.loc : null, updated: meta.updated || 0 }, 200, { ...cors, "cache-control": "no-store" });
   if (req.method === "GET" && sub.startsWith("/img/")) {
-    const id = sub.slice(5); if (!okId(id) || !vis.some(m => m.imgs.includes(id))) return new Response("not found", { status: 404, headers: cors });
-    const buf = await env.LIMITS.get("jr:img:" + id, "arrayBuffer"); if (!buf) return new Response("not found", { status: 404, headers: cors });
-    return new Response(buf, { status: 200, headers: { "content-type": "image/jpeg", "cache-control": "private, max-age=604800", ...cors } });
+    const id = sub.slice(5); if (!okId(id) || !vis.some(m => moIds(m).includes(id))) return new Response("not found", { status: 404, headers: cors });
+    return serveFile(req, env, "jr:img:" + id, cors);
   }
   if (req.method === "POST" && sub === "/react") {
     let b = {}; try { b = await req.json(); } catch (e) {}
@@ -222,7 +249,7 @@ export default {
   async scheduled(event, env, ctx) { ctx.waitUntil(findEvents(env, false)); },
   async fetch(req, env) {
     const origin = req.headers.get("Origin") || "", allow = env.ALLOWED_ORIGIN || "*";
-    const cors = { "Access-Control-Allow-Origin": allow === "*" ? "*" : allow, "Access-Control-Allow-Headers": "content-type,x-app-token", "Access-Control-Allow-Methods": "GET,POST,PUT,DELETE,OPTIONS", "Access-Control-Max-Age": "86400", "Vary": "Origin" };
+    const cors = { "Access-Control-Allow-Origin": allow === "*" ? "*" : allow, "Access-Control-Allow-Headers": "content-type,x-app-token,range", "Access-Control-Expose-Headers": "content-range,accept-ranges,content-length", "Access-Control-Allow-Methods": "GET,POST,PUT,DELETE,OPTIONS", "Access-Control-Max-Age": "86400", "Vary": "Origin" };
     if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
     const path = new URL(req.url).pathname.replace(/\/+$/, "");
     if (req.method === "GET" && path.endsWith("/pid")) return pidFeed(cors);

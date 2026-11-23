@@ -35,11 +35,12 @@ async function autoSync(force) {
   if (!VK || syncing || isOffline() || !(window.crypto && crypto.subtle)) return; syncing = true;
   try {
     let bk = bkGet(); const due = !bk || !bk.syncT || Date.now() - bk.syncT > 12 * 36e5;
-    if (!(force || !bk || !bk.vk || !bk.synced || due || await looksMissing())) return;
+    const k8 = VK.slice(0, 8), newKey = !!(bk && bk.k8 !== k8); /* קישור אישי חדש: מסתנכרנים מול הכספת שלו */
+    if (!(force || !bk || !bk.vk || !bk.synced || newKey || due || await looksMissing())) return;
     let R = null; try { R = await restoreFetch(VK); } catch (e) { if (e.message !== "none") return; } /* בעיית רשת: ננסה בפתיחה הבאה, ובינתיים לא מעלים כלום */
-    if (R) { const before = await haveCount(); await restoreApply(R); bk = bkGet(); Object.assign(bk, { vk: 1, synced: 1, syncT: Date.now() }); bkSet(bk); const after = await haveCount();
+    if (R) { const before = await haveCount(); await restoreApply(R); bk = bkGet(); Object.assign(bk, { vk: 1, synced: 1, syncT: Date.now(), k8 }); bkSet(bk); const after = await haveCount();
       if (after > before) { try { renderAll(); } catch (e) {} toast("הכול כאן ✓ הפרטים והכרטיסים הושלמו לבד", 3600); try { const t = (($("#mbody h2") || {}).textContent || ""); if (!$("#modal").hidden) { if (/הכרטיסים/.test(t)) openTickets(); else if (/מה יש אצלי/.test(t)) openHave(); } } catch (e) {} } }
-    else { const salt = crypto.getRandomValues(new Uint8Array(16)), raw = await pbkdf2(VK, salt, 600000), id = await bkIdOf(VK); bkSet({ id, salt: b64(salt), key: b64(raw), on: 1, vk: 1, synced: 1, syncT: Date.now() }); } /* עוד אין עותק בשרת: הטלפון הזה יוצר אותו */
+    else { const salt = crypto.getRandomValues(new Uint8Array(16)), raw = await pbkdf2(VK, salt, 600000), id = await bkIdOf(VK); bkSet({ id, salt: b64(salt), key: b64(raw), on: 1, vk: 1, synced: 1, syncT: Date.now(), k8 }); } /* עוד אין עותק בשרת: הטלפון הזה יוצר אותו */
     await backupNow(false);
   } catch (e) {} finally { syncing = false; }
 }

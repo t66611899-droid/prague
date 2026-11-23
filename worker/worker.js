@@ -149,17 +149,24 @@ async function serveFile(req, env, key, cors) { // תומך ב-Range, כדי ש�
   if (a >= n || a > b) return new Response(null, { status: 416, headers: { "content-range": `bytes */${n}`, ...cors } });
   return new Response(new Uint8Array(r.value, a, b - a + 1), { status: 206, headers: { "content-type": md.ct || "application/octet-stream", "content-range": `bytes ${a}-${b}/${n}`, "content-length": String(b - a + 1), "accept-ranges": "bytes", "cache-control": "private, max-age=604800", ...cors } });
 }
+/* פרטי היומן ב-D1 (תמיד מעודכן): moments = רגע לשורה, reactions = תגובה לשורה (אף תגובה לא דורסת אחרת), docs = שיתוף/מיקום/סטטיסטיקה */
+const dbDoc = async (env, k, d) => { const r = await env.DB.prepare("SELECT v FROM docs WHERE k=?").bind(k).first(); try { return r ? JSON.parse(r.v) : d; } catch (e) { return d; } };
+const dbSet = (env, k, v) => v == null ? env.DB.prepare("DELETE FROM docs WHERE k=?").bind(k).run() : env.DB.prepare("INSERT INTO docs (k,v) VALUES (?,?) ON CONFLICT(k) DO UPDATE SET v=excluded.v").bind(k, JSON.stringify(v)).run();
+const dbMoments = async (env, visOnly) => (await env.DB.prepare("SELECT j FROM moments" + (visOnly ? " WHERE vis='p'" : "") + " ORDER BY t").all()).results.map(r => JSON.parse(r.j));
+const dbReactions = async env => { const out = {}; for (const r of (await env.DB.prepare("SELECT mid,n,h,x,ts FROM reactions ORDER BY rid").all()).results) (out[r.mid] = out[r.mid] || []).push({ n: r.n, h: !!r.h, x: r.x || "", ts: r.ts }); for (const k in out) out[k] = out[k].slice(-20); return out; };
+const touch = env => dbSet(env, "updated", Date.now());
 async function journalOwner(req, env, sub, cors) {
-  if (!env.LIMITS) return json({ error: "no storage" }, 503, cors);
+  if (!env.LIMITS || !env.DB) return json({ error: "no storage" }, 503, cors);
   if (!env.APP_TOKEN) return json({ error: "notset" }, 503, cors);
   if (!same(req.headers.get("x-app-token") || "", env.APP_TOKEN)) return json({ error: "unauthorized" }, 401, cors);
-  const meta = await jGet(env, "jr:meta", { moments: [], stats: {}, loc: null }), M = req.method;
-  if (M === "GET" && sub === "") return json({ meta, re: await jGet(env, "jr:re", {}), share: (await env.LIMITS.get("jr:share")) || "", usage: { bytes: usage(meta), limit: JR_LIMIT } }, 200, cors);
+  const M = req.method;
+  if (M === "GET" && sub === "") { const moments = await dbMoments(env, false), meta = { moments, stats: await dbDoc(env, "stats", {}), loc: await dbDoc(env, "loc", null) };
+    return json({ meta, re: await dbReactions(env), share: (await dbDoc(env, "share", "")) || "", usage: { bytes: usage(meta), limit: JR_LIMIT } }, 200, cors); }
   if (M === "PUT" && sub.startsWith("/img/")) {
     const id = sub.slice(5); if (!okId(id)) return json({ error: "bad id" }, 400, cors);
     const len = +req.headers.get("content-length") || 0, ct = okCt((req.headers.get("content-type") || "").split(";")[0].trim()) || "image/jpeg";
     if (len && (len < 100 || len > JR_MAX)) return json({ error: "size" }, 413, cors);
-    if (usage(meta) + len > JR_LIMIT * 0.985) return json({ error: "full" }, 507, cors);
+    if (usage({ moments: await dbMoments(env, false) }) + len > JR_LIMIT * 0.985) return json({ error: "full" }, 507, cors);
     if (len) await env.LIMITS.put("jr:img:" + id, req.body, { metadata: { ct, sz: len } }); // בזרם, בלי לטעון לזיכרון
     else { const buf = await req.arrayBuffer(); if (buf.byteLength < 100 || buf.byteLength > JR_MAX) return json({ error: "size" }, 413, cors); await env.LIMITS.put("jr:img:" + id, buf, { metadata: { ct, sz: buf.byteLength } }); }
     return json({ ok: true, bytes: len }, 200, cors);
@@ -175,40 +182,40 @@ async function journalOwner(req, env, sub, cors) {
         ct: okCt(x.ct) || (x.k === "v" ? "video/mp4" : "image/jpeg"), sz: Math.max(0, Math.min(JR_MAX, +x.sz || 0)), psz: Math.max(0, Math.min(JR_MAX, +x.psz || 0)), dur: Math.max(0, Math.min(60, +x.dur || 0)), full: !!x.full }));
       mo.imgs = mo.media.map(x => x.id); delete mo.ar; delete mo.ph;
     }
-    meta.moments = meta.moments.filter(x => x.id !== mo.id); meta.moments.push(mo); meta.moments.sort((a, c) => a.t - c.t); meta.moments = meta.moments.slice(-200);
-    meta.updated = Date.now(); await jPut(env, "jr:meta", meta); return json({ ok: true, count: meta.moments.length }, 200, cors);
+    await env.DB.prepare("INSERT INTO moments (id,t,vis,j) VALUES (?,?,?,?) ON CONFLICT(id) DO UPDATE SET t=excluded.t, vis=excluded.vis, j=excluded.j").bind(mo.id, mo.t, mo.vis, JSON.stringify(mo)).run();
+    await touch(env); const c = await env.DB.prepare("SELECT COUNT(*) AS n FROM moments").first(); return json({ ok: true, count: c ? c.n : 0 }, 200, cors);
   }
   if (M === "DELETE" && sub.startsWith("/moment/")) {
-    const id = sub.slice(8), mo = meta.moments.find(x => x.id === id); if (!mo) return json({ ok: true, gone: true }, 200, cors);
-    meta.moments = meta.moments.filter(x => x.id !== id); meta.updated = Date.now(); await jPut(env, "jr:meta", meta);
+    const id = sub.slice(8), row = await env.DB.prepare("SELECT j FROM moments WHERE id=?").bind(id).first(); if (!row) return json({ ok: true, gone: true }, 200, cors);
+    const mo = JSON.parse(row.j); await env.DB.batch([env.DB.prepare("DELETE FROM moments WHERE id=?").bind(id), env.DB.prepare("DELETE FROM reactions WHERE mid=?").bind(id)]); await touch(env);
     for (const i of moIds(mo)) await env.LIMITS.delete("jr:img:" + i);
-    const re = await jGet(env, "jr:re", {}); if (re[id]) { delete re[id]; await jPut(env, "jr:re", re); }
     return json({ ok: true }, 200, cors);
   }
   if (M === "POST" && sub === "/share") {
     let b = {}; try { b = await req.json(); } catch (e) {}
-    if (b.action === "stop") { await env.LIMITS.delete("jr:share"); return json({ ok: true, share: "" }, 200, cors); }
-    let k = await env.LIMITS.get("jr:share");
-    if (!k || b.action === "rotate") { k = [...crypto.getRandomValues(new Uint8Array(16))].map(x => x.toString(16).padStart(2, "0")).join(""); await env.LIMITS.put("jr:share", k); }
+    if (b.action === "stop") { await dbSet(env, "share", null); return json({ ok: true, share: "" }, 200, cors); }
+    let k = await dbDoc(env, "share", "");
+    if (!k || b.action === "rotate") { k = [...crypto.getRandomValues(new Uint8Array(16))].map(x => x.toString(16).padStart(2, "0")).join(""); await dbSet(env, "share", k); }
     return json({ ok: true, share: k }, 200, cors);
   }
   if (M === "POST" && sub === "/loc") {
     let b = {}; try { b = await req.json(); } catch (e) {}
-    meta.loc = b.off || typeof b.lat !== "number" ? null : { where: cut(b.where, 60), lat: +b.lat.toFixed(2), lng: +b.lng.toFixed(2), t: Date.now() }; // רק אזור כללי
-    await jPut(env, "jr:meta", meta); return json({ ok: true }, 200, cors);
+    await dbSet(env, "loc", b.off || typeof b.lat !== "number" ? null : { where: cut(b.where, 60), lat: +b.lat.toFixed(2), lng: +b.lng.toFixed(2), t: Date.now() }); // רק אזור כללי
+    return json({ ok: true }, 200, cors);
   }
   if (M === "POST" && sub === "/stats") {
     let b = {}; try { b = await req.json(); } catch (e) {}
-    if (/^\d{4}-\d\d-\d\d$/.test(b.date || "")) { meta.stats[b.date] = { km: Math.max(0, Math.min(80, +b.km || 0)), places: Math.max(0, Math.min(60, +b.places || 0)) }; await jPut(env, "jr:meta", meta); }
+    if (/^\d{4}-\d\d-\d\d$/.test(b.date || "")) { const st = await dbDoc(env, "stats", {}); st[b.date] = { km: Math.max(0, Math.min(80, +b.km || 0)), places: Math.max(0, Math.min(60, +b.places || 0)) }; await dbSet(env, "stats", st); }
     return json({ ok: true }, 200, cors);
   }
   return json({ error: "not found" }, 404, cors);
 }
 async function journalPublic(req, env, key, sub, cors) {
-  if (!env.LIMITS) return json({ error: "no storage" }, 503, cors);
-  const share = await env.LIMITS.get("jr:share"); if (!share || !same(key, share)) return json({ error: "gone" }, 404, cors);
-  const meta = await jGet(env, "jr:meta", { moments: [], stats: {}, loc: null }), vis = meta.moments.filter(m => m.vis === "p");
-  if (req.method === "GET" && sub === "") return json({ moments: vis, re: await jGet(env, "jr:re", {}), stats: meta.stats || {}, loc: meta.loc && Date.now() - meta.loc.t < 3 * 36e5 ? meta.loc : null, updated: meta.updated || 0 }, 200, { ...cors, "cache-control": "no-store" });
+  if (!env.LIMITS || !env.DB) return json({ error: "no storage" }, 503, cors);
+  const share = await dbDoc(env, "share", ""); if (!share || !same(key, share)) return json({ error: "gone" }, 404, cors);
+  const vis = await dbMoments(env, true);
+  if (req.method === "GET" && sub === "") { const loc = await dbDoc(env, "loc", null);
+    return json({ moments: vis, re: await dbReactions(env), stats: await dbDoc(env, "stats", {}), loc: loc && Date.now() - loc.t < 3 * 36e5 ? loc : null, updated: await dbDoc(env, "updated", 0) }, 200, { ...cors, "cache-control": "no-store" }); }
   if (req.method === "GET" && sub.startsWith("/img/")) {
     const id = sub.slice(5); if (!okId(id) || !vis.some(m => moIds(m).includes(id))) return new Response("not found", { status: 404, headers: cors });
     return serveFile(req, env, "jr:img:" + id, cors);
@@ -216,10 +223,9 @@ async function journalPublic(req, env, key, sub, cors) {
   if (req.method === "POST" && sub === "/react") {
     let b = {}; try { b = await req.json(); } catch (e) {}
     if (!vis.some(m => m.id === b.id)) return json({ error: "no moment" }, 404, cors);
-    const day = "jr:rc:" + new Date().toISOString().slice(0, 10), n = +(await env.LIMITS.get(day)) || 0; if (n > 300) return json({ error: "limit" }, 429, cors);
-    await env.LIMITS.put(day, String(n + 1), { expirationTtl: 172800 });
-    const re = await jGet(env, "jr:re", {}); re[b.id] = [...(re[b.id] || []), { n: cut(b.name, 16) || "משפחה", h: !!b.heart, x: cut(b.text, 140), ts: Date.now() }].slice(-20);
-    await jPut(env, "jr:re", re); return json({ ok: true, re: re[b.id] }, 200, cors);
+    const day = Date.now() - 864e5, n = await env.DB.prepare("SELECT COUNT(*) AS n FROM reactions WHERE ts > ?").bind(day).first(); if (n && n.n > 300) return json({ error: "limit" }, 429, cors);
+    await env.DB.prepare("INSERT INTO reactions (mid,n,h,x,ts) VALUES (?,?,?,?,?)").bind(b.id, cut(b.name, 16) || "משפחה", b.heart ? 1 : 0, cut(b.text, 140), Date.now()).run();
+    const re = (await dbReactions(env))[b.id] || []; return json({ ok: true, re }, 200, cors);
   }
   return json({ error: "not found" }, 404, cors);
 }

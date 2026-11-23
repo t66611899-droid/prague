@@ -81,6 +81,9 @@ const Gal = (() => {
   }
   // תמונות שנטענו: מסירים את הטשטוש (load לא מבעבע, אז מקשיבים בשלב ה-capture)
   document.addEventListener("load", e => { const t = e.target; if (t && t.tagName === "IMG" && (t.closest(".gc-i") || t.closest(".gv-z"))) t.classList.add("ld"); }, true);
+  // קובץ שעלה ממש עכשיו לפעמים עוד לא זמין בכל השרתים (עד דקה): מנסים שוב לבד, בהפסקות שגדלות
+  const retry = el => { const n = (+el.dataset.rt || 0) + 1; if (n > 6 || !/^https?:/.test(el.src || "")) return; el.dataset.rt = n; const u = el.src.replace(/([?&])rt=\d+/, "").replace(/[?&]$/, ""); setTimeout(() => { el.src = u + (u.includes("?") ? "&" : "?") + "rt=" + n; if (el.tagName === "VIDEO" && !el.paused) el.play().catch(() => {}); }, 4000 * n); };
+  document.addEventListener("error", e => { const t = e.target; if (t && (t.tagName === "IMG" || t.tagName === "VIDEO") && t.closest && t.closest(".gc-i,.gv-z,.day")) retry(t); }, true);
   const scan = root => (root || document).querySelectorAll(".gc-i img").forEach(i => { if (i.complete && i.naturalWidth) i.classList.add("ld"); });
 
   /* קולאז': אחת גדולה / שתיים זו ליד זו / גדולה ועוד שתיים או שלוש, לפי הכמות והכיוון של התמונה הראשונה */

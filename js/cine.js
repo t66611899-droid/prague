@@ -299,5 +299,6 @@ body.cine-on #hud,body.cine-on #fabs,body.cine-on #sheet,body.cine-on #playCard{
 
 /* מה שאר האפליקציה (התפריט) ובדיקות צריכים לראות */
 Object.assign(window, { openCineMenu, cineDay, cineFlight, cineRecap, cineTrailer, cineClose });
-} catch (err) { try { console.warn("cine disabled:", err); window.openCineMenu = undefined; } catch (e) {} }
+(window.__mods = window.__mods || {}).cine = "ok";
+} catch (err) { try { console.warn("cine disabled:", err); window.openCineMenu = undefined; (window.__mods = window.__mods || {}).cine = "fail: " + (err && err.message || err); } catch (e) {} }
 })();

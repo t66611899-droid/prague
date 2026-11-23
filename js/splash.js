@@ -71,7 +71,7 @@ function countdownSplash(done, mode) { // mode: out (לפני הטיסה) | air 
 function welcomeSplash(done) {
   const sp = $("#splash"); LS.set("welcomed", 1); sp.className = "cd wl " + (wantDark() ? "nt" : "dy"); sp.hidden = false;
   sp.innerHTML = `${skylineSvg()}${snowHtml(30)}<div class="cd-in wl-in"><span class="wl-flag">🇨🇿</span><h1>ברוך הבא לפראג</h1><p class="wl-s">Vítejte v Praze</p>
-    <ul class="wl-l"><li><b>1</b>מפעילים את ה-eSIM</li><li><b>2</b>AirportExpress עד 22:00, או Bolt</li><li><b>3</b>כניסה עצמית למלון: יש מדריך צעד-אחר-צעד</li><li><b>4</b>הודעה קצרה הביתה שנחתת</li></ul>
+    <ul class="wl-l"><li><b>1</b>מפעילים את ה-eSIM</li><li><b>2</b>טרוליבוס 59 + מטרו (כרטיס 90 דק'), או Bolt</li><li><b>3</b>כניסה עצמית למלון: יש מדריך צעד-אחר-צעד</li><li><b>4</b>הודעה קצרה הביתה שנחתת</li></ul>
     <div class="row"><button class="cd-go">למפה ←</button><button class="cd-go alt" id="wlWa">💬 נחתתי</button></div></div>`;
   setTimeout(snowBurst, 400); buzz([20, 60, 20, 60, 40]);
   let gone = false; const leave = () => { if (gone) return; gone = true; sp.classList.add("out"); setTimeout(() => { sp.hidden = true; sp.className = ""; sp.innerHTML = ""; }, 720); done(); };

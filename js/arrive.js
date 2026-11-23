@@ -7,10 +7,11 @@ const bigCode = (v, what) => v ? `<div class="arr-code" dir="ltr">${esc(v).split
 const hotelCalls = () => [me.h1, me.h2].filter(v => String(v || "").replace(/\D/g, "").length >= 8).map((v, i) => `<a class="btn" href="${telHref(v)}">📞 חירום מלון ${i + 1}</a>`).join("");
 const ARR_STEPS = [
   { k: "air", ic: "🚌", t: "מהשדה לעיר", b: () => `<ul class="tips">
-      <li><b>AirportExpress (AE)</b> מחוץ לטרמינל 1: כרטיס אצל הנהג, 200 Kč. יוצא כל 20 עד 30 דק', האחרון בסביבות 22:00. יורדים בתחנה המרכזית (Hlavní nádraží).</li>
-      <li>משם <b>מטרו קו C (האדום)</b>, 2 תחנות עד <b>I.P. Pavlova</b>. כרטיס 39 Kč מהמכונה או מהקיוסק, ו<b>חייבים להחתים</b> במכשיר הצהוב בכניסה.</li>
-      <li>פספסת את ה-AE? קו 59 עד Nádraží Veleslavín, מטרו A עד Muzeum, ושם מחליפים ל-C תחנה אחת. בערך שעה.</li>
-      <li>אחרי 00:15: אוטובוס לילה <b>910</b>, כל חצי שעה בערך. או פשוט Bolt.</li></ul>
+      <li><b>כרטיס 90 דק'</b>: 46 Kč באפליקציית PID Lítačka (בלי להחתים), או 50 Kč כרטיס נייר מהמכונה, ואז <b>חובה להחתים</b> במכונה הצהובה כשעולים.</li>
+      <li><b>טרוליבוס 59</b> מהטרמינל עד <b>Nádraží Veleslavín</b> (הסוף).</li>
+      <li>שם <b>מטרו A (הירוק)</b> עד <b>Muzeum</b>, ומחליפים ל<b>מטרו C (האדום)</b> תחנה אחת עד <b>I.P. Pavlova</b>. בערך 50 דקות בסך הכול, הכרטיס מספיק לכל הדרך.</li>
+      <li>אחרי 00:15: אוטובוס לילה <b>910</b> (עובר ב-I.P. Pavlova). או פשוט Bolt.</li>
+      <li class="fine">נחתת מוקדם? AirportExpress (AE) פועל רק עד 22:00 ובכרטיס נפרד משלו (לא PID), וכרטיסי 30/90 דק' לא תקפים בו. אופציה משנית בלבד.</li></ul>
       <div class="row wrap"><button class="btn" data-act="bolt">🚕 Bolt</button><button class="btn" data-arr="taxi">להראות כתובת לנהג</button></div>` },
   { k: "metro", ic: "🚇", t: "יוצאים ב-I.P. Pavlova", b: () => `<p>עולים <b>במעלית</b> מהרציף. כשיוצאים לרחוב, המלון כמעט ממול.</p>${me.hotel && me.hotel.q ? `<p class="fine">${bd(me.hotel.q)}</p>` : ""}<div class="row wrap"><a class="btn" href="${navUrl(place("hotel"))}" target="_blank" rel="noopener">🧭 נווט למלון</a></div>` },
   { k: "rec", ic: "🚪", t: "דלת הקבלה", b: () => `<p>הדלת <b>החומה מעץ, בצד ימין</b> של הבניין, מתחת לשלט HOTEL של המלון. לוח המקשים השחור מימין לדלת.</p><div id="arrPic"></div><small class="arr-l">קוד דלת הקבלה</small>${bigCode(me.rc, "קוד דלת הקבלה")}` },
@@ -72,6 +73,9 @@ window.openSOS = (old => function (test) {
 })(window.openSOS);
 
 /* עדכון חד-פעמי של טקסטים בתוכנית שכבר שמורה בטלפון (אחרי המיילים מהמלון ומ-EPIC), בלי לאפס שינויים שעשית */
+if (!LS.get("planFix2")) { let ch = false; // תחבורה 2026: 59 + מטרו כברירת מחדל, יציאה לשדה 09:45 באותו מסלול הפוך
+  plan.forEach(d => d.stops.forEach(s => { if (s.n === "נחיתה בפראג" && /AirportExpress|Bolt/.test(s.w || "")) { s.w = "מפעילים eSIM · טרוליבוס 59 + מטרו (כרטיס 90 דק') או Bolt"; ch = true; } if (s.n === "מס עירוני · Bolt לשדה") { s.n = "מס עירוני · יוצאים לשדה"; s.w = "200 Kč · מטרו C→A + טרוליבוס 59 (כרטיס 90 דק') או Bolt"; ch = true; } }));
+  if (ch && LS.get("plan")) savePlan(); LS.set("planFix2", 1); }
 if (!LS.get("planFix1")) { const fix = { "מפעילים eSIM · Bolt למלון": "מפעילים eSIM · AirportExpress או Bolt", "מפתח מהארון הכחול": "קוד בדלת הקבלה · מעטפה על הארון הכחול", "200 Kč במזומן": "200 Kč · מזומן או כרטיס" }; let ch = false;
   plan.forEach(d => d.stops.forEach(s => { if (fix[s.w]) { s.w = fix[s.w]; ch = true; } if (s.at === "epic" && !s.w) { s.w = "דלתות 22:00 · כרטיס Basic"; ch = true; } })); if (ch && LS.get("plan")) savePlan(); LS.set("planFix1", 1); }
 

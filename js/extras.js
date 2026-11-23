@@ -439,6 +439,14 @@ async function init() {
   setTimeout(onLoad, 7000); // גם אם אריחים מתעכבים, האפליקציה ממשיכה
 }
 /* מתחילים כשה-CSS מוכן (הוא נטען בלי לחסום את מסך הטעינה). אם הוא מתעכב מאוד, מתחילים בכל זאת. */
+/* אבחון ב"עוד": האם הפתיחים נטענו בטלפון הזה, ואם לא, למה */
+function modDiag() {
+  const M = window.__mods || {}, E = window.__scriptErrs || {}, one = (name, file, k) => { const st = M[k]; if (st === "ok") return `${name}: נטען ✓`; if (st) return `${name}: נכשל: ${st.replace(/^fail: /, "")}`; if (E[file]) return `${name}: נכשל: ${E[file]}`; return `${name}: לא נטען`; };
+  let ver = ""; try { ver = new URL($('script[src*="extras.js"]').src).searchParams.get("v"); } catch (e) {}
+  return [one("פתיחי הספירה", "intro.js", "intro"), one("פתיחי הטיול", "cine.js", "cine"), M.introErr ? "פתיח אחרון: " + M.introErr : "", `גרסה ${ver}`].filter(Boolean).join(" · ");
+}
+window.openMore = (old => function () { old.apply(this, arguments); try { $("#mbody").insertAdjacentHTML("beforeend", `<p class="fine diag" dir="rtl" style="margin-top:14px;user-select:text;-webkit-user-select:text">🔧 ${esc(modDiag())}</p>`); } catch (e) {} })(window.openMore);
+
 (function startWhenStyled() {
   let started = false; const go = () => { if (started) return; started = true; init(); };
   if (window.__css) go(); else { addEventListener("prg-css", go, { once: true }); setTimeout(go, 12000); }

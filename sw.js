@@ -1,8 +1,8 @@
 /* service worker: האפליקציה, הנתונים והמפה של מרכז פראג עובדים גם בלי קליטה */
-const V = "prg-v30";
+const V = "prg-v31";
 const SHELL = ["./", "index.html", "styles.css", "data.js", "routes.js", "manifest.webmanifest",
-  "js/config.js", "js/core.js", "js/map.js", "js/ui.js", "js/chat.js", "js/flow.js", "js/safety.js", "js/updates.js", "js/more.js", "js/gallery.js", "js/media.js", "js/journal.js", "js/arrive.js", "js/tickets.js", "js/ask.js", "js/prep.js", "js/import.js", "js/harel.js", "js/docs.js", "js/transfer.js", "family.html", "js/splash.js", "js/cine.js", "js/extras.js", "prague.ics",
-  "vendor/maplibre-gl.js", "vendor/maplibre-gl.css", "icons/icon.svg", "icons/icon-192.png", "icons/icon-512.png", "icons/icon-180.png"];
+  "js/config.js", "js/core.js", "js/map.js", "js/ui.js", "js/chat.js", "js/flow.js", "js/safety.js", "js/updates.js", "js/more.js", "js/gallery.js", "js/media.js", "js/journal.js", "js/arrive.js", "js/tickets.js", "js/ask.js", "js/prep.js", "js/import.js", "js/harel.js", "js/docs.js", "js/transfer.js", "family.html", "js/splash.js", "js/cine.js", "js/intro.js", "js/extras.js", "prague.ics",
+  "vendor/maplibre-gl.js", "vendor/maplibre-gl.css", "icons/icon.svg", "icons/icon-192.png", "icons/icon-512.png", "icons/icon-180.png", "icons/icon-maskable-512.png"];
 const MAP = "prg-map", MEDIA = "prg-media";
 
 self.addEventListener("install", e => { e.waitUntil(caches.open(V).then(c => c.addAll(SHELL.map(u => new Request(u, { cache: "reload" }))))  /* תמיד מהשרת, לא ממטמון הדפדפן */.then(() => self.skipWaiting())); });

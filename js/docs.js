@@ -13,7 +13,9 @@ async function docsDecrypt(buf, pin) {
   const key = await crypto.subtle.deriveKey({ name: "PBKDF2", salt, iterations: 600000, hash: "SHA-256" }, k0, { name: "AES-GCM", length: 256 }, false, ["decrypt"]);
   const pt = new Uint8Array(await crypto.subtle.decrypt({ name: "AES-GCM", iv }, key, ct)), n = new DataView(pt.buffer).getUint32(0);
   const man = JSON.parse(new TextDecoder().decode(pt.slice(4, 4 + n))); let off = 4 + n;
-  return man.files.map(f => { const data = pt.slice(off, off + f.size); off += f.size; return { ...f, blob: new Blob([data], { type: f.mime }) }; });
+  const out = man.files.map(f => { const data = pt.slice(off, off + f.size); off += f.size; return { ...f, blob: new Blob([data], { type: f.mime }) }; });
+  if (man.me && typeof man.me === "object") out.me = man.me; // הפרטים, הקודים וסיסמת היומן באותה חבילה
+  return out;
 }
 /* הורדה עם אחוזים. אם אין התקדמות זמן מה, עוצרים עם הודעה ברורה במקום להיתקע */
 async function docsFetch(id, onProg) {
@@ -32,7 +34,7 @@ async function docsFetch(id, onProg) {
   } catch (e) { clearTimeout(tm); if (e.name === "AbortError") throw new Error(why || "stall"); if (e.message === "gone" || e.message === "net") throw e; throw new Error("net"); }
 }
 async function docsApply(files, id) {
-  let n = 0;
+  let n = 0; if (files.me) { impApply({ me: files.me }); n++; }
   for (const f of files) {
     if (f.k === "door") { await imgPut("hotelDoor", f.blob); n++; continue; }
     const list = (tix[f.k] = (tix[f.k] || []).filter(x => x.name !== f.name)), fid = rid(); // ייבוא חוזר מחליף ולא משכפל
@@ -63,7 +65,7 @@ function openDocsImport(id) {
     try { files = await docsDecrypt(buf, pin); } catch (e) { st.textContent = "⚠️ הקוד לא נכון. מה שירד כבר שמור בטלפון, מקלידים שוב ולוחצים."; go.disabled = false; go.textContent = "לפתוח"; return; }
     const groups = {}; files.forEach(f => (groups[f.k] = groups[f.k] || []).push(f));
     $("#dcP").closest("label").hidden = true; go.hidden = true; prog.hidden = true; st.textContent = `${files.length} קבצים בחבילה:`;
-    $("#dcOut").innerHTML = `<ul class="imp">${Object.keys(groups).map(k => `<li><small>${DOC_LBL[k] || k}</small><b dir="auto">${groups[k].map(f => esc(k === "door" ? "תמונה" : f.kind === "img" ? "QR לסריקה" : f.name)).join(" · ")}</b></li>`).join("")}</ul><div class="row"><button class="btn pri" id="dcOk" style="flex:2">ייבא הכול</button><button class="btn" data-act="close" style="flex:1">ביטול</button></div>`;
+    $("#dcOut").innerHTML = `${files.me ? `<p class="sub"><b>הפרטים שלי:</b></p><ul class="imp">${impRows({ me: files.me }).map(r => `<li><small>${esc(r[0])}</small><b dir="auto">${esc(r[1])}</b></li>`).join("")}</ul><p class="sub"><b>כרטיסים ומסמכים:</b></p>` : ""}<ul class="imp">${Object.keys(groups).map(k => `<li><small>${DOC_LBL[k] || k}</small><b dir="auto">${groups[k].map(f => esc(k === "door" ? "תמונה" : f.kind === "img" ? "QR לסריקה" : f.name)).join(" · ")}</b></li>`).join("")}</ul><div class="row"><button class="btn pri" id="dcOk" style="flex:2">ייבא הכול</button><button class="btn" data-act="close" style="flex:1">ביטול</button></div>`;
     $("#dcOk").onclick = async () => { $("#dcOk").disabled = true; $("#dcOk").textContent = "שומר…"; try { const n = await docsApply(files, id); docsPending = null; buzz([12, 40, 12]); toast(`${n} מסמכים נשמרו בטלפון ✓`, 3600); openTickets(); } catch (e) { $("#dcOk").disabled = false; $("#dcOk").textContent = "🔄 לנסות שוב"; st.textContent = "⚠️ לא הצלחתי לשמור בטלפון (אולי אין מקום). מנסים שוב."; } };
   };
 }

@@ -6,6 +6,38 @@
 const MOVE_KEYS = ["me", "tix", "prep", "arr", "arrA1", "arrA2", "plan", "planV", "planFix1", "planFix2", "planFix3", "marks", "set", "exp", "jr", "jrShare", "jrRe", "jrMig", "jrVis", "jrDel", "free", "rem", "leave", "askQ", "welcomed", "lgSeen", "waHint", "diary", "tixSeen", "updSeen"];
 const moveKeyOk = k => MOVE_KEYS.includes(k) || /^pack\./.test(k);
 let movePending = null;
+
+/* מיזוג בטוח לכל מה שנכנס לטלפון (העברה, שחזור, ייבוא): ערך ריק אף פעם לא דורס ערך קיים, רשימות מתאחדות, ושום דבר לא נמחק */
+const isEmptyV = v => v == null || (typeof v === "string" && !v.trim()) || (Array.isArray(v) && !v.length) || (typeof v === "object" && !Array.isArray(v) && !Object.keys(v).length);
+function mergeMe(cur, inc) {
+  const out = Object.assign({}, cur || {});
+  for (const [k, v] of Object.entries(inc || {})) {
+    if (isEmptyV(v) || k === "contacts") continue;
+    if (k === "contactsAll" && Array.isArray(v)) { const c = Array.isArray(out.contactsAll) ? out.contactsAll : []; out.contactsAll = [0, 1, 2].map(i => { const a = c[i] || {}, b = v[i] || {}; return String(b.p || "").trim() ? { n: String(b.n || a.n || ""), p: String(b.p) } : { n: String(a.n || ""), p: String(a.p || "") }; }); continue; }
+    if (k === "notes") { const c = String(out.notes || "").trim(), nv = String(v).trim(); out.notes = !c ? nv : c.includes(nv) ? c : c + "\n" + nv; continue; }
+    out[k] = v;
+  }
+  if (Array.isArray(out.contactsAll)) out.contacts = out.contactsAll.filter(c => String(c.p || "").replace(/\D/g, "").length >= 9);
+  return out;
+}
+function mergeTix(cur, inc) { const out = JSON.parse(JSON.stringify(cur || {})); for (const [k, list] of Object.entries(inc || {})) { const have = out[k] || (out[k] = []); (list || []).forEach(it => { if (it && !have.some(x => x.id === it.id || (x.name === it.name && !!x.pdf === !!it.pdf && (x.label || "") === (it.label || "")))) have.push(it); }); } return out; }
+function mergeById(cur, inc) { const out = Array.isArray(cur) ? cur.slice() : []; (inc || []).forEach(x => { if (x && !out.some(y => y && y.id === x.id)) out.push(x); }); return out; }
+function safeApplyLS(ls) {
+  let n = 0;
+  for (const [k, v] of Object.entries(ls || {})) {
+    if (!moveKeyOk(k)) continue; let inc; try { inc = JSON.parse(v); } catch (e) { continue; } if (isEmptyV(inc)) continue;
+    const cur = LS.get(k, undefined);
+    if (k === "me") LS.set("me", mergeMe(cur, inc));
+    else if (k === "tix") LS.set("tix", mergeTix(cur, inc));
+    else if ((k === "jr" || k === "exp") && Array.isArray(inc)) LS.set(k, mergeById(cur, inc));
+    else if (cur === undefined || isEmptyV(cur)) LS.set(k, inc);
+    else continue;
+    n++;
+  }
+  try { me = LS.get("me", {}); } catch (e) {} try { tix = LS.get("tix", {}); } catch (e) {} try { jr = LS.get("jr", []); } catch (e) {}
+  return n;
+}
+async function safePutFiles(files, overwrite) { let n = 0; for (const [k, b] of files || []) { if (!overwrite) { const ex = await imgGet(k).catch(() => null); if (ex) continue; } await imgPut(k, b); n++; } return n; }
 (() => { const m = /[#&]move=([a-f0-9]{32})/.exec(location.hash || ""); if (!m) return; movePending = m[1]; try { history.replaceState(null, "", location.pathname + location.search); } catch (e) {} })();
 const idbAll = () => jdb().then(db => new Promise((res, rej) => { const out = [], tx = db.transaction("img", "readonly"), cur = tx.objectStore("img").openCursor(); cur.onsuccess = () => { const c = cur.result; if (c) { out.push([c.key, c.value]); c.continue(); } }; tx.oncomplete = () => res(out); tx.onerror = () => rej(tx.error); }));
 async function moveKey(pin, salt) { const k0 = await crypto.subtle.importKey("raw", new TextEncoder().encode(pin), "PBKDF2", false, ["deriveKey"]); return crypto.subtle.deriveKey({ name: "PBKDF2", salt, iterations: 600000, hash: "SHA-256" }, k0, { name: "AES-GCM", length: 256 }, false, ["encrypt", "decrypt"]); }
@@ -44,10 +76,8 @@ async function moveImport(id, pin, onStep) {
   return { man, files, sum: moveSummary(man.ls, files.length) };
 }
 async function moveApply(id, data) {
-  for (const [k, v] of Object.entries(data.man.ls)) { if (!moveKeyOk(k)) continue;
-    if (k === "me") { const cur = LS.get("me", {}), inc = JSON.parse(v); localStorage.setItem("prg.me", JSON.stringify({ ...cur, ...inc })); continue; } // ממזגים: מה שכבר הוקלד כאן נשאר אם לא קיים בחבילה
-    localStorage.setItem("prg." + k, v); }
-  for (const [k, b] of data.files) await imgPut(k, b);
+  safeApplyLS(data.man.ls);              /* מיזוג בטוח: שום ערך קיים לא נמחק ולא נדרס בריק */
+  await safePutFiles(data.files, false);  /* קבצים שכבר יש כאן נשארים */
   try { await fetch(apiUrl() + "/drop/" + id, { method: "DELETE" }); } catch (e) { LS.set("dropDel", id); }
 }
 function openMove(tab) {

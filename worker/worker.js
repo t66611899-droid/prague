@@ -252,15 +252,36 @@ async function dropBox(req, env, id, cors) {
   return json({ error: "not found" }, 404, cors);
 }
 
+/* ---------- גיבוי מוצפן של הטלפון ----------
+   הטלפון מצפין הכול לפני ההעלאה (AES-GCM, מפתח שנגזר מקוד שעומר בוחר). השרת שומר רק בלוק מוצפן ולא יכול לקרוא אותו.
+   המזהה (64 hex) נגזר מהקוד בטלפון. כתיבה רק עם סיסמת היומן; קריאה לפי המזהה, עם הגבלת קצב לכל IP. נשמר 120 יום. */
+async function backupBox(req, env, id, part, cors) {
+  if (!env.LIMITS) return json({ error: "no storage" }, 503, cors);
+  const key = `bk:${id}:${part}`;
+  if (req.method === "PUT") {
+    if (!env.APP_TOKEN || !same(req.headers.get("x-app-token") || "", env.APP_TOKEN)) return json({ error: "unauthorized" }, 401, cors);
+    const buf = await req.arrayBuffer(); if (buf.byteLength < 48 || buf.byteLength > 24e6) return json({ error: "size" }, 413, cors);
+    const ts = Date.now(); await env.LIMITS.put(key, buf, { expirationTtl: 120 * 86400, metadata: { ts, sz: buf.byteLength } }); return json({ ok: true, ts, bytes: buf.byteLength }, 200, cors);
+  }
+  if (req.method === "GET") {
+    const ip = req.headers.get("cf-connecting-ip") || "x", rk = `rl:bk:${ip}:${Math.floor(Date.now() / 36e5)}`, n = +(await env.LIMITS.get(rk) || 0);
+    if (n >= 40) return json({ error: "slow down" }, 429, cors); await env.LIMITS.put(rk, String(n + 1), { expirationTtl: 3700 });
+    const r = await env.LIMITS.getWithMetadata(key, "arrayBuffer"); if (!r || !r.value) return json({ error: "none" }, 404, cors);
+    return new Response(r.value, { status: 200, headers: { "content-type": "application/octet-stream", "cache-control": "no-store", "x-backup-ts": String((r.metadata || {}).ts || ""), ...cors } });
+  }
+  return json({ error: "not found" }, 404, cors);
+}
+
 export default {
   async scheduled(event, env, ctx) { ctx.waitUntil(findEvents(env, false)); },
   async fetch(req, env) {
     const origin = req.headers.get("Origin") || "", allow = env.ALLOWED_ORIGIN || "*";
-    const cors = { "Access-Control-Allow-Origin": allow === "*" ? "*" : allow, "Access-Control-Allow-Headers": "content-type,x-app-token,range", "Access-Control-Expose-Headers": "content-range,accept-ranges,content-length", "Access-Control-Allow-Methods": "GET,POST,PUT,DELETE,OPTIONS", "Access-Control-Max-Age": "86400", "Vary": "Origin" };
+    const cors = { "Access-Control-Allow-Origin": allow === "*" ? "*" : allow, "Access-Control-Allow-Headers": "content-type,x-app-token,range", "Access-Control-Expose-Headers": "content-range,accept-ranges,content-length,x-backup-ts", "Access-Control-Allow-Methods": "GET,POST,PUT,DELETE,OPTIONS", "Access-Control-Max-Age": "86400", "Vary": "Origin" };
     if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
     const path = new URL(req.url).pathname.replace(/\/+$/, "");
     if (req.method === "GET" && path.endsWith("/pid")) return pidFeed(cors);
     const dr = /\/drop(?:\/([a-f0-9]{32}))?$/.exec(path); if (dr) return dropBox(req, env, dr[1] || "", cors);
+    const bk = /\/backup\/([a-f0-9]{64})\/(d|t)$/.exec(path); if (bk) return backupBox(req, env, bk[1], bk[2], cors);
     const jo = /\/journal(\/.*)?$/.exec(path); if (jo) return journalOwner(req, env, jo[1] || "", cors);
     const jp = /\/j\/([a-f0-9]{32})(\/.*)?$/.exec(path); if (jp) return journalPublic(req, env, jp[1], jp[2] || "", cors);
     if (req.method === "GET" && path.endsWith("/events")) { // האירועים שהחיפוש המתוזמן מצא. קריאה בלבד, בלי סודות

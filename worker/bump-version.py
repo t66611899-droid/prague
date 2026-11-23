@@ -1,6 +1,10 @@
 import io, re, sys
 ROOT = "/Users/omer/claude low/prague/"
 V = sys.argv[1]
+# לפני כל פריסה: בדיקת בטיחות לנתוני המשתמש. אם משהו בקוד עלול למחוק נתונים, לא מעלים גרסה.
+import subprocess
+if subprocess.call(["node", ROOT + "worker/check-data-safety.mjs"]) != 0:
+    sys.exit("עצרתי: בדיקת בטיחות הנתונים נכשלה, הגרסה לא עודכנה")
 # index.html: every local asset gets ?v=N so a new index always pulls a matching set of files
 p = ROOT + "index.html"; s = io.open(p, encoding="utf8").read()
 s = re.sub(r'(src|href)="((?:js|vendor)/[^"?]+|styles\.css|data\.js|routes\.js)(\?v=\d+)?"', lambda m: f'{m.group(1)}="{m.group(2)}?v={V}"', s)

@@ -16,7 +16,7 @@ const ARR_STEPS = [
   { k: "rec", ic: "🚪", t: "דלת הקבלה", b: () => `<p>הדלת <b>החומה מעץ, בצד ימין</b> של הבניין, מתחת לשלט HOTEL של המלון. לוח המקשים השחור מימין לדלת.</p><div id="arrPic"></div><small class="arr-l">קוד דלת הקבלה</small>${bigCode(me.rc, "קוד דלת הקבלה")}` },
   { k: "env", ic: "✉️", t: "המעטפה עם השם שלך", b: () => `<p>בפנים, על הארון הכחול, יש מעטפה עם השם שלך. בתוכה <b>כרטיסי החדר ומספר החדר</b>.</p><label class="fld">מספר החדר (מהמעטפה)<input id="arrRoom" inputmode="numeric" dir="ltr" autocomplete="off" value="${esc(me.room || "")}" placeholder="למשל 12"></label>` },
   { k: "out", ic: "↩️", t: "יוצאים חזרה לרחוב", b: () => `<p>יוצאים מהקבלה חזרה לרחוב ו<b>סוגרים את הדלת בזהירות</b>, עד שהיא ננעלת.</p>` },
-  { k: "door", ic: "🏛️", t: "כניסת החדרים", b: () => `<p>הדלת <b>הגדולה עם העמודים, בצד שמאל</b> של הבניין, ליד מסעדת Legenda. מצמידים את <b>כרטיס החדר</b> לקורא שליד הפעמונים, או מקלידים קוד ואז Enter.</p><small class="arr-l">קוד כניסת החדרים + Enter</small>${bigCode(me.ec, "קוד כניסת החדרים")}` },
+  { k: "door", ic: "🏛️", t: "כניסת החדרים", b: () => `<p>הדלת <b>הגדולה עם העמודים, בצד שמאל</b> של הבניין, ליד מסעדת Legenda. מצמידים את <b>כרטיס החדר</b> לקורא שליד הפעמונים, או מקלידים את הקוד ואז <b>Enter</b>.</p><small class="arr-l">קוד כניסת החדרים + Enter</small>${bigCode(me.ec, "קוד כניסת החדרים")}` },
   { k: "room", ic: "🛏️", t: "בחדר", b: () => `${me.room ? `<div class="arr-code room">חדר ${esc(me.room)}</div>` : ""}<p>הגעת. מטעינים את הטלפון ושולחים הודעה קצרה הביתה.</p><div class="row wrap"><button class="btn wa" data-arr="home">💬 "הגעתי למלון"</button></div>
       <p class="fine">לימים הבאים: צ'ק-אאוט עד 11:00. מס עירוני 50 Kč ללילה (200 Kč בסך הכול) משלמים במקום, במזומן (אירו או קרונות) או בכרטיס. אם הקבלה סגורה כשעוזבים, משאירים את הכרטיסים בחדר וסוגרים את הדלת.</p>` }
 ];
@@ -74,3 +74,6 @@ window.openSOS = (old => function (test) {
 /* עדכון חד-פעמי של טקסטים בתוכנית שכבר שמורה בטלפון (אחרי המיילים מהמלון ומ-EPIC), בלי לאפס שינויים שעשית */
 if (!LS.get("planFix1")) { const fix = { "מפעילים eSIM · Bolt למלון": "מפעילים eSIM · AirportExpress או Bolt", "מפתח מהארון הכחול": "קוד בדלת הקבלה · מעטפה על הארון הכחול", "200 Kč במזומן": "200 Kč · מזומן או כרטיס" }; let ch = false;
   plan.forEach(d => d.stops.forEach(s => { if (fix[s.w]) { s.w = fix[s.w]; ch = true; } if (s.at === "epic" && !s.w) { s.w = "דלתות 22:00 · כרטיס Basic"; ch = true; } })); if (ch && LS.get("plan")) savePlan(); LS.set("planFix1", 1); }
+
+if (!LS.get("planFix2")) { const fix = { "הרציף לפי המייל של Duplex": "דלתות 19:00 · הרציף ושעת העלייה בכרטיס שב-Wallet", "כניסה כלולה בכרטיס": "כניסה כלולה בכרטיס הסירה", "לשקול 8 ק\"ג": "לבדוק משקל ומידות התיק · מנוחה לפני Duplex", "חזרה עד 3:00": "להגיע 00:00–01:00, לפני זה ריק" }; let ch = false;
+  plan.forEach(d => d.stops.forEach(s => { if (fix[s.w]) { s.w = fix[s.w]; ch = true; } if (d.date === "2026-12-04" && s.m === 600 && /^מס עירוני/.test(s.n)) { s.m = 585; ch = true; } })); if (ch && LS.get("plan")) savePlan(); LS.set("planFix2", 1); }

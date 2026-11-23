@@ -3,7 +3,7 @@
 const MOODS = [["cold", "🥶 קר לי"], ["tired", "😮‍💨 עייף"], ["hungry", "🍕 רעב"], ["free", "🕐 יש לי זמן"]];
 const SHORTS = ["מה יש פה לידי?", "אוכל בלי בשר", "משהו חם לשתות", "מקום לצילום", "יש לי שעתיים", "חנויות לידי", "איפה מסיבה הערב?"];
 let chatMood = LS.get("mood", ""), chatBusy = false;
-const chatUrl = () => (me.chatUrl || CONFIG.chatUrl || "").trim();
+const chatUrl = () => CONFIG.server ? (me.chatUrl || CONFIG.chatUrl || "").trim() : "";
 const chatTok = () => (me.chatTok || "").trim();
 const chatKey = () => "chat." + tripNow().date;
 const chatLog = () => LS.get(chatKey(), []);
@@ -82,8 +82,27 @@ async function sendChat(text) {
   } catch (e) { fail(navigator.onLine === false ? "אין קליטה כרגע." : "לא הצלחתי להגיע לשרת."); }
 }
 
-function flushChatQueue() { const q = LS.get("chatQ", ""); if (!q || isOffline()) return; LS.del("chatQ"); sendChat(q).then(() => toast("Claude ענה על השאלה ששמרת ✓")); }
+function flushChatQueue() { if (!CONFIG.server) return; const q = LS.get("chatQ", ""); if (!q || isOffline()) return; LS.del("chatQ"); sendChat(q).then(() => toast("Claude ענה על השאלה ששמרת ✓")); }
+/* בלי שרת: כל שאלה נפתחת ישר ב-claude.ai עם כל ההקשר (איפה אני, שעה, תחנה הבאה, מזג אוויר, מצב רוח) */
+function askClaude(q) {
+  const text = claudeText(q);
+  if (isOffline()) { if (navigator.clipboard) navigator.clipboard.writeText(text).catch(() => {}); toast("אין קליטה כרגע. העתקתי את השאלה, אפשר להדביק ב-Claude כשהרשת חוזרת", 4200); return; }
+  buzz(8); window.open("https://claude.ai/new?q=" + encodeURIComponent(text), "_blank", "noopener");
+}
+function openAsk() {
+  openModal(`<h2>💬 Claude <small class="h-sub">שותף הטיול שלך</small></h2>
+    <p class="sub">בוחרים שאלה, והיא נפתחת ב-Claude עם כל ההקשר: איפה אתה, השעה בפראג, התחנה הבאה ומזג האוויר.</p>
+    <h3>איך אתה עכשיו?</h3><div class="chips" id="chMood">${MOODS.map(m => `<button class="chip${chatMood === m[0] ? " sel" : ""}" data-m="${m[0]}">${m[1]}</button>`).join("")}</div>
+    <h3>מה בא לך לדעת?</h3><div class="ask-grid" id="chShort">${SHORTS.map(s => `<button class="ask"><span>${s}</span><i>↗</i></button>`).join("")}</div>
+    <form class="ch-bar" id="chF"><input id="chI" placeholder="או שאלה משלך…" enterkeyhint="go" autocomplete="off" dir="auto"><button class="btn pri" style="flex:none">שאל</button></form>
+    <button class="lnk" id="chPrev">לראות ולערוך את ההודעה לפני ששולחים</button>`, "tall");
+  $$("#chMood .chip").forEach(b => b.onclick = () => { chatMood = chatMood === b.dataset.m ? "" : b.dataset.m; LS.set("mood", chatMood); buzz(6); $$("#chMood .chip").forEach(x => x.classList.toggle("sel", x.dataset.m === chatMood)); });
+  $$("#chShort .ask").forEach(b => b.onclick = () => askClaude(b.querySelector("span").textContent));
+  $("#chF").onsubmit = e => { e.preventDefault(); askClaude($("#chI").value.trim()); };
+  $("#chPrev").onclick = () => openClaude($("#chI").value.trim());
+}
 function openChat() {
+  if (!CONFIG.server) return openAsk();
   openModal(`<h2>💬 Claude <small class="h-sub">שותף הטיול שלך</small></h2>
     <div class="chips" id="chMood">${MOODS.map(m => `<button class="chip${chatMood === m[0] ? " sel" : ""}" data-m="${m[0]}">${m[1]}</button>`).join("")}</div>
     <div class="ch-log" id="chLog" aria-live="polite"></div>

@@ -129,8 +129,8 @@ function claudeText(question) {
   return `אני בפראג, עכשיו ${time}, ${where}.${wd ? ` בחוץ בערך ${wd.max}°${isWetNow() ? " ויורד גשם או שלג" : ""}.` : ""}
 ${done.length ? `כבר הייתי היום ב: ${done.join(", ")}.` : "עוד לא הספקתי כלום היום."}
 ${nx ? `הבא בתוכנית: ${nx.n} ב-${fmtT(nx.m)}.` : "אין לי עוד משהו קבוע היום."}
-אני בן 18, לבד, לא אוכל בשר, אוהב קניות, מקומות של צעירים ולהסתובב.
-${question || `מה שווה לעשות פה ${hrs === 1 ? "בשעה הקרובה" : "ב-" + hrs + " השעות הקרובות"}?`} תן לי 3–4 רעיונות קונקרטיים במרחק הליכה, עם שמות מקומות כמו שהם כתובים על השלטים.`;
+אני בן 18, לבד, לא אוכל בשר, אוהב קניות, מקומות של צעירים ולהסתובב.${typeof chatMood !== "undefined" && chatMood ? `\nהמצב שלי עכשיו: ${(MOODS.find(m => m[0] === chatMood) || ["", ""])[1].replace(/^\S+\s/, "")}.` : ""}
+${question ? "מה שאני מחפש עכשיו: " + question + (/[?.!]$/.test(question) ? "" : ".") : `מה שווה לעשות פה ${hrs === 1 ? "בשעה הקרובה" : "ב-" + hrs + " השעות הקרובות"}?`} תן לי 3–4 רעיונות קונקרטיים במרחק הליכה, עם שמות מקומות כמו שהם כתובים על השלטים.`;
 }
 function openClaude(question) {
   openModal(`<h2>✨ לפתוח ב-Claude</h2><p class="sub">זאת ההודעה שתיפתח באפליקציית Claude. אפשר לערוך לפני ששולחים. נשלח רק שם הרחוב או המקום הקרוב, בלי קואורדינטות.</p>
@@ -272,7 +272,7 @@ function openMe() {
 
 /* ---------- "עוד" + הגדרות ---------- */
 function openMore() {
-  const items = [["today", "☀️", "היום שלי"], ["wx", "🌡️", "מזג אוויר"], ["pack", "🎒", "מה לקחת"], ["exp", "💰", "הוצאות"], ["sum", "📊", "סיכום היום"], ["off", "📥", "בלי אינטרנט"], ["me", "🔒", "הפרטים שלי"], ["sos", "🆘", "חירום"], ["chat", "💬", "חיבור Claude"], ["set", "⚙️", "הגדרות"], ["inst", "📲", "מסך הבית"], ["add", "➕", "להוסיף תחנה"]];
+  const items = [["today", "☀️", "היום שלי"], ["wx", "🌡️", "מזג אוויר"], ["pack", "🎒", "מה לקחת"], ["exp", "💰", "הוצאות"], ["sum", "📊", "סיכום היום"], ["off", "📥", "בלי אינטרנט"], ["me", "🔒", "הפרטים שלי"], ["sos", "🆘", "חירום"], ...(CONFIG.server ? [["chat", "💬", "חיבור Claude"]] : []), ["set", "⚙️", "הגדרות"], ["inst", "📲", "מסך הבית"], ["add", "➕", "להוסיף תחנה"]];
   openModal(`<h2>עוד</h2><div class="menu">${items.map(i => `<button data-m="${i[0]}"><span>${i[1]}</span>${i[2]}</button>`).join("")}</div>`);
   const fn = { today: () => openToday(curDay), wx: openWeather, pack: openPack, exp: openExp, sum: () => openSummary(curDay), off: openOffline, me: openMe, sos: openSOS, set: openSettings, chat: openChatSetup, inst: openInstall, add: () => addStopFlow() };
   $$("#mbody [data-m]").forEach(b => b.onclick = fn[b.dataset.m]);
@@ -282,11 +282,11 @@ function openSettings() {
   openModal(`<h2>⚙️ הגדרות</h2>
     ${sw("spont", "מצב ספונטני", "בלי שעות. התחנה הבאה היא הכי קרובה אליך")}
     ${sw("eco", "חיסכון בסוללה", "מיקום כל ~12 שניות בדיוק נמוך, בלי תלת-ממד ובלי אנימציות. נדלק לבד מתחת ל-20%")}
-    ${sw("push", "התראות על אירועים חמים", "רק אירועים עם ציון 5, עד 2 ביום. מגיע גם כשהאפליקציה סגורה")}
+    ${CONFIG.server ? sw("push", "התראות על אירועים חמים", "רק אירועים עם ציון 5, עד 2 ביום. מגיע גם כשהאפליקציה סגורה") : ""}
     ${sw("remind", "תזכורות", "20 דק' לפני טיסה, מסיבה או יציאה לשדה. עובד כשהאפליקציה פתוחה")}
     <label class="fld">מראה<select id="thSel"><option value="auto">אוטומטי (לפי הטלפון, וכהה אחרי השקיעה)</option><option value="light">בהיר</option><option value="dark">כהה</option></select></label>
     <div class="row wrap"><button class="btn" id="rsPlan">↩︎ התוכנית המקורית</button><button class="btn" id="rsMarks">לנקות סימוני "בוצע"</button></div>
-    <p class="fine">המיקום שלך נשאר במכשיר. הוא יוצא ממנו רק כשלוחצים "נווט", שולחים הודעה ל-Claude או מחפשים "מה יש פה?".<br>מסלולים: OSRM / FOSSGIS · תמונות: Wikipedia · מזג אוויר: Open-Meteo.</p>`, "tall");
+    <p class="fine">המיקום שלך נשאר במכשיר. הוא יוצא ממנו רק כשלוחצים "נווט", פותחים שאלה ב-Claude או מחפשים "מה יש פה?".<br>מסלולים: OSRM / FOSSGIS · תמונות: Wikipedia · מזג אוויר: Open-Meteo.</p>`, "tall");
   $("#thSel").value = settings.theme; $("#thSel").onchange = e => { settings.theme = e.target.value; saveSet(); applyTheme(); };
   $$("#mbody [data-s]").forEach(c => c.onchange = async () => {
     settings[c.dataset.s] = c.checked; saveSet(); buzz(8);
@@ -378,7 +378,7 @@ function openOffline() {
 /* ---------- 🔥 אירועים: קבועים (שווקים ומסיבות) + מה שהשרת מצא ---------- */
 let evMarkers = [];
 function eventsFor(date) {
-  const srv = (LS.get("events", { items: [] }).items || []).filter(e => e.date === date && e.lat && e.name).map((e, i) => ({ id: "se" + i, name: String(e.name).slice(0, 80), cz: String(e.place || "").slice(0, 60), lat: +e.lat, lng: +e.lng, ic: "🔥", ty: "party", when: String(e.time || "").slice(0, 20), price: String(e.price || "").slice(0, 30), url: /^https:\/\//.test(e.url || "") ? e.url : "", sub: String(e.why || "").slice(0, 160), score: +e.score || 3, m: /^\d\d?:\d\d/.test(e.time || "") ? parseT(e.time.slice(0, 5)) : null, srv: true, q: (e.place || e.name) + ", Praha" }));
+  const srv = (CONFIG.server ? LS.get("events", { items: [] }).items || [] : []).filter(e => e.date === date && e.lat && e.name).map((e, i) => ({ id: "se" + i, name: String(e.name).slice(0, 80), cz: String(e.place || "").slice(0, 60), lat: +e.lat, lng: +e.lng, ic: "🔥", ty: "party", when: String(e.time || "").slice(0, 20), price: String(e.price || "").slice(0, 30), url: /^https:\/\//.test(e.url || "") ? e.url : "", sub: String(e.why || "").slice(0, 160), score: +e.score || 3, m: /^\d\d?:\d\d/.test(e.time || "") ? parseT(e.time.slice(0, 5)) : null, srv: true, q: (e.place || e.name) + ", Praha" }));
   const fixed = TRIP.events.filter(e => !e.date || e.date === date).map(e => ({ ...e, ic: e.ic || "🎄", sub: e.d || "", score: e.score || 4, m: e.t ? parseT(e.t) : null, when: e.when || "" }));
   return [...fixed, ...srv];
 }
@@ -387,7 +387,7 @@ function drawEvents() {
   const inPlan = plan[curDay].stops.map(s => loc(s)).filter(Boolean);
   for (const e of eventsFor(plan[curDay].date)) { if (!e.lat || inPlan.some(l => hav(l, e) < 60)) continue; evMarkers.push(mkNode({ kind: "ev", cls: "mk-ev" + (e.score >= 5 ? " hot" : ""), r: 15, z: 2, inner: `<span class="mk-i">${e.ic}</span>`, he: e.name, cz: e.when || "", lat: e.lat, lng: e.lng, onClick: () => openPlace({ near: e }) })); }
 }
-function toggleEvents() { settings.ev = !settings.ev; saveSet(); drawEvents(); buzz(8); toast(settings.ev ? `🔥 ${evMarkers.length} אירועים ושווקים על המפה` : "שכבת האירועים כבויה"); }
+function toggleEvents() { settings.ev = !settings.ev; saveSet(); drawEvents(); buzz(8); toast(settings.ev ? "🔥 השווקים והמסיבות שלך על המפה" : "שכבת האירועים כבויה"); }
 function eventCard() { // "חדש היום": אירוע שהשרת מצא, עם ציון 4–5, קרוב לאזור של היום
   const T = tripNow(); if (T.dayIdx !== curDay) return ""; const pts = plan[curDay].stops.map(s => loc(s)).filter(Boolean), seen = LS.get("evSeen", {});
   const e = eventsFor(plan[curDay].date).find(e => e.srv && e.score >= 4 && !seen[e.name] && pts.some(l => hav(l, e) < 1500) && (e.m == null || e.m > T.min - 30)); if (!e) return "";

@@ -6,7 +6,7 @@
 <title>עומר בפראג</title>
 <meta name="robots" content="noindex,nofollow,noarchive">
 <meta name="referrer" content="no-referrer">
-<meta name="theme-color" content="#d42a33">
+<meta name="theme-color" content="#0c1536">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="עומר בפראג">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
@@ -15,138 +15,171 @@
 <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="vendor/maplibre-gl.css">
 <style>
-:root{--bg:#f5f1ea;--card:#fff;--card2:#f4f0ea;--ink:#1b1c20;--mut:#6a6c75;--line:#e8e2d9;--red:#d42a33;--gold:#d9b25a;--blue:#2f7de1;--r:20px;color-scheme:light}
-@media (prefers-color-scheme:dark){:root{--bg:#0d1226;--card:#171c30;--card2:#212741;--ink:#f3f2f0;--mut:#a0a4b0;--line:#2c3352;color-scheme:dark}}
+:root{--bg:#f5f1ea;--card:#fff;--card2:#f1ece4;--ink:#16202e;--mut:#6a6c75;--line:#e8e2d9;--red:#d42a33;--blue:#2f7de1;--r:22px;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#0b1022;--card:#161b30;--card2:#20263f;--ink:#f3f2f0;--mut:#a0a4b0;--line:#2c3352;color-scheme:dark}}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{scroll-behavior:smooth}
 body{margin:0;font-family:Rubik,system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.45;-webkit-font-smoothing:antialiased}
 button,input{font:inherit;color:inherit}
-.wrap{max-width:640px;margin:0 auto;padding:0 14px calc(env(safe-area-inset-bottom,0px) + 40px)}
-header{position:relative;margin:0 -14px;padding:calc(env(safe-area-inset-top,0px) + 26px) 20px 22px;color:#fff;background:linear-gradient(170deg,#0c1536 0%,#27306a 55%,#8a3a52 100%);border-radius:0 0 28px 28px;overflow:hidden}
-header h1{margin:0;font-size:2rem;font-weight:700;letter-spacing:-.02em}
-header p{margin:4px 0 0;opacity:.92;font-size:1rem}
-.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
-.chips span{background:rgba(255,255,255,.16);border-radius:14px;padding:7px 12px;font-size:.88rem;font-weight:500;backdrop-filter:blur(6px)}
-.live{display:inline-flex;align-items:center;gap:8px}
-.live i{width:9px;height:9px;border-radius:50%;background:#6fd08c;box-shadow:0 0 0 0 rgba(111,208,140,.7);animation:lv 2s infinite}
-@keyframes lv{to{box-shadow:0 0 0 10px rgba(111,208,140,0)}}
-#map{height:300px;margin:14px 0 0;border-radius:var(--r);overflow:hidden;direction:ltr;background:var(--card2);box-shadow:0 8px 26px rgba(20,22,40,.14)}
-.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:14px 0 4px}
-.stats div{background:var(--card);border-radius:18px;padding:14px 6px;text-align:center;box-shadow:0 2px 10px rgba(20,22,40,.06)}
-.stats b{display:block;font-size:1.6rem;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
-.stats small{color:var(--mut);font-size:.76rem}
-h2{font-size:.86rem;color:var(--mut);font-weight:600;margin:26px 4px 10px;display:flex;align-items:center;gap:10px}
-h2::after{content:"";flex:1;height:1px;background:var(--line)}
-h2 b{color:var(--ink);font-size:1.05rem}
-article{background:var(--card);border-radius:var(--r);overflow:hidden;margin:0 0 14px;box-shadow:0 4px 18px rgba(20,22,40,.08)}
-.ph{display:grid;gap:3px;cursor:zoom-in}
-.ph img{width:100%;height:100%;object-fit:cover;display:block;background:var(--card2)}
-.ph.n1 img{aspect-ratio:4/3}
-.ph.n2{grid-template-columns:1fr 1fr}.ph.n2 img{aspect-ratio:1}
-.ph.n3{grid-template-columns:2fr 1fr;grid-template-rows:1fr 1fr}.ph.n3 img:first-child{grid-row:1/3;aspect-ratio:1}
-.ph{position:relative}.ph .more{position:absolute;bottom:10px;left:10px;background:rgba(0,0,0,.6);color:#fff;border-radius:12px;padding:4px 10px;font-size:.84rem;font-weight:600}
+[hidden]{display:none!important}
+.mapw{position:sticky;top:0;z-index:5;height:44vh;min-height:260px;background:#0c1536;overflow:hidden;border-radius:0 0 26px 26px;box-shadow:0 10px 30px rgba(10,14,34,.22)}
+#map{position:absolute;inset:0;direction:ltr}
+.hd{position:absolute;top:0;left:0;right:0;z-index:2;padding:calc(env(safe-area-inset-top,0px) + 14px) 18px 30px;color:#fff;background:linear-gradient(rgba(8,12,32,.78),rgba(8,12,32,.35) 62%,transparent);pointer-events:none}
+.hd h1{margin:0;font-size:1.55rem;font-weight:700;letter-spacing:-.02em;text-shadow:0 1px 8px rgba(0,0,0,.4)}
+.hd p{margin:1px 0 0;font-size:.92rem;opacity:.95;font-weight:500}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}
+.chips span{background:rgba(255,255,255,.2);border-radius:12px;padding:5px 10px;font-size:.8rem;font-weight:500;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.live{display:inline-flex;align-items:center;gap:7px}
+.live i{width:8px;height:8px;border-radius:50%;background:#6fd08c;animation:lv 2s infinite}
+@keyframes lv{0%{box-shadow:0 0 0 0 rgba(111,208,140,.7)}100%{box-shadow:0 0 0 9px rgba(111,208,140,0)}}
+.pill{position:absolute;z-index:2;bottom:14px;inset-inline-start:52px;display:flex;gap:12px;background:rgba(12,16,36,.72);color:#fff;border-radius:16px;padding:8px 14px;font-size:.78rem;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);font-variant-numeric:tabular-nums}
+.pill b{display:block;font-size:1.05rem;line-height:1.1}
+.play{position:absolute;z-index:2;bottom:14px;inset-inline-end:14px;min-height:48px;border:0;border-radius:24px;background:#fff;color:#111;font-weight:700;padding:0 18px;box-shadow:0 6px 18px rgba(0,0,0,.3);transition:transform .15s}
+.play:active{transform:scale(.94)}
+.wrap{max-width:620px;margin:0 auto;padding:6px 14px calc(env(safe-area-inset-bottom,0px) + 44px)}
+.day{position:relative;margin:22px 0 14px;border-radius:var(--r);overflow:hidden;aspect-ratio:16/10;background:var(--card2) center/cover;display:flex;align-items:flex-end;color:#fff;box-shadow:0 8px 24px rgba(10,14,34,.16)}
+.day img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .6s}
+.day img.ld{opacity:1}
+.day::after{content:"";position:absolute;inset:0;background:linear-gradient(transparent 28%,rgba(0,0,0,.74))}
+.day div{position:relative;z-index:1;padding:18px 20px;text-shadow:0 1px 8px rgba(0,0,0,.5)}
+.day small{display:block;font-size:.8rem;font-weight:600;letter-spacing:.05em;opacity:.92}
+.day b{display:block;font-size:1.75rem;line-height:1.12;font-weight:700;letter-spacing:-.02em;margin:2px 0 5px}
+.day span{font-size:.84rem;opacity:.92;font-variant-numeric:tabular-nums}
+article{position:relative;background:var(--card);border-radius:var(--r);overflow:hidden;margin:0 0 14px;box-shadow:0 4px 18px rgba(10,14,34,.08);transition:box-shadow .35s}
+article.act{box-shadow:0 0 0 2.5px var(--red),0 10px 28px rgba(10,14,34,.16)}
 .bd{padding:14px 16px 12px}
-.bd p{margin:0 0 6px;font-size:1.06rem;line-height:1.5}
+.bd p{margin:0 0 6px;font-size:1.08rem;line-height:1.5}
 .bd small{color:var(--mut);font-size:.84rem}
 .n{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:50%;background:var(--red);color:#fff;font-size:.74rem;font-weight:700;margin-inline-end:6px}
 .acts{display:flex;gap:8px;align-items:center;margin-top:12px}
-.hb{min-height:46px;min-width:64px;border:0;border-radius:23px;background:var(--card2);font-size:1.05rem;font-weight:600;padding:0 14px;cursor:pointer;transition:transform .15s}
-.hb:active{transform:scale(.9)}.hb.on{background:#ffe1e3;color:#d42a33}
+.hb{min-height:46px;min-width:64px;border:0;border-radius:23px;background:var(--card2);font-size:1.05rem;font-weight:600;padding:0 14px;cursor:pointer;transition:transform .2s cubic-bezier(.3,1.5,.5,1)}
+.hb:active{transform:scale(.86)}.hb.on{background:#ffe1e3;color:#d42a33}
+.hb.pop{animation:hp .5s cubic-bezier(.3,1.6,.5,1)}@keyframes hp{40%{transform:scale(1.25)}}
 @media (prefers-color-scheme:dark){.hb.on{background:#4a1f2a;color:#ff8a90}}
 .cf{flex:1;display:flex;gap:6px}
 .cf input{flex:1;min-width:0;min-height:46px;border-radius:23px;border:1.5px solid var(--line);background:var(--card);padding:0 14px;font-size:.95rem}
 .cf button{min-height:46px;border:0;border-radius:23px;background:var(--red);color:#fff;font-weight:600;padding:0 14px}
-.re{margin:8px 0 0;font-size:.9rem;color:var(--mut)}.re b{color:var(--ink)}
+.re{margin:8px 0 0!important;font-size:.9rem!important;color:var(--mut)}.re b{color:var(--ink)}
 .empty{text-align:center;padding:50px 20px;color:var(--mut)}.empty span{font-size:3rem;display:block}.empty b{display:block;color:var(--ink);font-size:1.15rem;margin:8px 0 4px}
 #who{position:fixed;inset:0;z-index:30;background:rgba(10,12,30,.55);display:grid;place-items:end center}
-#who div{width:100%;max-width:640px;background:var(--card);border-radius:26px 26px 0 0;padding:24px 18px calc(env(safe-area-inset-bottom,0px) + 22px);text-align:center}
+#who div{width:100%;max-width:620px;background:var(--card);border-radius:26px 26px 0 0;padding:24px 18px calc(env(safe-area-inset-bottom,0px) + 22px);text-align:center}
 #who h3{margin:0 0 4px;font-size:1.25rem}#who p{margin:0 0 14px;color:var(--mut)}
 #who button{min-height:58px;width:100%;margin-top:8px;border:0;border-radius:18px;background:var(--card2);font-size:1.1rem;font-weight:600}
-#view{position:fixed;inset:0;z-index:40;background:#000;display:flex;overflow-x:auto;scroll-snap-type:x mandatory;direction:ltr}
-#view img{flex:none;width:100vw;height:100dvh;object-fit:contain;scroll-snap-align:center}
-#vx{position:fixed;z-index:41;top:calc(env(safe-area-inset-top,0px) + 12px);right:12px;width:48px;height:48px;border-radius:50%;border:0;background:rgba(255,255,255,.2);color:#fff;font-size:1.1rem}
-[hidden]{display:none!important}
-.pin{width:26px;height:26px;border-radius:50%;background:var(--red);color:#fff;border:2.5px solid #fff;display:grid;place-items:center;font:700 12px Rubik,sans-serif;box-shadow:0 2px 8px rgba(0,0,0,.4);cursor:pointer}
+.pm{width:40px;height:40px;border-radius:50%;background:var(--red) center/cover;color:#fff;border:3px solid #fff;display:grid;place-items:center;font:700 13px Rubik,sans-serif;box-shadow:0 3px 10px rgba(0,0,0,.4);cursor:pointer;transition:transform .35s cubic-bezier(.3,1.5,.5,1),border-color .3s}
+.pm.act{transform:scale(1.32);border-color:var(--red);z-index:3}
 .foot{text-align:center;color:var(--mut);font-size:.76rem;margin-top:26px;line-height:1.6}
 .foot a{color:inherit}
+body.replay .mapw{position:fixed;inset:0;height:100dvh;z-index:9000;border-radius:0}
+body.replay .hd,body.replay .pill,body.replay .play{display:none}
+@media (min-width:900px){body{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);direction:rtl}.mapw{grid-column:2;grid-row:1;height:100vh;border-radius:0}.wrap{grid-column:1;grid-row:1;width:100%;padding-top:14px}}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header><h1>עומר בפראג 🇨🇿</h1><p id="sub">טוען…</p><div class="chips" id="chips"></div></header>
-  <div id="map" aria-label="מפת המסלול"></div>
-  <div class="stats" id="stats"></div>
-  <main id="feed"></main>
-  <p class="foot" id="foot"></p>
-</div>
+<div class="mapw"><div id="map" aria-label="מפת המסלול"></div>
+  <div class="hd"><h1>עומר בפראג 🇨🇿</h1><p id="sub">טוען…</p><div class="chips" id="chips"></div></div>
+  <div class="pill" id="pill" hidden></div><button class="play" id="play" hidden>▶ לנגן את הטיול</button></div>
+<div class="wrap"><main id="feed"></main><p class="foot" id="foot"></p></div>
 <div id="who" hidden><div><h3>מי צופה? 🙂</h3><p>כדי שעומר ידע מי שלח לו לב או תגובה.</p><button data-n="אמא">אמא</button><button data-n="אבא">אבא</button><button data-n="משפחה">מישהו אחר מהמשפחה</button></div></div>
-<div id="view" hidden></div><button id="vx" hidden aria-label="סגור">✕</button>
 <script src="vendor/maplibre-gl.js"></script>
+<script src="js/gallery.js"></script>
 <script>
 "use strict";
 /* דף הצפייה של ההורים. קורא רק דרך הקישור הסודי (‎#k=…), בלי הרשמה ובלי סודות בקוד. */
 const QS = new URLSearchParams(location.search), API = (QS.get("api") || "https://prague-chat.bloombarber.workers.dev").replace(/\/+$/, "");
-const KEY = (/k=([a-f0-9]{32})/.exec(location.hash) || [])[1] || "", $ = s => document.querySelector(s);
+const KEY = (/k=([a-f0-9]{32})/.exec(location.hash) || [])[1] || "", $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
 const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-const DAYS = ["2026-11-30", "2026-12-01", "2026-12-02", "2026-12-03", "2026-12-04"], HE = ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"];
+const DAYS = ["2026-11-30", "2026-12-01", "2026-12-02", "2026-12-03", "2026-12-04"], DT = ["טסים", "העיר הישנה והסירה", "נהר, תצפיות ו-EPIC", "קניות ו-Duplex", "חוזרים"], HE = ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"];
 const dayName = d => { const x = new Date(d + "T00:00:00Z"); return `יום ${HE[x.getUTCDay()]} ${x.getUTCDate()}.${x.getUTCMonth() + 1}`; };
 const NOW = QS.get("now") ? new Date(QS.get("now") + "Z").getTime() - Date.now() : 0; // לבדיקות בלבד
 const pragueNow = () => NOW ? new Date(Date.now() + NOW).toLocaleString("en-CA", { timeZone: "UTC", hour12: false, year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" }) : new Date().toLocaleString("en-CA", { timeZone: "Europe/Prague", hour12: false, year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" });
 const ago = t => { const m = Math.round((Date.now() - t) / 6e4); return m < 2 ? "ממש עכשיו" : m < 60 ? `לפני ${m} דק'` : m < 1440 ? `לפני ${Math.round(m / 60)} שעות` : `לפני ${Math.round(m / 1440)} ימים`; };
-let me = localStorage.getItem("fam.name") || "", data = null, map = null, markers = [], lastSig = "", hearted = JSON.parse(localStorage.getItem("fam.h") || "{}"), wx = "";
+let me = localStorage.getItem("fam.name") || "", data = null, map = null, markers = {}, lastSig = "", hearted = JSON.parse(localStorage.getItem("fam.h") || "{}"), wx = "", act = "", lineF = 0, lineStop = null, io = null, userMoved = 0;
 const img = id => `${API}/j/${KEY}/img/${id}`;
+const pts = () => data.moments.filter(m => m.lat != null);
+const moImgs = m => m.imgs.map((id, i) => ({ gid: id, src: img(id), ar: (m.ar || [])[i], ph: (m.ph || [])[i] || "" }));
 
 function header() {
   const [d, t] = pragueNow().split(", "), i = DAYS.indexOf(d), st = i >= 0 ? `יום ${i + 1} מתוך 5` : d < DAYS[0] ? "הטיול עוד לא התחיל" : "הטיול הסתיים";
-  $("#sub").textContent = st; const c = [`🕐 ${t} בפראג`]; if (wx) c.push(wx);
+  $("#sub").textContent = st; const c = [`<span>🕐 ${t} בפראג</span>`]; if (wx) c.push(`<span>${wx}</span>`);
   if (data && data.loc) c.push(`<span class="live"><i></i>${esc(data.loc.where)} · ${ago(data.loc.t)}</span>`);
-  $("#chips").innerHTML = c.map(x => x.startsWith("<span") ? x : `<span>${x}</span>`).join("");
+  $("#chips").innerHTML = c.join("");
 }
-async function weather() { try { const j = await (await fetch("https://api.open-meteo.com/v1/forecast?latitude=50.0875&longitude=14.4213&current=temperature_2m,weather_code&timezone=Europe%2FPrague")).json(), c = j.current.weather_code; wx = `${c === 0 ? "☀️" : c <= 3 ? "⛅" : c >= 71 && c <= 77 ? "❄️" : c >= 51 ? "🌧️" : "🌫️"} ${Math.round(j.current.temperature_2m)}° בפראג`; header(); } catch (e) {} }
+async function weather() { try { const j = await (await fetch("https://api.open-meteo.com/v1/forecast?latitude=50.0875&longitude=14.4213&current=temperature_2m,weather_code&timezone=Europe%2FPrague")).json(), c = j.current.weather_code; wx = `${c === 0 ? "☀️" : c <= 3 ? "⛅" : c >= 71 && c <= 77 ? "❄️" : c >= 51 ? "🌧️" : "🌫️"} ${Math.round(j.current.temperature_2m)}°`; header(); } catch (e) {} }
 
-function drawMap() {
-  const pts = data.moments.filter(m => m.lat != null); if (!map) {
-    map = new maplibregl.Map({ container: "map", style: "https://tiles.openfreemap.org/styles/liberty", center: [14.4213, 50.0845], zoom: 12.2, attributionControl: { compact: true }, cooperativeGestures: true });
-    map.on("load", () => { map.addSource("line", { type: "geojson", data: { type: "FeatureCollection", features: [] } }); map.addSource("area", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
-      map.addLayer({ id: "area", type: "circle", source: "area", paint: { "circle-radius": ["interpolate", ["exponential", 2], ["zoom"], 10, 14, 15, 220], "circle-color": "#2f7de1", "circle-opacity": 0.16, "circle-stroke-color": "#2f7de1", "circle-stroke-width": 1.5, "circle-stroke-opacity": 0.5 } });
-      map.addLayer({ id: "line-c", type: "line", source: "line", layout: { "line-cap": "round", "line-join": "round" }, paint: { "line-color": "#fff", "line-width": 7, "line-opacity": 0.85 } });
-      map.addLayer({ id: "line", type: "line", source: "line", layout: { "line-cap": "round", "line-join": "round" }, paint: { "line-color": "#d42a33", "line-width": 4 } }); const ac = document.querySelector(".maplibregl-ctrl-attrib"); if (ac) ac.classList.remove("maplibregl-compact-show"); drawMap(); });
-    return;
-  }
-  if (!map.getSource("line")) return;
-  map.getSource("line").setData({ type: "Feature", properties: {}, geometry: { type: "LineString", coordinates: pts.map(m => [m.lng, m.lat]) } });
-  map.getSource("area").setData(data.loc ? { type: "Feature", properties: {}, geometry: { type: "Point", coordinates: [data.loc.lng, data.loc.lat] } } : { type: "FeatureCollection", features: [] });
-  markers.forEach(x => x.remove()); markers = [];
-  pts.forEach(m => { const el = document.createElement("div"); el.className = "pin"; el.textContent = data.moments.indexOf(m) + 1; el.onclick = () => { const a = document.getElementById("m-" + m.id); if (a) a.scrollIntoView({ behavior: "smooth", block: "center" }); }; markers.push(new maplibregl.Marker({ element: el }).setLngLat([m.lng, m.lat]).addTo(map)); });
-  const all = [...pts.map(m => [m.lng, m.lat]), ...(data.loc ? [[data.loc.lng, data.loc.lat]] : [])];
-  if (all.length > 1) { const b = all.reduce((b, p) => b.extend(p), new maplibregl.LngLatBounds(all[0], all[0])); map.fitBounds(b, { padding: 50, maxZoom: 15, duration: 800 }); } else if (all.length === 1) map.easeTo({ center: all[0], zoom: 14 });
+/* ---------- מפה: נקודות עם תמונה, וקו שנמתח עד הרגע שמסתכלים עליו ---------- */
+function drawLine(f) { lineF = f; const p = pts(), src = map && map.getSource("line"); if (!src) return; const n = Math.floor(f), co = p.slice(0, n + 1).map(m => [m.lng, m.lat]);
+  if (n < p.length - 1 && f > n) { const a = p[n], b = p[n + 1], k = f - n; co.push([a.lng + (b.lng - a.lng) * k, a.lat + (b.lat - a.lat) * k]); }
+  src.setData({ type: "Feature", properties: {}, geometry: { type: "LineString", coordinates: co.length > 1 ? co : [] } }); }
+function initMap() {
+  map = new maplibregl.Map({ container: "map", style: "https://tiles.openfreemap.org/styles/liberty", center: [14.4213, 50.0845], zoom: 12.4, attributionControl: { compact: true }, cooperativeGestures: true, pitchWithRotate: false, dragRotate: false });
+  map.on("load", () => { map.addSource("line", { type: "geojson", data: { type: "FeatureCollection", features: [] } }); map.addSource("ghost", { type: "geojson", data: { type: "FeatureCollection", features: [] } }); map.addSource("area", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
+    map.addLayer({ id: "area", type: "circle", source: "area", paint: { "circle-radius": ["interpolate", ["exponential", 2], ["zoom"], 10, 14, 15, 220], "circle-color": "#2f7de1", "circle-opacity": 0.16, "circle-stroke-color": "#2f7de1", "circle-stroke-width": 1.5, "circle-stroke-opacity": 0.5 } });
+    map.addLayer({ id: "ghost", type: "line", source: "ghost", layout: { "line-cap": "round", "line-join": "round" }, paint: { "line-color": "#d42a33", "line-width": 3, "line-opacity": 0.28, "line-dasharray": [0.5, 2] } });
+    map.addLayer({ id: "line-c", type: "line", source: "line", layout: { "line-cap": "round", "line-join": "round" }, paint: { "line-color": "#fff", "line-width": 8, "line-opacity": 0.9 } });
+    map.addLayer({ id: "line", type: "line", source: "line", layout: { "line-cap": "round", "line-join": "round" }, paint: { "line-color": "#d42a33", "line-width": 4.5 } });
+    const ac = document.querySelector(".maplibregl-ctrl-attrib"); if (ac) ac.classList.remove("maplibregl-compact-show"); if (data) drawMap(true); });
+  map.on("dragstart", () => { userMoved = Date.now(); });
 }
+function fitAll(ms) { const all = [...pts().map(m => [m.lng, m.lat]), ...(data.loc ? [[data.loc.lng, data.loc.lat]] : [])]; if (all.length > 1) { const b = all.reduce((b, p) => b.extend(p), new maplibregl.LngLatBounds(all[0], all[0])); map.fitBounds(b, { padding: { top: 120, bottom: 80, left: 50, right: 50 }, maxZoom: 15, duration: ms == null ? 900 : ms, pitch: 0, bearing: 0 }); } else if (all.length === 1) map.easeTo({ center: all[0], zoom: 14.5, pitch: 0, bearing: 0 }); }
+function drawMap(fit) {
+  if (!map || !map.getSource("line")) return; const p = pts();
+  map.getSource("ghost").setData({ type: "Feature", properties: {}, geometry: { type: "LineString", coordinates: p.length > 1 ? p.map(m => [m.lng, m.lat]) : [] } });
+  map.getSource("area").setData(data.loc ? { type: "Feature", properties: {}, geometry: { type: "Point", coordinates: [data.loc.lng, data.loc.lat] } } : { type: "FeatureCollection", features: [] });
+  Object.values(markers).forEach(x => x.remove()); markers = {};
+  p.forEach(m => { const el = document.createElement("div"); el.className = "pm" + (m.id === act ? " act" : ""); if (m.imgs.length) el.style.backgroundImage = `url(${img(m.imgs[0])})`; else el.textContent = data.moments.indexOf(m) + 1;
+    el.onclick = e => { e.stopPropagation(); const a = document.getElementById("m-" + m.id); if (a) { userMoved = 0; a.scrollIntoView({ behavior: "smooth", block: "center" }); setAct(m.id, true); } };
+    markers[m.id] = new maplibregl.Marker({ element: el }).setLngLat([m.lng, m.lat]).addTo(map); });
+  drawLine(Math.min(lineF, Math.max(0, p.length - 1))); if (fit) { fitAll(0); drawLine(p.length - 1); }
+}
+/* הרגע הפעיל: המפה זזה אליו, הנקודה שלו גדלה, והקו נמתח עד אליו */
+function setAct(id, force) {
+  if (id === act && !force) return; act = id; $$("article.act").forEach(a => a.classList.remove("act")); const a = document.getElementById("m-" + id); if (a) a.classList.add("act");
+  Object.entries(markers).forEach(([k, mk]) => mk.getElement().classList.toggle("act", k === id));
+  const p = pts(), i = p.findIndex(m => m.id === id); if (i < 0 || !map || !map.getSource("line")) return;
+  if (lineStop) lineStop(); lineStop = Gal.spring(lineF, i, 0, drawLine, null, 90, 20);
+  if (force || Date.now() - userMoved > 6000) map.easeTo({ center: [p[i].lng, p[i].lat], zoom: Math.max(map.getZoom(), 14.6), duration: 900, padding: { top: 90, bottom: 40, left: 0, right: 0 } });
+}
+function watch() { if (io) io.disconnect(); if (!("IntersectionObserver" in window)) return;
+  io = new IntersectionObserver(es => { const v = es.filter(x => x.isIntersecting).sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0]; if (v && !document.getElementById("grp")) setAct(v.target.id.slice(2)); }, { rootMargin: "-52% 0px -30% 0px", threshold: [0, 0.2, 0.6] });
+  $$("#feed article").forEach(a => io.observe(a)); }
+
 function render() {
   const ms = data.moments, km = Object.values(data.stats || {}).reduce((a, s) => a + (s.km || 0), 0), places = new Set(ms.map(m => m.where).filter(Boolean)).size, photos = ms.reduce((a, m) => a + m.imgs.length, 0);
-  $("#stats").innerHTML = `<div><b>${km ? km.toFixed(1) : "—"}</b><small>ק"מ ברגל</small></div><div><b>${places}</b><small>מקומות</small></div><div><b>${photos}</b><small>תמונות</small></div>`;
+  $("#pill").hidden = !ms.length; $("#play").hidden = !ms.length; $("#pill").innerHTML = `${km ? `<span><b>${km.toFixed(1)}</b>ק"מ</span>` : ""}<span><b>${places}</b>מקומות</span><span><b>${photos}</b>תמונות</span>`;
   const byDay = {}; ms.forEach(m => (byDay[m.date] = byDay[m.date] || []).push(m));
-  $("#feed").innerHTML = Object.keys(byDay).sort().reverse().map(d => { const di = DAYS.indexOf(d);
-    return `<h2><b>${di >= 0 ? "יום " + (di + 1) : ""}</b>${dayName(d)}</h2>` + byDay[d].slice().reverse().map(m => { const re = (data.re || {})[m.id] || [], hearts = re.filter(r => r.h).length, n = ms.indexOf(m) + 1;
-      return `<article id="m-${m.id}">${m.imgs.length ? `<div class="ph n${Math.min(3, m.imgs.length)}" data-v="${m.id}">${m.imgs.slice(0, 3).map(i => `<img src="${img(i)}" alt="" loading="lazy">`).join("")}${m.imgs.length > 3 ? `<span class="more">+${m.imgs.length - 3}</span>` : ""}</div>` : ""}
+  $("#feed").innerHTML = Object.keys(byDay).sort().reverse().map(d => { const di = DAYS.indexOf(d), dm = byDay[d], cov = dm.map(m => moImgs(m)[0]).filter(Boolean)[0], s = (data.stats || {})[d] || {}, nph = dm.reduce((a, m) => a + m.imgs.length, 0);
+    return `<header class="day"${cov && cov.ph ? ` style="background-image:url(${cov.ph})"` : ""}>${cov ? `<img src="${cov.src}" alt="" loading="lazy" onload="this.classList.add('ld')">` : ""}<div><small>${di >= 0 ? "יום " + (di + 1) + " · " : ""}${dayName(d).replace("יום ", "")}</small><b>${di >= 0 ? DT[di] : dayName(d)}</b><span>${s.km ? s.km.toFixed(1) + ' ק"מ · ' : ""}${dm.length} ${dm.length === 1 ? "רגע" : "רגעים"} · ${nph} תמונות</span></div></header>` +
+      dm.slice().reverse().map(m => { const re = (data.re || {})[m.id] || [], hearts = re.filter(r => r.h).length, n = ms.indexOf(m) + 1;
+      return `<article id="m-${m.id}"${m.id === act ? ' class="act"' : ""}>${Gal.collage(moImgs(m))}
         <div class="bd">${m.text ? `<p dir="auto">${esc(m.text)}</p>` : ""}<small><span class="n">${n}</span>${esc(m.time)} · ${esc(m.where || "פראג")}</small>
         ${re.filter(r => r.x).map(r => `<p class="re"><b>${esc(r.n)}:</b> ${esc(r.x)}</p>`).join("")}
         <div class="acts"><button class="hb${hearted[m.id] ? " on" : ""}" data-h="${m.id}">❤️ ${hearts || ""}</button><form class="cf" data-c="${m.id}"><input placeholder="תגובה קצרה…" maxlength="140" enterkeyhint="send" autocomplete="off"><button>שלח</button></form></div></div></article>`; }).join(""); }).join("")
     || `<div class="empty"><span>📷</span><b>עוד אין רגעים</b>כשעומר יעלה תמונה ראשונה מהטיול, היא תופיע כאן לבד.</div>`;
   $("#foot").innerHTML = `מתעדכן לבד כל דקה${data.updated ? " · עדכון אחרון " + ago(data.updated) : ""}<br>הקישור הזה סודי, בבקשה לא להעביר הלאה.<br>מפה: © <a href="https://openfreemap.org">OpenFreeMap</a> · <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>`;
-  header(); drawMap();
+  header(); Gal.scan($("#feed")); Gal.reveal($("#feed"), "article,.day"); drawMap(!act); watch();
 }
+function viewer(gid) { const items = []; data.moments.forEach(m => moImgs(m).forEach(x => items.push({ gid: x.gid, ar: x.ar, thumb: x.ph, src: x.src, mid: m.id, cap: `${m.text ? esc(m.text) : ""}<b>${dayName(m.date)} · ${esc(m.time)} · ${esc(m.where || "פראג")}</b>` })));
+  Gal.open(items, Math.max(0, items.findIndex(x => x.gid === gid)), { onChange: (i, it) => setAct(it.mid) }); }
+function playTrip() { const ms = data.moments; if (!ms.length) return; drawLine(0);
+  Gal.replay({ map, title: "עומר בפראג 🇨🇿", endTitle: "זה הטיול עד עכשיו", endText: `${ms.length} רגעים · ${ms.reduce((a, m) => a + m.imgs.length, 0)} תמונות`, pitch: 45,
+    steps: ms.map(m => { const di = DAYS.indexOf(m.date); return { id: m.id, lat: m.lat, lng: m.lng, kicker: `${di >= 0 ? "יום " + (di + 1) + " · " : ""}${dayName(m.date).replace("יום ", "")} ${m.time}`, title: m.where || "פראג", text: m.text, imgs: moImgs(m).map(x => ({ thumb: x.ph, src: x.src })) }; }),
+    onStep: (i, s) => { const p = pts(), k = p.findIndex(m => m.id === s.id); if (k >= 0) { if (lineStop) lineStop(); lineStop = Gal.spring(lineF, k, 0, drawLine, null, 40, 13); Object.entries(markers).forEach(([id, mk]) => mk.getElement().classList.toggle("act", id === s.id)); } },
+    onEnd: () => fitAll(1400), onClose: () => { fitAll(600); drawLine(pts().length - 1); } }); }
+
 async function load() {
-  if (!KEY) { $("#sub").textContent = "הקישור לא שלם"; $("#feed").innerHTML = `<div class="empty"><span>🔗</span><b>חסר החלק הסודי של הקישור</b>צריך לפתוח את הקישור המלא שעומר שלח.</div>`; $("#map").hidden = true; return; }
-  try { const r = await fetch(`${API}/j/${KEY}`, { cache: "no-store" }); if (r.status === 404) { data = null; $("#sub").textContent = "השיתוף כבוי"; $("#map").hidden = true; $("#stats").innerHTML = ""; $("#feed").innerHTML = `<div class="empty"><span>🔒</span><b>הקישור הזה כבר לא פעיל</b>עומר עצר את השיתוף או החליף קישור. אפשר לבקש ממנו קישור חדש.</div>`; return; }
-    const j = await r.json(), sig = JSON.stringify([j.moments, j.re, j.loc, j.stats]); data = j; $("#map").hidden = false; if (sig !== lastSig && !document.activeElement.matches("input")) { lastSig = sig; render(); } else header();
+  if (!KEY) { $("#sub").textContent = "הקישור לא שלם"; $("#feed").innerHTML = `<div class="empty"><span>🔗</span><b>חסר החלק הסודי של הקישור</b>צריך לפתוח את הקישור המלא שעומר שלח.</div>`; return; }
+  try { const r = await fetch(`${API}/j/${KEY}`, { cache: "no-store" }); if (r.status === 404) { data = null; $("#sub").textContent = "השיתוף כבוי"; $("#pill").hidden = $("#play").hidden = true; $("#feed").innerHTML = `<div class="empty"><span>🔒</span><b>הקישור הזה כבר לא פעיל</b>עומר עצר את השיתוף או החליף קישור. אפשר לבקש ממנו קישור חדש.</div>`; return; }
+    const j = await r.json(), sig = JSON.stringify([j.moments, j.re, j.loc, j.stats]), busy = document.activeElement.matches("input") || document.getElementById("gv") || document.getElementById("grp"); data = j; if (!map) initMap();
+    if (sig !== lastSig && !busy) { lastSig = sig; render(); } else header();
   } catch (e) { if (!data) { $("#sub").textContent = "אין חיבור כרגע"; $("#feed").innerHTML = `<div class="empty"><span>📡</span><b>לא הצלחתי לטעון</b>בודקים שיש אינטרנט. הדף ינסה שוב לבד.</div>`; } }
 }
 async function react(id, body) { if (!me) { $("#who").hidden = false; $("#who").dataset.then = JSON.stringify([id, body]); return; }
   try { const r = await fetch(`${API}/j/${KEY}/react`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ id, name: me, ...body }) }); if (r.ok) { if (body.heart) { hearted[id] = 1; localStorage.setItem("fam.h", JSON.stringify(hearted)); } lastSig = ""; load(); } } catch (e) {} }
 document.addEventListener("click", e => {
-  const h = e.target.closest("[data-h]"); if (h) { if (hearted[h.dataset.h]) return; h.classList.add("on"); react(h.dataset.h, { heart: true }); return; }
+  const g = e.target.closest(".gc-i"); if (g) return viewer(g.dataset.g);
+  const h = e.target.closest("[data-h]"); if (h) { if (hearted[h.dataset.h]) return; h.classList.add("on", "pop"); react(h.dataset.h, { heart: true }); return; }
   const w = e.target.closest("#who button"); if (w) { me = w.dataset.n; localStorage.setItem("fam.name", me); $("#who").hidden = true; const t = JSON.parse($("#who").dataset.then || "null"); if (t) react(t[0], t[1]); return; }
-  const v = e.target.closest("[data-v]"); if (v) { const m = data.moments.find(x => x.id === v.dataset.v); $("#view").innerHTML = m.imgs.map(i => `<img src="${img(i)}" alt="">`).join(""); $("#view").hidden = false; $("#vx").hidden = false; $("#view").scrollLeft = 0; return; }
-  if (e.target.closest("#vx") || e.target.closest("#view")) { if (e.target.closest("#vx")) { $("#view").hidden = true; $("#vx").hidden = true; } }
+  if (e.target.closest("#play")) playTrip();
 });
 document.addEventListener("submit", e => { const f = e.target.closest("[data-c]"); if (!f) return; e.preventDefault(); const i = f.querySelector("input"), x = i.value.trim(); if (!x) return; i.value = ""; i.blur(); react(f.dataset.c, { text: x }); });
 load(); weather(); setInterval(load, 60000); setInterval(header, 30000); document.addEventListener("visibilitychange", () => { if (!document.hidden) load(); });

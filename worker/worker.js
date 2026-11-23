@@ -145,7 +145,8 @@ async function journalOwner(req, env, sub, cors) {
     let b; try { b = await req.json(); } catch (e) { return json({ error: "bad json" }, 400, cors); }
     if (!okId(b.id)) return json({ error: "bad id" }, 400, cors);
     const mo = { id: b.id, t: +b.t || Date.now(), date: /^\d{4}-\d\d-\d\d$/.test(b.date || "") ? b.date : "", time: cut(b.time, 5), text: cut(b.text, 400), where: cut(b.where, 80),
-      lat: typeof b.lat === "number" ? +b.lat.toFixed(3) : null, lng: typeof b.lng === "number" ? +b.lng.toFixed(3) : null, imgs: (Array.isArray(b.imgs) ? b.imgs : []).filter(okId).slice(0, 6), vis: b.vis === "me" ? "me" : "p" };
+      lat: typeof b.lat === "number" ? +b.lat.toFixed(3) : null, lng: typeof b.lng === "number" ? +b.lng.toFixed(3) : null, imgs: (Array.isArray(b.imgs) ? b.imgs : []).filter(okId).slice(0, 6), vis: b.vis === "me" ? "me" : "p",
+      ar: (Array.isArray(b.ar) ? b.ar : []).slice(0, 6).map(x => Math.max(0.3, Math.min(4, +x || 1.333))), ph: (Array.isArray(b.ph) ? b.ph : []).slice(0, 6).map(x => typeof x === "string" && x.length < 1800 && /^data:image\/jpeg;base64,[A-Za-z0-9+\/=]+$/.test(x) ? x : "") };
     meta.moments = meta.moments.filter(x => x.id !== mo.id); meta.moments.push(mo); meta.moments.sort((a, c) => a.t - c.t); meta.moments = meta.moments.slice(-200);
     meta.updated = Date.now(); await jPut(env, "jr:meta", meta); return json({ ok: true, count: meta.moments.length }, 200, cors);
   }

@@ -17,12 +17,31 @@ const rid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 
 function shrinkTo(file, max, q, asBlob) { // דחיסה בטלפון לפני העלאה, כדי לחסוך גלישה
   return new Promise((res, rej) => { const img = new Image(), u = URL.createObjectURL(file); img.onload = () => { const k = Math.min(1, max / Math.max(img.width, img.height)), c = document.createElement("canvas"); c.width = Math.round(img.width * k); c.height = Math.round(img.height * k); c.getContext("2d").drawImage(img, 0, 0, c.width, c.height); URL.revokeObjectURL(u); asBlob ? c.toBlob(b => b ? res(b) : rej(new Error("blob")), "image/jpeg", q) : res(c.toDataURL("image/jpeg", q)); }; img.onerror = () => rej(new Error("img")); img.src = u; });
 }
+function imgMeta(file) { // יחס התמונה + תמונה זעירה (20 פיקסלים) שמוצגת מטושטשת עד שהאמיתית נטענת
+  return new Promise(res => { const img = new Image(), u = URL.createObjectURL(file); img.onload = () => { const ar = +(img.width / img.height).toFixed(3), c = document.createElement("canvas"); c.width = ar >= 1 ? 20 : Math.max(8, Math.round(20 * ar)); c.height = ar >= 1 ? Math.max(8, Math.round(20 / ar)) : 20; c.getContext("2d").drawImage(img, 0, 0, c.width, c.height); URL.revokeObjectURL(u); res({ ar, ph: c.toDataURL("image/jpeg", 0.5) }); }; img.onerror = () => res({ ar: 1.333, ph: "" }); img.src = u; });
+}
+const _tu = new Map();
+const thumbUrl = id => { if (!_tu.has(id)) _tu.set(id, imgGet("t:" + id).then(b => b || imgGet(id)).then(b => b ? URL.createObjectURL(b) : "").catch(() => "")); return _tu.get(id); };
+const fullUrl = id => imgGet(id).then(b => b ? URL.createObjectURL(b) : "");
+// התמונות של רגע, בפורמט של הגלריה (כולל רגעים ישנים שנשמרו כתמונה קטנה בלבד)
+const moImgs = m => m.imgs.length ? m.imgs.map((id, i) => ({ gid: id, ar: (m.ar || [])[i], ph: (m.ph || [])[i] || (m.th || [])[i] || "", src: (m.th || [])[i] || "", id })) : (m.th || []).map((t, i) => ({ gid: "L" + m.id + i, src: t, ph: t, old: t }));
+function fillThumbs(root) { $$(".gc-i", root).forEach(b => { const img = b.querySelector("img"); if (img.getAttribute("src") || /^L/.test(b.dataset.g)) return; thumbUrl(b.dataset.g).then(u => { if (u) img.src = u; }); }); Gal.scan(root); }
+function jrViewer(gid) { // כל התמונות של היומן ברצף אחד, לפי הזמן
+  const items = []; [...jr].sort((a, b) => a.t - b.t).forEach(m => moImgs(m).forEach(x => items.push({ gid: x.gid, ar: x.ar, thumb: x.ph || x.src, load: x.old ? x.old : () => fullUrl(x.id), cap: `${m.text ? esc(m.text) : ""}<b>${dayDate(m.date).dow} ${dayDate(m.date).dm} · ${m.time} · ${esc(m.where || "פראג")}</b>` })));
+  Gal.open(items, Math.max(0, items.findIndex(x => x.gid === gid)));
+}
+function jrReplay() { // ▶ הסרטון: טיסה על המפה מרגע לרגע
+  const ms = [...jr].sort((a, b) => a.t - b.t); if (!ms.length) return toast("עוד אין רגעים ביומן"); closeModal(); if (typeof stopPlay === "function") try { stopPlay(); } catch (e) {}
+  Gal.replay({ map, title: "פראג · " + ms.length + " רגעים", endTitle: "זה היה הטיול עד עכשיו", endText: `${ms.length} רגעים · ${ms.reduce((a, m) => a + moImgs(m).length, 0)} תמונות`,
+    steps: ms.map(m => { const di = plan.findIndex(d => d.date === m.date); return { lat: m.lat, lng: m.lng, kicker: `${di >= 0 ? "יום " + (di + 1) + " · " : ""}${dayDate(m.date).dow} ${m.time}`, title: m.where || "פראג", text: m.text, imgs: moImgs(m).map(x => ({ thumb: x.ph || x.src, load: x.old ? x.old : () => fullUrl(x.id) })) }; }),
+    onClose: () => { try { flyDay(curDay); } catch (e) {} openDiary(); } });
+}
 function whereNow() { const p = lastKnown(); if (!p) return { where: "פראג", lat: null, lng: null }; const k = nearestKnown(p); return { where: hav(p, k) < 250 ? k.name : nearestStreet(p) || (hav(p, k) < 900 ? "ליד " + k.name : "פראג"), lat: +p.lat.toFixed(3), lng: +p.lng.toFixed(3) }; }
 
 /* ---------- רגע חדש ---------- */
 async function addMoment(files, text, vis) {
-  const T = tripNow(), w = whereNow(), mo = { id: rid(), t: Date.now(), date: T.phase === "during" ? T.date : dstr(T.w), time: clockNow(), text: (text || "").trim().slice(0, 400), where: w.where, lat: w.lat, lng: w.lng, imgs: [], th: [], vis: vis === "me" ? "me" : "p", st: vis === "me" ? "local" : "pending", up: [] };
-  for (const f of [...files].slice(0, 6)) { const id = rid(); await imgPut(id, await shrinkTo(f, 1600, 0.8, true)); mo.imgs.push(id); mo.th.push(await shrinkTo(f, 360, 0.7, false)); }
+  const T = tripNow(), w = whereNow(), mo = { id: rid(), t: Date.now(), date: T.phase === "during" ? T.date : dstr(T.w), time: clockNow(), text: (text || "").trim().slice(0, 400), where: w.where, lat: w.lat, lng: w.lng, imgs: [], th: [], ar: [], ph: [], vis: vis === "me" ? "me" : "p", st: vis === "me" ? "local" : "pending", up: [] };
+  for (const f of [...files].slice(0, 6)) { const id = rid(), mt = await imgMeta(f); await imgPut(id, await shrinkTo(f, 1600, 0.8, true)); await imgPut("t:" + id, await shrinkTo(f, 640, 0.72, true)); mo.imgs.push(id); mo.ar.push(mt.ar); mo.ph.push(mt.ph); }
   jr.push(mo); saveJr(); flushJournal(); return mo;
 }
 async function api(path, opt = {}, ms = 25000) {
@@ -35,7 +54,7 @@ async function flushJournal() {
   try {
     for (const mo of jr.filter(m => m.st === "pending")) {
       for (const id of mo.imgs) { if ((mo.up || []).includes(id)) continue; const b = await imgGet(id); if (!b) continue; await api("/journal/img/" + id, { method: "PUT", headers: { "content-type": "image/jpeg" }, body: b }, 60000); (mo.up = mo.up || []).push(id); saveJr(); }
-      await api("/journal/moment", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ id: mo.id, t: mo.t, date: mo.date, time: mo.time, text: mo.text, where: mo.where, lat: mo.lat, lng: mo.lng, imgs: mo.imgs, vis: mo.vis }) });
+      await api("/journal/moment", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ id: mo.id, t: mo.t, date: mo.date, time: mo.time, text: mo.text, where: mo.where, lat: mo.lat, lng: mo.lng, imgs: mo.imgs, ar: mo.ar || [], ph: mo.ph || [], vis: mo.vis }) });
       mo.st = "up"; saveJr(); did++;
     }
     for (const id of LS.get("jrDel", [])) { await api("/journal/moment/" + id, { method: "DELETE" }); LS.set("jrDel", LS.get("jrDel", []).filter(x => x !== id)); }
@@ -62,11 +81,14 @@ function liveTick() {
 const stLabel = m => m.vis === "me" ? `<i class="jb mine">🔒 רק לי</i>` : m.st === "up" ? `<i class="jb ok">👨‍👩‍👦 להורים ✓</i>` : `<i class="jb wait">⏳ ממתין להעלאה</i>`;
 function renderJrList() {
   const box = $("#jrList"); if (!box) return; const days = {}; [...jr].sort((a, b) => b.t - a.t).forEach(m => (days[m.date] = days[m.date] || []).push(m));
-  box.innerHTML = Object.keys(days).sort().reverse().map(d => `<h3>${dayDate(d).dow} ${dayDate(d).dm}</h3>` + days[d].map(m => { const re = jrRe[m.id] || [];
-    return `<article class="jm" data-jm="${m.id}"><div class="jm-ph n${Math.min(3, m.th.length)}">${m.th.slice(0, 3).map(t => `<img src="${t}" alt="" loading="lazy">`).join("")}${m.th.length > 3 ? `<span>+${m.th.length - 3}</span>` : ""}</div>
+  box.innerHTML = Object.keys(days).sort().reverse().map(d => { const di = plan.findIndex(x => x.date === d), ms = days[d], first = ms[ms.length - 1], cov = moImgs(first)[0] || (ms.map(m => moImgs(m)[0]).filter(Boolean)[0]), nph = ms.reduce((a, m) => a + moImgs(m).length, 0), km = (() => { try { return trackKm(d); } catch (e) { return 0; } })();
+    return `<header class="jd"${cov && cov.ph ? ` style="background-image:url(${cov.ph})"` : ""}>${cov ? `<img alt="" data-cov="${cov.gid}"${cov.old ? ` src="${cov.old}"` : ""}>` : ""}<div><small>${di >= 0 ? "יום " + (di + 1) + " · " : ""}${dayDate(d).dow} ${dayDate(d).dm}</small><b>${di >= 0 ? bd(plan[di].title) : "רגעים"}</b><span>${km >= 0.1 ? km.toFixed(1) + ' ק"מ · ' : ""}${ms.length} ${ms.length === 1 ? "רגע" : "רגעים"} · ${nph} תמונות</span></div></header>` + ms.map(m => { const re = jrRe[m.id] || [];
+    return `<article class="jm" data-jm="${m.id}">${Gal.collage(moImgs(m))}
       <div class="jm-b">${m.text ? `<p>${bd(m.text)}</p>` : ""}<small>${m.time} · ${bd(m.where || "פראג")}</small><div class="jm-f">${stLabel(m)}${re.length ? `<i class="jb re">${re.filter(r => r.h).length ? "❤️ " + re.filter(r => r.h).length : ""} ${re.filter(r => r.x).length ? "💬 " + re.filter(r => r.x).length : ""}</i>` : ""}</div>
-      ${re.filter(r => r.x).slice(-2).map(r => `<p class="jm-re"><b>${esc(r.n)}:</b> ${bd(r.x)}</p>`).join("")}</div></article>`; }).join("")).join("") || emptyState("📷", "עוד אין רגעים", "תמונה ומשפט קצר, וההורים רואים את הטיול מתעדכן. המיקום והשעה נכנסים לבד.");
-  $$("#jrList [data-jm]").forEach(a => a.onclick = () => editMoment(a.dataset.jm));
+      ${re.filter(r => r.x).slice(-2).map(r => `<p class="jm-re"><b>${esc(r.n)}:</b> ${bd(r.x)}</p>`).join("")}</div></article>`; }).join(""); }).join("") || emptyState("📷", "עוד אין רגעים", "תמונה ומשפט קצר, וההורים רואים את הטיול מתעדכן. המיקום והשעה נכנסים לבד.");
+  $$("#jrList [data-jm]").forEach(a => a.onclick = e => { const g = e.target.closest(".gc-i"); if (g) jrViewer(g.dataset.g); else editMoment(a.dataset.jm); });
+  $$("#jrList [data-cov]").forEach(i => { if (!i.getAttribute("src")) thumbUrl(i.dataset.cov).then(u => { if (u) { i.onload = () => i.classList.add("ld"); i.src = u; } }); else i.classList.add("ld"); });
+  fillThumbs(box); Gal.reveal(box, ".jm,.jd");
 }
 function openDiary() {
   const pend = jr.filter(m => m.st === "pending").length, err = LS.get("jrErr", ""), ready = !!apiTok();
@@ -74,7 +96,8 @@ function openDiary() {
     <button class="btn pri wide big" id="jrNew">📸 רגע חדש</button>
     <button class="btn wide" id="jrShareB">👨‍👩‍👦 ${!ready ? "לחבר את דף ההורים" : jrShare ? "דף ההורים והשיתוף" : "להפעיל את דף ההורים"}</button>
     ${pend ? `<p class="jr-note">${isOffline() ? "📡 בלי אינטרנט." : !ready ? "🔑 עוד לא הוקלדה סיסמה." : err && err !== "notset" ? "⚠️ " + esc(err) + "." : err === "notset" ? "🔑 השרת עוד לא הוגדר." : "⏳"} ${pend} ${pend === 1 ? "רגע ממתין" : "רגעים ממתינים"} להעלאה, ויעלו לבד.</p>` : ""}
-    <div id="jrList"></div>`, "tall");
+    ${jr.length ? `<button class="btn wide jr-play" id="jrPlay">▶ לנגן את הטיול</button>` : ""}<div id="jrList"></div>`, "tall");
+  if ($("#jrPlay")) $("#jrPlay").onclick = jrReplay;
   $("#jrNew").onclick = newMoment; $("#jrShareB").onclick = openShare; renderJrList(); flushJournal(); pullReactions(true);
 }
 function newMoment() {
@@ -94,14 +117,15 @@ function newMoment() {
 function editMoment(id) {
   const m = jr.find(x => x.id === id); if (!m) return; const re = jrRe[id] || [];
   openModal(`<h2>${dayDate(m.date).dow} ${dayDate(m.date).dm} · ${m.time}</h2><p class="sub">📍 ${bd(m.where || "פראג")}</p>
-    <div class="jr-prev big">${m.th.map(t => `<img src="${t}" alt="">`).join("")}</div>
+    <div class="jr-prev big" id="jePrev">${moImgs(m).map(x => `<img ${x.src ? `src="${x.src}"` : ""} data-t="${x.id || ""}" alt="">`).join("")}</div>
     <label class="fld">הטקסט<textarea id="jeT" rows="2" dir="auto" maxlength="400">${esc(m.text)}</textarea></label>
     <div class="seg" id="jeVis"><button data-v="p" class="${m.vis === "p" ? "sel" : ""}">👨‍👩‍👦 להורים</button><button data-v="me" class="${m.vis === "me" ? "sel" : ""}">🔒 רק לי</button></div>
     ${re.length ? `<h3>מה ההורים אמרו</h3>` + re.map(r => `<p class="jm-re"><b>${esc(r.n)}</b> ${r.h ? "❤️" : ""} ${bd(r.x || "")}</p>`).join("") : ""}
     <div class="row" style="margin-top:12px"><button class="btn pri" id="jeOk" style="flex:2">לשמור שינויים</button><button class="btn" id="jeDel" style="flex:1;color:var(--red-ink)">למחוק</button></div>`, "tall");
+  $$("#jePrev img").forEach(i => { if (!i.getAttribute("src") && i.dataset.t) thumbUrl(i.dataset.t).then(u => { if (u) i.src = u; }); });
   let vis = m.vis; $$("#jeVis button").forEach(b => b.onclick = () => { vis = b.dataset.v; $$("#jeVis button").forEach(x => x.classList.toggle("sel", x === b)); });
   $("#jeOk").onclick = () => { const was = m.vis; m.text = $("#jeT").value.trim().slice(0, 400); m.vis = vis; if (vis === "me") { if (was === "p" && m.st === "up") LS.set("jrDel", [...LS.get("jrDel", []), m.id]); m.st = "local"; m.up = []; } else m.st = "pending"; saveJr(); openDiary(); toast("עודכן ✓"); };
-  $("#jeDel").onclick = async () => { if (!confirm("למחוק את הרגע הזה? הוא יימחק גם אצל ההורים.")) return; jr = jr.filter(x => x.id !== id); saveJr(); for (const i of m.imgs) imgDel(i).catch(() => {}); if (m.st === "up" || (m.up || []).length) LS.set("jrDel", [...LS.get("jrDel", []), id]); openDiary(); toast("נמחק"); };
+  $("#jeDel").onclick = async () => { if (!confirm("למחוק את הרגע הזה? הוא יימחק גם אצל ההורים.")) return; jr = jr.filter(x => x.id !== id); saveJr(); for (const i of m.imgs) { imgDel(i).catch(() => {}); imgDel("t:" + i).catch(() => {}); } if (m.st === "up" || (m.up || []).length) LS.set("jrDel", [...LS.get("jrDel", []), id]); openDiary(); toast("נמחק"); };
 }
 
 /* ---------- שיתוף עם ההורים ---------- */

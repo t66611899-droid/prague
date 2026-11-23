@@ -37,6 +37,7 @@ function openImport(payload) {
     <button class="btn pri wide" id="impGo">לפתוח</button><p class="sub" id="impSt"></p><div id="impOut"></div>`, "tall");
   const st = $("#impSt");
   $("#impGo").onclick = async () => {
+    const km = !payload && /[#&]k=([A-Za-z0-9_-]{40,64})/.exec(($("#impL") || {}).value || ""); if (km && window.__setVaultKey) { st.textContent = "מתחבר לסנכרון האוטומטי…"; window.__setVaultKey(km[1]); return; }
     const dm = !payload && /docs=([a-f0-9]{32})/.exec(($("#impL") || {}).value || ""); if (dm) { closeModal(); setTimeout(() => openDocsImport(dm[1]), 250); return; } /* קישור של חבילה מלאה (פרטים + כרטיסים): עוברים למסך שלה */
     let p = payload; if (!p) { const m = /import=([A-Za-z0-9_-]{40,})/.exec($("#impL").value) || /^\s*([A-Za-z0-9_-]{40,})\s*$/.exec($("#impL").value); if (!m) { st.textContent = "לא מצאתי קישור ייבוא בטקסט שהודבק."; return; } p = m[1]; }
     const pin = $("#impP").value.replace(/\D/g, ""); if (pin.length < 4) { st.textContent = "מקלידים את הקוד שמופיע ליד ה-QR."; return; }

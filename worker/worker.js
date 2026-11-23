@@ -259,7 +259,8 @@ async function backupBox(req, env, id, part, cors) {
   if (!env.LIMITS) return json({ error: "no storage" }, 503, cors);
   const key = `bk:${id}:${part}`;
   if (req.method === "PUT") {
-    if (!env.APP_TOKEN || !same(req.headers.get("x-app-token") || "", env.APP_TOKEN)) return json({ error: "unauthorized" }, 401, cors);
+    const okApp = env.APP_TOKEN && same(req.headers.get("x-app-token") || "", env.APP_TOKEN), okSeed = env.DROP_TOKEN && same(req.headers.get("x-drop-token") || "", env.DROP_TOKEN); /* סוד זמני להעלאה ראשונית מהמחשב; נמחק מיד אחריה */
+    if (!okApp && !okSeed) return json({ error: "unauthorized" }, 401, cors);
     const buf = await req.arrayBuffer(); if (buf.byteLength < 48 || buf.byteLength > 24e6) return json({ error: "size" }, 413, cors);
     const ts = Date.now(); await env.LIMITS.put(key, buf, { expirationTtl: 120 * 86400, metadata: { ts, sz: buf.byteLength } }); return json({ ok: true, ts, bytes: buf.byteLength }, 200, cors);
   }
@@ -276,7 +277,7 @@ export default {
   async scheduled(event, env, ctx) { ctx.waitUntil(findEvents(env, false)); },
   async fetch(req, env) {
     const origin = req.headers.get("Origin") || "", allow = env.ALLOWED_ORIGIN || "*";
-    const cors = { "Access-Control-Allow-Origin": allow === "*" ? "*" : allow, "Access-Control-Allow-Headers": "content-type,x-app-token,range", "Access-Control-Expose-Headers": "content-range,accept-ranges,content-length,x-backup-ts", "Access-Control-Allow-Methods": "GET,POST,PUT,DELETE,OPTIONS", "Access-Control-Max-Age": "86400", "Vary": "Origin" };
+    const cors = { "Access-Control-Allow-Origin": allow === "*" ? "*" : allow, "Access-Control-Allow-Headers": "content-type,x-app-token,x-drop-token,range", "Access-Control-Expose-Headers": "content-range,accept-ranges,content-length,x-backup-ts", "Access-Control-Allow-Methods": "GET,POST,PUT,DELETE,OPTIONS", "Access-Control-Max-Age": "86400", "Vary": "Origin" };
     if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
     const path = new URL(req.url).pathname.replace(/\/+$/, "");
     if (req.method === "GET" && path.endsWith("/pid")) return pidFeed(cors);

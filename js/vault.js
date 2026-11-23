@@ -18,6 +18,36 @@ const sha = async u8 => hex(new Uint8Array(await crypto.subtle.digest("SHA-256",
 const bkGet = () => LS.get("bk", null), bkSet = v => LS.set("bk", v);
 const DOOR = "hotelDoor", EXPECT = { fl1: 1, fl2: 1, hot: 1, boat: 2, dup1: 2, epic: 2, dup2: 2, ins: 1 }; /* 12 קבצים + תמונת הכניסה = 13 */
 
+/* ---------- סנכרון אוטומטי, בלי שום פעולה ----------
+   המפתח (אקראי, 256 ביט) מגיע פעם אחת מהקישור האישי: …/prague/#k=<מפתח>. מה שאחרי ה-# לא נשלח לשום שרת.
+   בשרת יושב רק עותק מוצפן (אותו מנגנון של הגיבוי), ובלי המפתח אי אפשר לפענח אותו. בכל פתיחה: אם משהו חסר כאן, מורידים ומשלימים בשקט.
+   באייפון: כשמוסיפים למסך הבית מהקישור הזה, הכתובת עם המפתח נשמרת באייקון, אז גם אייקון חדש מתמלא לבד. */
+const VK = (() => { let k = ""; try { const m = /[#&]k=([A-Za-z0-9_-]{40,64})/.exec(location.hash || ""); if (m) { k = m[1]; LS.set("vk", k); } else k = LS.get("vk", "") || ""; } catch (e) {} return k; })();
+const isStandalone = () => !!(matchMedia("(display-mode: standalone)").matches || navigator.standalone);
+if (VK) { try { const has = /[#&]k=/.test(location.hash || ""), clean = () => history.replaceState(null, "", location.pathname + location.search);
+  if (isStandalone()) { if (has) clean(); }
+  else if (/iPhone|iPad|iPod/.test(navigator.userAgent)) { if (!has) history.replaceState(null, "", location.pathname + location.search + "#k=" + VK); const ml = document.querySelector('link[rel="manifest"]'); if (ml) ml.remove(); } /* כדי ש"הוסף למסך הבית" ישמור את הכתובת הזאת, עם המפתח */
+  else if (has) clean(); } catch (e) {} }
+let syncing = false;
+const haveCount = async () => { let n = Object.values(me || {}).filter(x => x && (typeof x !== "object" || Object.keys(x).length)).length; for (const l of Object.values(tix || {})) for (const it of l) if (await imgGet("tk:" + it.id).catch(() => null)) n++; if (await imgGet(DOOR).catch(() => null)) n++; return n; };
+const looksMissing = async () => { const m = me || {}; if (!m.rc || !m.ec || !m.h1 || !m.pol || !apiTok() || !(m.contactsAll || []).some(c => c && c.p)) return true; let f = 0; for (const [k, need] of Object.entries(EXPECT)) f += Math.min((tix[k] || []).length, need); return f < 12 || !(await imgGet(DOOR).catch(() => null)); };
+async function autoSync(force) {
+  if (!VK || syncing || isOffline() || !(window.crypto && crypto.subtle)) return; syncing = true;
+  try {
+    let bk = bkGet(); const due = !bk || !bk.syncT || Date.now() - bk.syncT > 12 * 36e5;
+    if (!(force || !bk || !bk.vk || !bk.synced || due || await looksMissing())) return;
+    let R = null; try { R = await restoreFetch(VK); } catch (e) { if (e.message !== "none") return; } /* בעיית רשת: ננסה בפתיחה הבאה, ובינתיים לא מעלים כלום */
+    if (R) { const before = await haveCount(); await restoreApply(R); bk = bkGet(); Object.assign(bk, { vk: 1, synced: 1, syncT: Date.now() }); bkSet(bk); const after = await haveCount();
+      if (after > before) { try { renderAll(); } catch (e) {} toast("הכול כאן ✓ הפרטים והכרטיסים הושלמו לבד", 3600); try { const t = (($("#mbody h2") || {}).textContent || ""); if (!$("#modal").hidden) { if (/הכרטיסים/.test(t)) openTickets(); else if (/מה יש אצלי/.test(t)) openHave(); } } catch (e) {} } }
+    else { const salt = crypto.getRandomValues(new Uint8Array(16)), raw = await pbkdf2(VK, salt, 600000), id = await bkIdOf(VK); bkSet({ id, salt: b64(salt), key: b64(raw), on: 1, vk: 1, synced: 1, syncT: Date.now() }); } /* עוד אין עותק בשרת: הטלפון הזה יוצר אותו */
+    await backupNow(false);
+  } catch (e) {} finally { syncing = false; }
+}
+setTimeout(() => autoSync(false), 1800);
+document.addEventListener("visibilitychange", () => { if (!document.hidden) setTimeout(() => autoSync(false), 800); });
+addEventListener("online", () => setTimeout(() => autoSync(false), 2500));
+window.__setVaultKey = k => { if (/^[A-Za-z0-9_-]{40,64}$/.test(k)) { LS.set("vk", k); location.reload(); return true; } return false; };
+
 /* ---------- אחסון קבוע ---------- */
 async function askPersist() { try { if (navigator.storage && navigator.storage.persist) { if (await navigator.storage.persisted()) return true; return await navigator.storage.persist(); } } catch (e) {} return false; }
 setTimeout(askPersist, 4000);
@@ -37,7 +67,7 @@ async function partT() { const all = await idbAll().catch(() => []), files = all
 /* ---------- גיבוי אוטומטי ---------- */
 let busy = false;
 async function backupNow(force) {
-  const bk = bkGet(); if (!bk || !bk.id || busy || isOffline() || !apiTok()) return { skipped: true };
+  const bk = bkGet(); if (!bk || !bk.id || busy || isOffline() || !apiTok() || (bk.vk && !bk.synced)) return { skipped: true };
   busy = true; const out = {};
   try {
     for (const [p, make] of [["d", partD], ["t", partT]]) {
@@ -77,6 +107,7 @@ const where = () => (matchMedia("(display-mode: standalone)").matches || navigat
 function openBackup() {
   const bk = bkGet();
   openModal(`<h2>☁️ גיבוי ושחזור</h2><p class="sub">הכול מוצפן בטלפון לפני שהוא יוצא. השרת שומר רק בלוק נעול, ובלי הקוד שלך אי אפשר לקרוא אותו (גם לא אני).</p>
+    ${VK ? `<div class="card soft"><b>🔗 סנכרון אוטומטי פעיל כאן</b><p class="sub">הדפדפן הזה מחובר לקישור האישי שלך. מה שחסר מושלם לבד בכל פתיחה, ומה שמתווסף נשמר בעותק המוצפן.</p><button class="btn wide" id="bkSync">🔄 לסנכרן עכשיו</button></div>` : ""}
     ${bk && bk.id ? `<div class="card soft"><b>✓ גיבוי אוטומטי פעיל</b><ul class="imp"><li><small>פרטים, תוכנית, יומן ותמונה</small><b>${ago(bk.tsd)}${bk.szd ? " · " + kbs(bk.szd) : ""}</b></li><li><small>קבצי כרטיסים</small><b>${ago(bk.tst)}${bk.szt ? " · " + kbs(bk.szt) : ""}</b></li></ul>${bk.err ? `<p class="jr-note">⚠️ הגיבוי האחרון לא עלה (${bk.err === "auth" ? "סיסמת היומן חסרה או ישנה" : "בעיית רשת"}). ינסה שוב לבד.</p>` : ""}<button class="btn wide" id="bkNow">⬆️ לגבות עכשיו</button></div>`
       : `<div class="card soft"><b>להפעיל גיבוי אוטומטי</b><p class="sub">בוחרים קוד שקל לך לזכור (לפחות 8 תווים, אפשר מילים). עם הקוד הזה משחזרים הכול בכל טלפון ובכל דפדפן.</p>
         ${apiTok() ? "" : `<p class="jr-note">🔑 לגיבוי צריך את סיסמת היומן בטלפון הזה (היא זו שמאשרת העלאה). מייבאים אותה קודם מה-QR.</p>`}
@@ -88,6 +119,7 @@ function openBackup() {
   if ($("#bkNow")) $("#bkNow").onclick = async () => { st.textContent = "מגבה…"; const r = await backupNow(true); st.textContent = r.err ? "⚠️ לא הצליח: " + (r.err === "auth" ? "סיסמת היומן חסרה או ישנה" : "אין רשת") : r.skipped ? "אין רשת או סיסמת יומן כרגע." : "✓ גובה"; setTimeout(openBackup, 900); };
   if ($("#bkOn")) $("#bkOn").onclick = async () => { const a = $("#bkC1").value, b = $("#bkC2").value; if (a.trim().length < 8) { st.textContent = "לפחות 8 תווים."; return; } if (a !== b) { st.textContent = "שני הקודים לא זהים."; return; } $("#bkOn").disabled = true; st.textContent = "מצפין ומעלה… (כמה שניות)"; const r = await setupBackup(a); st.textContent = r.err ? "⚠️ " + (r.err === "auth" ? "סיסמת היומן לא מתקבלת" : "אין רשת, ינסה שוב לבד") : "✓ הגיבוי פעיל. תשמור את הקוד במקום בטוח."; buzz([12, 40, 12]); setTimeout(openBackup, 1600); };
   $("#bkRe").onclick = () => openRestore();
+  if ($("#bkSync")) $("#bkSync").onclick = async () => { st.textContent = "מסנכרן…"; await autoSync(true); st.textContent = "✓ מסונכרן"; setTimeout(openBackup, 900); };
 }
 function openRestore() {
   openModal(`<h2>♻️ שחזור מגיבוי</h2><p class="sub">מקלידים את קוד הגיבוי. ההורדה והפענוח בטלפון בלבד. מה שכבר יש כאן נשאר: רק מוסיפים את מה שחסר.</p>
@@ -120,6 +152,7 @@ async function haveChecks() {
     [`🎟️ כרטיסים (${files + (door ? 1 : 0)} מתוך 13)`, files >= 12 && door, "tix", missing],
     ["🖼️ תמונת הכניסה למלון", door, "door"],
     ["🔑 סיסמת היומן להורים", !!apiTok(), "tok"],
+    [VK ? `🔗 סנכרון אוטומטי ${bk && bk.syncT ? "· " + ago(bk.syncT) : ""}` : "🔗 סנכרון אוטומטי (צריך לפתוח פעם אחת את הקישור האישי)", !!(VK && bk && bk.synced), "bk"],
     [`☁️ גיבוי מוצפן ${bk && bk.tsd ? "· " + ago(bk.tsd) : ""}`, !!(bk && bk.id && bk.tsd), "bk"],
     ["💾 אחסון קבוע (הדפדפן לא ימחק)", !!persisted, "persist"]
   ];
@@ -133,7 +166,7 @@ async function openHave() {
   L.querySelectorAll("[data-hv]").forEach(b => b.onclick = () => { closeModal(); setTimeout(() => go[rows[+b.dataset.hv][2]](), 250); });
   $("#hvRe").onclick = () => openRestore(); $("#hvImp").onclick = () => openImport(""); $("#hvMv").onclick = () => openMove();
 }
-Object.assign(window, { openHave, openBackup, openRestore, backupNow, askPersist });
+Object.assign(window, { openHave, openBackup, openRestore, backupNow, askPersist, autoSync });
 
 (() => { const st = document.createElement("style"); st.textContent = `
 .have{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column;gap:6px}

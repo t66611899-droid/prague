@@ -255,8 +255,12 @@ function flyDay(di, instant) {
   if (!map) return;
   const L = dayLine(di); let pts = L.pts.map(p => p.p); if (!pts.length) pts = [[14.4213, 50.0875]];
   const b = new maplibregl.LngLatBounds(pts[0], pts[0]); pts.forEach(p => b.extend(p)); L.legs.forEach(l => l.coords.forEach(c => b.extend(c)));
-  const cam = pts.length > 1 ? map.cameraForBounds(b, { padding: mapPad(), maxZoom: 15.5 }) : { center: pts[0], zoom: 15 };
-  const o = { ...cam, pitch: tilt() ? 40 : 0, bearing: tilt() ? -12 : 0 }; if (tilt() && o.zoom) o.zoom -= 0.55; // בהטיה רואים פחות, אז מתרחקים קצת // ריווח נדיב ואז הטיה עדינה
+  // התאמה עצמאית של הזום לגבולות היום (לא תלויה בהטיה או בסיבוב הנוכחיים של המצלמה)
+  const pad = mapPad(), el = map.getContainer(), mx = l => (l + 180) / 360, my = l => (1 - Math.log(Math.tan(l * R2) + 1 / Math.cos(l * R2)) / Math.PI) / 2;
+  const dx = Math.max(1e-7, mx(b.getEast()) - mx(b.getWest())), dy = Math.max(1e-7, my(b.getSouth()) - my(b.getNorth()));
+  const fitZ = Math.log2(Math.min((el.clientWidth - pad.left - pad.right) / (512 * dx), (el.clientHeight - pad.top - pad.bottom) / (512 * dy)));
+  const cam = pts.length > 1 ? { center: b.getCenter(), zoom: Math.max(9, Math.min(15.5, fitZ)) } : { center: pts[0], zoom: 15 };
+  const o = { ...cam, padding: pad, pitch: tilt() ? 40 : 0, bearing: tilt() ? -12 : 0 }; if (tilt()) o.zoom -= 0.45; // בהטיה רואים פחות, אז מתרחקים קצת // ריווח נדיב ואז הטיה עדינה
   if (instant || REDUCED) map.jumpTo(o); else map.flyTo({ ...o, duration: 1900, curve: 1.45, essential: true });
 }
 function flyTo(l, zoom = 16.3) {

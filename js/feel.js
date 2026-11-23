@@ -102,6 +102,14 @@ function openBug() {
 }
 Object.assign(window, { openBug, fixBidi: fixTree });
 
+/* ---------- מצבים מעוצבים ---------- */
+/* הודעות: ✓ = הצלחה (סימן ירוק קופץ), ⚠️ / "לא הצלח" / "אין אינטרנט" = אזהרה */
+if (typeof window.toast === "function") window.toast = (old => function (msg, ms) { const t = document.getElementById("toast"), s = String(msg == null ? "" : msg); const ok = /✓|✅|🎉/.test(s), warn = !ok && /⚠️|לא הצלח|נכשל|אין אינטרנט|אין רשת|שגיאה/.test(s); if (t) { t.classList.toggle("t-ok", ok); t.classList.toggle("t-warn", warn); } return old.call(this, ok ? s.replace(/\s*[✓✅]\s*$/, "").replace(/^\s*[✓✅]\s*/, "") : warn ? s.replace(/^\s*⚠️\s*/, "") : s, ms); })(window.toast);
+/* אין אינטרנט: ניסוח אחד ברור */
+try { const n = document.getElementById("net"); if (n) n.textContent = "בלי אינטרנט · הכול שמור אצלך"; } catch (e) {}
+/* המפה בטעינה: רקע מנצנץ עד שהיא מוכנה (או עד שנכשלה) */
+try { document.body.classList.add("map-wait"); const iv = setInterval(() => { let ready = false; try { ready = !!window.__booted || !!document.querySelector("#map .empty, #map canvas"); } catch (e) {} if (ready) { document.body.classList.remove("map-wait"); clearInterval(iv); } }, 300); setTimeout(() => { document.body.classList.remove("map-wait"); clearInterval(iv); }, 20000); } catch (e) {}
+
 /* ---------- עיצוב ---------- */
 (() => { const st = document.createElement("style"); st.textContent = `
 :where(button,.btn,.tbtn,.fab,.day,.chip,.st-main,[data-act],[data-q],[data-c],[data-in],.menu button,.menu-top button,#quick button,.ask){transition:transform .14s cubic-bezier(.2,.8,.2,1),filter .14s,background-color .2s}

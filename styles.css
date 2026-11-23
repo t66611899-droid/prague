@@ -943,3 +943,45 @@ button,a,.btn,label,summary,[data-act],[data-q],[data-c],[data-in],.day,.st-main
 img{-webkit-user-drag:none}
 
 .dl-push,.cn-push{margin:10px 0 0;font-weight:700;font-size:1.02rem;line-height:1.4;color:var(--must,#e8a317)}
+
+/* ================= שכבת גימור v40: שפה אחת לכל המסכים =================
+   טיפוגרפיה חדה יותר, צללים רכים בשתי שכבות, כפתור ראשי עם עומק, כרטיסים עם קו עדין, שדות עם טבעת פוקוס,
+   ומצבים מעוצבים: טעינה (shimmer), אין אינטרנט, ריק, שגיאה, הצלחה. */
+:root{--sh1:0 1px 2px rgba(24,22,18,.06),0 4px 14px rgba(24,22,18,.08);--sh2:0 2px 6px rgba(24,22,18,.08),0 18px 44px rgba(24,22,18,.16)}
+:root[data-theme="dark"]{--sh1:0 1px 2px rgba(0,0,0,.3),0 4px 14px rgba(0,0,0,.32);--sh2:0 2px 6px rgba(0,0,0,.35),0 18px 44px rgba(0,0,0,.55)}
+h1,h2,h3{letter-spacing:-.015em}
+.mbox h2{font-size:1.4rem;font-weight:800;line-height:1.15;margin:2px 0 8px}
+.mbox h3{font-size:1.02rem;font-weight:700;margin:18px 0 6px}
+.sub{font-size:.9rem}
+.card{padding:15px 16px}
+:root:not([data-theme="dark"]) .card.soft{box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--line) 75%,transparent)}
+.btn{min-height:50px;border-radius:15px}
+.btn.pri{background:linear-gradient(180deg,color-mix(in srgb,var(--red) 88%,#fff),var(--red));box-shadow:0 6px 18px color-mix(in srgb,var(--red) 30%,transparent),inset 0 1px 0 rgba(255,255,255,.28)}
+.btn:disabled,.btn[disabled]{opacity:.6;filter:saturate(.7)}
+#mclose{background:color-mix(in srgb,var(--card2) 82%,transparent);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+.menu button{min-height:94px;font-weight:600;font-size:.82rem;gap:8px;color:var(--ink)}
+.menu button>span:first-child{width:44px;height:44px;border-radius:14px;display:grid;place-items:center;font-size:1.3rem;background:var(--card);box-shadow:var(--sh1)}
+.menu-top button{box-shadow:var(--sh1)}
+.menu-top button.big{background:linear-gradient(180deg,color-mix(in srgb,var(--red) 88%,#fff),var(--red));box-shadow:0 6px 18px color-mix(in srgb,var(--red) 30%,transparent),inset 0 1px 0 rgba(255,255,255,.28)}
+input:focus,textarea:focus,select:focus{outline:0;border-color:var(--blue)!important;box-shadow:0 0 0 3px color-mix(in srgb,var(--blue) 22%,transparent)}
+.imp li{border-radius:12px}
+/* ריק */
+.empty span{width:72px;height:72px;border-radius:24px;display:grid;place-items:center;background:var(--card2);font-size:2rem;margin-bottom:8px;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--line) 70%,transparent)}
+.empty b{font-size:1.08rem;font-weight:700}
+/* הודעות: הצלחה / אזהרה עם סימן */
+#toast{border-radius:16px;font-weight:600;box-shadow:var(--sh2)}
+#toast.t-ok,#toast.t-warn{display:flex;align-items:center;gap:9px;text-align:start}
+#toast.t-ok::before,#toast.t-warn::before{content:"";flex:none;width:22px;height:22px;border-radius:50%;background:var(--ok) center/13px no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5 12.5l4.500 4.500L19 7.500' fill='none' stroke='%23fff' stroke-width='3.200' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}
+#toast.t-warn::before{background-color:var(--must);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 6v8M12 17.500v.500' fill='none' stroke='%231b1c20' stroke-width='3.200' stroke-linecap='round'/%3E%3C/svg%3E")}
+#toast.show.t-ok::before,#toast.show.t-warn::before{animation:tPop .45s var(--spring)}
+@keyframes tPop{from{transform:scale(0)}to{transform:none}}
+/* אין אינטרנט */
+#net{display:flex;align-items:center;gap:8px;padding:8px 14px 8px 12px;font-weight:600}
+#net::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--must);box-shadow:0 0 0 0 color-mix(in srgb,var(--must) 60%,transparent);animation:netPulse 1.8s ease-out infinite}
+@keyframes netPulse{to{box-shadow:0 0 0 9px transparent}}
+/* טעינה */
+.skel,body.map-wait #map{background:linear-gradient(110deg,color-mix(in srgb,var(--card2) 70%,var(--bg)) 30%,var(--card) 50%,color-mix(in srgb,var(--card2) 70%,var(--bg)) 70%) 0 0/220% 100%;animation:shim 1.5s linear infinite}
+.skel{border-radius:12px;min-height:16px;color:transparent!important}
+@keyframes shim{to{background-position:-220% 0}}
+body.map-wait #map::after{content:"טוען את המפה…";position:absolute;left:50%;top:42%;transform:translateX(-50%);font:600 .9rem Rubik,system-ui,sans-serif;color:var(--mut)}
+@media (prefers-reduced-motion:reduce){.skel,body.map-wait #map,#net::before{animation:none}}

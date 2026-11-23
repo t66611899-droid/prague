@@ -152,7 +152,7 @@ async function haveChecks() {
     [`🎟️ כרטיסים (${files + (door ? 1 : 0)} מתוך 13)`, files >= 12 && door, "tix", missing],
     ["🖼️ תמונת הכניסה למלון", door, "door"],
     ["🔑 סיסמת היומן להורים", !!apiTok(), "tok"],
-    [VK ? `🔗 סנכרון אוטומטי ${bk && bk.syncT ? "· " + ago(bk.syncT) : ""}` : "🔗 סנכרון אוטומטי (צריך לפתוח פעם אחת את הקישור האישי)", !!(VK && bk && bk.synced), "bk"],
+    [VK ? `🔗 סנכרון אוטומטי ${bk && bk.syncT ? "· " + ago(bk.syncT) : ""}` : "🔗 סנכרון אוטומטי (צריך לפתוח פעם אחת את הקישור האישי)", !!(VK && bk && bk.synced), VK ? "bk" : "sync"],
     [`☁️ גיבוי מוצפן ${bk && bk.tsd ? "· " + ago(bk.tsd) : ""}`, !!(bk && bk.id && bk.tsd), "bk"],
     ["💾 אחסון קבוע (הדפדפן לא ימחק)", !!persisted, "persist"]
   ];
@@ -160,7 +160,7 @@ async function haveChecks() {
 async function openHave() {
   openModal(`<h2>✅ מה יש אצלי</h2><p class="sub">${where()} · גרסה ${(() => { try { return new URL($('script[src*="extras.js"]').src).searchParams.get("v"); } catch (e) { return "?"; } })()}. כל דפדפן ואייקון באייפון שומרים בנפרד, אז הבדיקה היא על המקום הזה.</p><ul class="have" id="hvL"><li>בודק…</li></ul>
     <div class="row wrap" style="margin-top:10px"><button class="btn" id="hvRe">♻️ שחזור מגיבוי</button><button class="btn" id="hvImp">📥 ייבוא מ-QR</button><button class="btn" id="hvMv">📲 העברה</button></div>`, "tall");
-  const rows = await haveChecks(), go = { me: () => openMe(), tix: () => openTickets(), door: () => openMe(), tok: () => openImport(""), bk: () => openBackup(), persist: async () => { const ok = await askPersist(); toast(ok ? "האחסון קבוע ✓" : "הדפדפן לא אישר. באייקון במסך הבית זה קבוע ממילא.", 3200); openHave(); } };
+  const rows = await haveChecks(), go = { me: () => openMe(), tix: () => openTickets(), door: () => openMe(), tok: () => openImport(""), bk: () => openBackup(), sync: () => { openImport(""); setTimeout(() => { const st = $("#impSt"); if (st) st.textContent = "מדביקים כאן את הקישור האישי (זה עם ה-#k=). פעם אחת, ומכאן הכול מתמלא לבד."; }, 300); }, persist: async () => { const ok = await askPersist(); toast(ok ? "האחסון קבוע ✓" : "הדפדפן לא אישר. באייקון במסך הבית זה קבוע ממילא.", 3200); openHave(); } };
   const L = $("#hvL"); if (!L) return;
   L.innerHTML = rows.map(([t, ok, k, extra], i) => `<li class="${ok ? "ok" : "no"}"><span>${ok ? "✓" : "✗"}</span><b>${t}${!ok && extra && extra.length ? `<small>חסר: ${extra.map(x => (typeof DOC_LBL !== "undefined" && DOC_LBL[x]) || x).join(", ")}</small>` : ""}</b>${ok ? "" : `<button class="btn sm" data-hv="${i}">להשלים</button>`}</li>`).join("");
   L.querySelectorAll("[data-hv]").forEach(b => b.onclick = () => { closeModal(); setTimeout(() => go[rows[+b.dataset.hv][2]](), 250); });

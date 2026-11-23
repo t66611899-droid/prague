@@ -26,11 +26,11 @@ function wantDark() {
 
 /* ---------- סגנון מותאם: אותו בסיס וקטורי, שתי ערכות צבע ---------- */
 const PAL = {
-  day: { bg: "#f3ede4", land: "#efe8dc", water: "#3d84cf", bank: "#2867ad", park: "#cde5c0", wood: "#bcdaae", bld: "#e7dfd2", bldLine: "#d8cdbd", b3d: "#ece4d8",
-    major: "#ffe7a8", majorCase: "#dfae4f", mid: "#ffffff", midCase: "#d6cbba", minor: "#fffdf9", minorCase: "#e2d8c9", path: "#dccdb4", rail: "#b9b2a6",
+  day: { bg: "#f5f1e9", land: "#f1ece2", water: "#6ea9e2", bank: "#4a8fd4", park: "#d2e9c8", wood: "#c2ddb6", bld: "#ebe4d8", bldLine: "#ddd3c4", b3d: "#efe8dc",
+    major: "#fff0c2", majorCase: "#e6c074", mid: "#ffffff", midCase: "#dbd1c1", minor: "#fffdf9", minorCase: "#e6ddcf", path: "#e0d3bc", rail: "#bfb8ac",
     label: "#3a352e", labelMinor: "#6e675c", halo: "#fbf7f0", waterLabel: "#f1f7ff", routeCase: "#ffffff" },
-  night: { bg: "#1b1e29", land: "#1f2331", water: "#1c4f93", bank: "#3274c9", park: "#1d3b30", wood: "#1a3329", bld: "#272c3b", bldLine: "#303648", b3d: "#343b52",
-    major: "#dba55c", majorCase: "#6b5030", mid: "#8d7a5d", midCase: "#3a3427", minor: "#3d4356", minorCase: "#262b39", path: "#4b5063", rail: "#4a4f5f",
+  night: { bg: "#171a25", land: "#1c202d", water: "#173f78", bank: "#2f6dbd", park: "#1b382e", wood: "#183026", bld: "#252a39", bldLine: "#2e3446", b3d: "#323950",
+    major: "#c9965a", majorCase: "#5c4630", mid: "#7c6f5c", midCase: "#353026", minor: "#3a4054", minorCase: "#242937", path: "#474c5f", rail: "#454a5a",
     label: "#f2eee6", labelMinor: "#bdb7aa", halo: "#141720", waterLabel: "#a9cdf8", routeCase: "#10121a" }
 };
 function layerPaint(l, P) {

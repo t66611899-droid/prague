@@ -1,7 +1,7 @@
 /* service worker: האפליקציה, הנתונים והמפה של מרכז פראג עובדים גם בלי קליטה */
-const V = "prg-v29";
+const V = "prg-v30";
 const SHELL = ["./", "index.html", "styles.css", "data.js", "routes.js", "manifest.webmanifest",
-  "js/config.js", "js/core.js", "js/map.js", "js/ui.js", "js/chat.js", "js/flow.js", "js/safety.js", "js/updates.js", "js/more.js", "js/gallery.js", "js/media.js", "js/journal.js", "js/arrive.js", "js/tickets.js", "js/ask.js", "js/prep.js", "js/import.js", "js/harel.js", "js/docs.js", "js/transfer.js", "family.html", "js/splash.js", "js/extras.js", "prague.ics",
+  "js/config.js", "js/core.js", "js/map.js", "js/ui.js", "js/chat.js", "js/flow.js", "js/safety.js", "js/updates.js", "js/more.js", "js/gallery.js", "js/media.js", "js/journal.js", "js/arrive.js", "js/tickets.js", "js/ask.js", "js/prep.js", "js/import.js", "js/harel.js", "js/docs.js", "js/transfer.js", "family.html", "js/splash.js", "js/cine.js", "js/extras.js", "prague.ics",
   "vendor/maplibre-gl.js", "vendor/maplibre-gl.css", "icons/icon.svg", "icons/icon-192.png", "icons/icon-512.png", "icons/icon-180.png"];
 const MAP = "prg-map", MEDIA = "prg-media";
 
@@ -24,18 +24,21 @@ async function staleWhileRevalidate(req, name) {
   return hit || (await Promise.race([net, new Promise(r => setTimeout(() => r(null), 6000))])) || (req.mode === "navigate" ? c.match("index.html") : Response.error());
 }
 
-// קבצי האפליקציה: קודם מהרשת (כדי לקבל עדכונים), ואם אין קליטה או שהיא איטית, מהמטמון
-async function networkFirst(req, name) {
-  const c = await caches.open(name), opt = { ignoreVary: true, ignoreSearch: true };
-  const want = new URL(req.url).searchParams.get("v"), sameVer = !want || want === V.slice(5); // V = "prg-vN"
+// קבצי האפליקציה. כדי לעלות מהר גם ב-4G חלש:
+// • קובץ עם ?v=N של הגרסה הזאת לא משתנה לעולם, אז מגישים אותו מיד מהמטמון.
+// • הדף עצמו מגיע מהמטמון של אותה גרסה (תמיד תואם לקבצים). גרסה חדשה נכנסת כש-sw.js מתעדכן, ומופיעה בפתיחה הבאה.
+// • אף פעם לא מגישים קובץ מגרסה אחרת (ערבוב גרסאות שובר את העלייה).
+const verOf = u => new URL(u).searchParams.get("v");
+async function appFetch(req, name) {
+  const c = await caches.open(name), opt = { ignoreVary: true, ignoreSearch: true }, u = new URL(req.url);
+  const want = verOf(req.url), sameVer = !want || want === V.slice(5), nav = req.mode === "navigate" && /\/(index\.html)?$/.test(u.pathname); // רק הדף הראשי (לא family.html)
+  if (nav || (want && sameVer)) { const hit = await c.match(nav ? "index.html" : req, opt); if (hit) return hit; }
   const net = fetch(req); net.catch(() => {});
   try {
-    const res = await Promise.race([net, new Promise((_, rej) => setTimeout(() => rej(new Error("slow")), 3000))]);
-    if (res.ok && sameVer) c.put(req, res.clone()); return res;
+    const res = await Promise.race([net, new Promise((_, rej) => setTimeout(() => rej(new Error("slow")), 4000))]);
+    if (res.ok && sameVer && !nav) c.put(req, res.clone()); return res;
   } catch (e) {
-    const hit = sameVer ? await c.match(req, opt) : null; // קובץ מגרסה אחרת = לא מהמטמון (ערבוב גרסאות שובר את העלייה)
-    if (hit) return hit;
-    if (req.mode === "navigate") { const ix = await c.match("index.html"); if (ix) return ix; }
+    const hit = sameVer ? await c.match(req, opt) : null; if (hit) return hit;
     return net;
   }
 }
@@ -43,7 +46,7 @@ async function networkFirst(req, name) {
 self.addEventListener("fetch", e => {
   const req = e.request; if (req.method !== "GET") return;
   const u = new URL(req.url);
-  if (u.origin === location.origin) { e.respondWith(networkFirst(req, V)); return; }
+  if (u.origin === location.origin) { e.respondWith(appFetch(req, V)); return; }
   if (u.hostname === "tiles.openfreemap.org") {
     if (/\.(pbf|png|json)$/.test(u.pathname) && !u.pathname.startsWith("/styles")) e.respondWith(cacheFirst(req, MAP, tileKey(req.url)).catch(() => Response.error()));
     else e.respondWith(staleWhileRevalidate(req, MAP)); // סגנונות ו-TileJSON

@@ -115,9 +115,20 @@ function mapPad() {
   return { top: 150, bottom: Math.min(innerHeight * 0.5, innerHeight - sh.top) + 36, left: 56, right: 56 };
 }
 
+/* MapLibre (800KB) לא חוסם את העלייה: נטען כאן, אחרי שהממשק כבר מוצג */
+const MAPLIB_V = (() => { try { return new URL(document.currentScript.src).searchParams.get("v") || ""; } catch (e) { return ""; } })();
+function loadMapLib() {
+  if (window.maplibregl) return Promise.resolve();
+  return window._mlP || (window._mlP = new Promise((res, rej) => {
+    const q = MAPLIB_V ? "?v=" + MAPLIB_V : "", css = document.createElement("link"); css.rel = "stylesheet"; css.href = "vendor/maplibre-gl.css" + q; document.head.appendChild(css);
+    const s = document.createElement("script"); s.src = "vendor/maplibre-gl.js" + q; s.onload = () => window.maplibregl ? res() : rej(new Error("maplibre missing")); s.onerror = () => { window._mlP = null; rej(new Error("maplibre load failed")); }; document.head.appendChild(s);
+  }));
+}
 async function initMap() {
   mapDark = wantDark(); document.documentElement.dataset.theme = mapDark ? "dark" : "light";
+  const libP = loadMapLib(); // במקביל לסגנון המפה
   baseStyle = QS.get("raster") === "1" ? null : await fetchBase(); isRaster = !baseStyle;
+  await libP;
   map = new maplibregl.Map({
     container: "map", style: baseStyle ? buildVectorStyle(baseStyle, mapDark) : rasterStyle(mapDark), center: [14.4185, 50.0855], zoom: 12.4, pitch: 0,
     attributionControl: false, maxPitch: 70, fadeDuration: 150
@@ -275,7 +286,7 @@ function flyTo(l, zoom = 16.3) {
   if (REDUCED) map.jumpTo(o); else map.flyTo({ ...o, duration: 1300, essential: true });
 }
 /* רשת ביטחון: אם המפה נשארה רחוק מפראג (אנימציה שנעצרה באמצע, שגיאה), קופצים ישר לעיר */
-function ensurePrague(delay) { setTimeout(() => { try { if (!map) return; const c = map.getCenter(); if (Math.abs(c.lng - 14.42) > 0.9 || Math.abs(c.lat - 50.08) > 0.6 || map.getZoom() < 8.5) { map.stop(); flyDay(curDay, true); } } catch (e) { try { map.jumpTo({ center: [14.4213, 50.0875], zoom: 12.5, pitch: 0, bearing: 0 }); } catch (e2) {} } }, delay); }
+function ensurePrague(delay) { setTimeout(() => { try { if (!map || window.__cineActive) return; /* לא באמצע פתיח קולנועי */ const c = map.getCenter(); if (Math.abs(c.lng - 14.42) > 0.9 || Math.abs(c.lat - 50.08) > 0.6 || map.getZoom() < 8.5) { map.stop(); flyDay(curDay, true); } } catch (e) { try { map.jumpTo({ center: [14.4213, 50.0875], zoom: 12.5, pitch: 0, bearing: 0 }); } catch (e2) {} } }, delay); }
 function openingFlight() { // מבט פתיחה: טיסה קצרה מעל העיר אל התחנה הבאה
   ensurePrague(4200);
   const L = live(curDay), s = (L.today && (L.next || L.cur)) || plan[curDay].stops.find(x => loc(x) && !isAirport(loc(x))), l = s && loc(s);

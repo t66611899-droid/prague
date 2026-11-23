@@ -915,3 +915,19 @@ body.replay > :not(#map):not(#grp):not(#gv){visibility:hidden!important}
 .menu-top button.big{grid-column:1/-1;background:var(--red);color:#fff;min-height:64px;justify-content:center}
 .menu-top button.mv{grid-column:1/-1;background:color-mix(in srgb,var(--blue) 16%,var(--card2))}
 .menu-top button small{display:block;font-weight:400;font-size:.78rem;color:var(--mut)}
+
+/* ---------- הפס העליון: אחיד ונקי (אותו גובה, אותו רדיוס, אותו סגנון; SOS נשאר עם מסגרת אדומה) ---------- */
+#top{grid-template-columns:auto minmax(0,1fr) auto auto auto auto;gap:6px;padding:6px;padding-inline-start:12px;align-items:center}
+#top .tbtn,#top .tbtn.now,#top .tbtn.menu,:root[data-theme] #top .tbtn.now{height:44px;min-width:44px;border-radius:14px;border:0;background:var(--card2);color:var(--ink);font:600 .84rem/1 Rubik,system-ui,sans-serif;padding:0 10px;box-shadow:none;display:inline-flex;align-items:center;justify-content:center;gap:4px;white-space:nowrap}
+#top .tbtn.now{position:relative}
+#top .tbtn.now::after{content:"";position:absolute;top:7px;inset-inline-end:7px;width:6px;height:6px;border-radius:50%;background:var(--must)}
+#top .tbtn.sos{background:transparent;box-shadow:inset 0 0 0 2px var(--red);color:var(--red-ink);font-weight:700;font-size:.78rem;padding:0 8px}
+#top .tbtn.menu{width:44px;padding:0;flex-direction:column;gap:4px}
+#top .tbtn.menu i{display:block;width:17px;height:2px;border-radius:2px;background:var(--ink)}
+#top .tbtn:active{transform:scale(.93)}
+#st{display:flex;flex-direction:column;justify-content:center;min-width:0;line-height:1.15;-webkit-line-clamp:unset;overflow:hidden}
+#st b{font-size:.86rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#st small{font-size:.7rem;font-weight:500;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media (max-width:380px){#top{gap:4px;padding-inline-start:9px}#top .tbtn,#top .tbtn.now{padding:0 7px;font-size:.78rem}#top .tbtn.sos{padding:0 6px}.clock b{font-size:1.3rem}#st b{font-size:.8rem}#st small{font-size:.66rem}}
+/* WebKit מצייר מעט רחב יותר: עד 430px השעון קצת קטן כדי ש"7 ימים" לא ייחתך */
+@media (max-width:430px){.clock b{font-size:1.38rem}#top .tbtn,#top .tbtn.now{padding:0 8px}#st{min-width:3.6em}}

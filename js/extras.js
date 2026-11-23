@@ -272,9 +272,9 @@ function openMe_v1() {
 
 /* ---------- "עוד" + הגדרות ---------- */
 function openMore() {
-  const items = [...(tripNow().phase !== "during" ? [["prep", "✅", "לפני הטיסה"]] : []), ["moment", "📸", "רגע חדש"], ["tix", "🎟️", "הכרטיסים שלי"], ["arr", "🏨", "מגיעים למלון"], ["upd", "🔔", "עדכונים"], ["wa", "💬", "ווטסאפ"], ["cal", "📅", "תזכורות ליומן"], ["tips", "💡", "כדאי לדעת"], ["diary", "📔", "יומן הטיול"], ["test", "🧪", "בדיקת חירום"], ["lg", "🗺️", "מקרא המפה"], ["phr", "🗣️", "משפטים"], ["free", "🧭", "יום חופשי"], ["today", "☀️", "היום שלי"], ["wx", "🌡️", "מזג אוויר"], ["pack", "🎒", "מה לקחת"], ["exp", "💰", "הוצאות"], ["sum", "📊", "סיכום היום"], ["off", "📥", "בלי אינטרנט"], ["me", "🔒", "הפרטים שלי"], ["sos", "🆘", "חירום"], ...(CONFIG.server ? [["chat", "💬", "חיבור Claude"]] : []), ["set", "⚙️", "הגדרות"], ["inst", "📲", "מסך הבית"], ["add", "➕", "להוסיף תחנה"]];
+  const items = [...(typeof window.openCineMenu === "function" ? [["cine", "🎬", "פתיחים ותקצירים"]] : []), ...(tripNow().phase !== "during" ? [["prep", "✅", "לפני הטיסה"]] : []), ["moment", "📸", "רגע חדש"], ["tix", "🎟️", "הכרטיסים שלי"], ["arr", "🏨", "מגיעים למלון"], ["upd", "🔔", "עדכונים"], ["wa", "💬", "ווטסאפ"], ["cal", "📅", "תזכורות ליומן"], ["tips", "💡", "כדאי לדעת"], ["diary", "📔", "יומן הטיול"], ["test", "🧪", "בדיקת חירום"], ["lg", "🗺️", "מקרא המפה"], ["phr", "🗣️", "משפטים"], ["free", "🧭", "יום חופשי"], ["today", "☀️", "היום שלי"], ["wx", "🌡️", "מזג אוויר"], ["pack", "🎒", "מה לקחת"], ["exp", "💰", "הוצאות"], ["sum", "📊", "סיכום היום"], ["off", "📥", "בלי אינטרנט"], ["me", "🔒", "הפרטים שלי"], ["sos", "🆘", "חירום"], ...(CONFIG.server ? [["chat", "💬", "חיבור Claude"]] : []), ["set", "⚙️", "הגדרות"], ["inst", "📲", "מסך הבית"], ["add", "➕", "להוסיף תחנה"]];
   openModal(`<h2>תפריט</h2><div class="menu-top"><button class="big" data-m="moment"><span>📸</span>רגע חדש ליומן</button><button data-m="diary"><span>📔</span>יומן הטיול</button><button data-m="tix"><span>🎟️</span>הכרטיסים שלי</button><button data-m="me"><span>🔒</span>הפרטים שלי</button><button data-m="sos"><span>🆘</span>חירום</button><button class="mv" data-m="move"><span>📲</span><div>העברה בין דפדפנים<small>מ-Chrome או Safari לאייקון במסך הבית, ולהפך</small></div></button></div><h3>עוד</h3><div class="menu">${items.map(i => `<button data-m="${i[0]}"><span>${i[1]}</span>${i[2]}</button>`).join("")}</div>`);
-  const fn = { move: () => openMove(), prep: openPrep, moment: newMoment, tix: () => openTickets(), arr: () => openArrive(), diary: openDiary, test: () => openSOS(true), lg: () => { closeModal(); showLegend(true); }, upd: openUpdates, wa: openWa, cal: openCalendar, tips: openTips, phr: openPhrases, free: openFree, today: () => openToday(curDay), wx: openWeather, pack: openPack, exp: openExp, sum: () => openSummary(curDay), off: openOffline, me: openMe, sos: openSOS, set: openSettings, chat: openChatSetup, inst: openInstall, add: () => addStopFlow() };
+  const fn = { cine: () => window.openCineMenu && window.openCineMenu(), move: () => openMove(), prep: openPrep, moment: newMoment, tix: () => openTickets(), arr: () => openArrive(), diary: openDiary, test: () => openSOS(true), lg: () => { closeModal(); showLegend(true); }, upd: openUpdates, wa: openWa, cal: openCalendar, tips: openTips, phr: openPhrases, free: openFree, today: () => openToday(curDay), wx: openWeather, pack: openPack, exp: openExp, sum: () => openSummary(curDay), off: openOffline, me: openMe, sos: openSOS, set: openSettings, chat: openChatSetup, inst: openInstall, add: () => addStopFlow() };
   $$("#mbody [data-m]").forEach(b => b.onclick = fn[b.dataset.m]);
 }
 function openSettings() {
@@ -398,7 +398,8 @@ async function init() {
   const T0 = tripNow(); curDay = T0.dayIdx >= 0 ? T0.dayIdx : T0.phase === "after" ? plan.length - 1 : 0;
   document.documentElement.style.setProperty("--day", DAYC[curDay]); document.documentElement.dataset.theme = wantDark() ? "dark" : "light";
   initSheet(); initListEvents(); renderAll(); setSheet("low", true); renderNet(); window.__ui = true; // הממשק עלה (שומר העלייה נרגע)
-  let splashDone = QS.get("splash") === "0", mapReady = false; const fly = () => { if (splashDone && mapReady) { try { QS.get("splash") === "0" ? flyDay(curDay, true) : openingFlight(); } catch (e) { ensurePrague(0); } ensurePrague(6500); } };
+  requestAnimationFrame(() => { const b = $("#boot"); if (b) { b.classList.add("out"); setTimeout(() => b.remove(), 400); } });
+  let splashDone = QS.get("splash") === "0", mapReady = false; const fly = () => { if (splashDone && mapReady) { if (window.__cineLand) return; /* הפתיח הקולנועי מנהל את המצלמה */ try { QS.get("splash") === "0" ? flyDay(curDay, true) : openingFlight(); } catch (e) { ensurePrague(0); } ensurePrague(6500); } };
   if (!splashDone) showSplash(() => { splashDone = true; fly(); });
   $("#days").addEventListener("click", e => { const b = e.target.closest(".day"); if (b) { buzz(6); selectDay(+b.dataset.i); } });
   document.addEventListener("click", e => {
@@ -426,7 +427,7 @@ async function init() {
   initSwipe(); $("#freeBtn").onclick = openFree; refreshUpdates(); loadPid(); loadFx();
   loadWeather();
   if ("serviceWorker" in navigator && location.protocol !== "file:" && QS.get("sw") !== "0") {
-    navigator.serviceWorker.register("sw.js").catch(() => {});
+    navigator.serviceWorker.register("sw.js").then(r => r.update && r.update().catch(() => {})).catch(() => {}); // בודקים גרסה חדשה בכל פתיחה (היא תיכנס בפתיחה הבאה)
     const go = () => setTimeout(async () => { const had = LS.get("offl", null), n = await prefetchMap(false); if (n > 20 && !had) toast("המפה נשמרה במכשיר. עובד גם בלי אינטרנט ✓", 3600); }, 6000);
     if (navigator.serviceWorker.controller) go(); else navigator.serviceWorker.addEventListener("controllerchange", go, { once: true });
   }
@@ -437,4 +438,8 @@ async function init() {
   if (map.loaded()) onLoad(); else map.once("load", onLoad);
   setTimeout(onLoad, 7000); // גם אם אריחים מתעכבים, האפליקציה ממשיכה
 }
-init();
+/* מתחילים כשה-CSS מוכן (הוא נטען בלי לחסום את מסך הטעינה). אם הוא מתעכב מאוד, מתחילים בכל זאת. */
+(function startWhenStyled() {
+  let started = false; const go = () => { if (started) return; started = true; init(); };
+  if (window.__css) go(); else { addEventListener("prg-css", go, { once: true }); setTimeout(go, 12000); }
+})();

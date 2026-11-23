@@ -741,3 +741,4 @@ button.ritem{flex-direction:column;align-items:stretch;justify-content:center;ga
 @keyframes pop2{from{transform:scale(.82)}}
 #splash.cd h1,.wl-l li,.dl-l li{animation-name:rise2}
 .wl-flag,.cd-ms{animation-name:pop2}
+#splash.cd .wl-l{margin-bottom:16px;gap:10px}

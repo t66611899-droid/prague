@@ -163,7 +163,7 @@ h3{font-size:.8rem;margin:1.2rem 0 .4rem;color:var(--mut);font-weight:600;letter
 .nx-tx small{font-size:.83rem;color:var(--mut);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .nx-go{flex:none!important;min-width:84px;min-height:52px!important;font-size:1rem!important}
 #nxMore{padding-bottom:4px}
-#sheet[data-state="low"] #nxMore{visibility:hidden}
+@media (max-width:899px){#sheet[data-state="low"] #nxMore{visibility:hidden}}
 .nx-btns,.row,.nrow{display:flex;gap:8px}
 .nx-btns .btn{flex:1;padding:0 8px}
 .row.wrap{flex-wrap:wrap}

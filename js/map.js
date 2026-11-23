@@ -139,7 +139,7 @@ function addArrow() {
   x.strokeStyle = "#fff"; x.lineWidth = 5; x.lineCap = "round"; x.lineJoin = "round"; x.beginPath(); x.moveTo(11, 7); x.lineTo(21, 16); x.lineTo(11, 25); x.stroke();
   map.addImage("arrow", x.getImageData(0, 0, 32, 32));
 }
-function zoomClass() { const z = map.getZoom(), m = $("#map"); m.classList.toggle("vfar", z < 10.4); m.classList.toggle("far", z < 13.4); m.classList.toggle("mid", z < 14.8); }
+function zoomClass() { const z = map.getZoom(), m = $("#map"); m.classList.toggle("vfar", z < 9.3); m.classList.toggle("far", z < 13.4); m.classList.toggle("mid", z < 14.8); }
 const buzz = p => { try { if (navigator.vibrate) navigator.vibrate(p); } catch (e) {} };
 
 /* מעבר יום/לילה הדרגתי: מחליפים צבעים במקום, בלי לטעון סגנון מחדש */

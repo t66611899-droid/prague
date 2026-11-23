@@ -273,8 +273,8 @@ function openMe_v1() {
 /* ---------- "עוד" + הגדרות ---------- */
 function openMore() {
   const items = [...(tripNow().phase !== "during" ? [["prep", "✅", "לפני הטיסה"]] : []), ["moment", "📸", "רגע חדש"], ["tix", "🎟️", "הכרטיסים שלי"], ["arr", "🏨", "מגיעים למלון"], ["upd", "🔔", "עדכונים"], ["wa", "💬", "ווטסאפ"], ["cal", "📅", "תזכורות ליומן"], ["tips", "💡", "כדאי לדעת"], ["diary", "📔", "יומן הטיול"], ["test", "🧪", "בדיקת חירום"], ["lg", "🗺️", "מקרא המפה"], ["phr", "🗣️", "משפטים"], ["free", "🧭", "יום חופשי"], ["today", "☀️", "היום שלי"], ["wx", "🌡️", "מזג אוויר"], ["pack", "🎒", "מה לקחת"], ["exp", "💰", "הוצאות"], ["sum", "📊", "סיכום היום"], ["off", "📥", "בלי אינטרנט"], ["me", "🔒", "הפרטים שלי"], ["sos", "🆘", "חירום"], ...(CONFIG.server ? [["chat", "💬", "חיבור Claude"]] : []), ["set", "⚙️", "הגדרות"], ["inst", "📲", "מסך הבית"], ["add", "➕", "להוסיף תחנה"]];
-  openModal(`<h2>עוד</h2><div class="menu">${items.map(i => `<button data-m="${i[0]}"><span>${i[1]}</span>${i[2]}</button>`).join("")}</div>`);
-  const fn = { prep: openPrep, moment: newMoment, tix: () => openTickets(), arr: () => openArrive(), diary: openDiary, test: () => openSOS(true), lg: () => { closeModal(); showLegend(true); }, upd: openUpdates, wa: openWa, cal: openCalendar, tips: openTips, phr: openPhrases, free: openFree, today: () => openToday(curDay), wx: openWeather, pack: openPack, exp: openExp, sum: () => openSummary(curDay), off: openOffline, me: openMe, sos: openSOS, set: openSettings, chat: openChatSetup, inst: openInstall, add: () => addStopFlow() };
+  openModal(`<h2>תפריט</h2><div class="menu-top"><button class="big" data-m="moment"><span>📸</span>רגע חדש ליומן</button><button data-m="diary"><span>📔</span>יומן הטיול</button><button data-m="tix"><span>🎟️</span>הכרטיסים שלי</button><button data-m="me"><span>🔒</span>הפרטים שלי</button><button data-m="sos"><span>🆘</span>חירום</button><button class="mv" data-m="move"><span>📲</span><div>העברה בין דפדפנים<small>מ-Chrome או Safari לאייקון במסך הבית, ולהפך</small></div></button></div><h3>עוד</h3><div class="menu">${items.map(i => `<button data-m="${i[0]}"><span>${i[1]}</span>${i[2]}</button>`).join("")}</div>`);
+  const fn = { move: () => openMove(), prep: openPrep, moment: newMoment, tix: () => openTickets(), arr: () => openArrive(), diary: openDiary, test: () => openSOS(true), lg: () => { closeModal(); showLegend(true); }, upd: openUpdates, wa: openWa, cal: openCalendar, tips: openTips, phr: openPhrases, free: openFree, today: () => openToday(curDay), wx: openWeather, pack: openPack, exp: openExp, sum: () => openSummary(curDay), off: openOffline, me: openMe, sos: openSOS, set: openSettings, chat: openChatSetup, inst: openInstall, add: () => addStopFlow() };
   $$("#mbody [data-m]").forEach(b => b.onclick = fn[b.dataset.m]);
 }
 function openSettings() {
@@ -398,7 +398,7 @@ async function init() {
   const T0 = tripNow(); curDay = T0.dayIdx >= 0 ? T0.dayIdx : T0.phase === "after" ? plan.length - 1 : 0;
   document.documentElement.style.setProperty("--day", DAYC[curDay]); document.documentElement.dataset.theme = wantDark() ? "dark" : "light";
   initSheet(); initListEvents(); renderAll(); setSheet("low", true); renderNet();
-  let splashDone = QS.get("splash") === "0", mapReady = false; const fly = () => { if (splashDone && mapReady) { QS.get("splash") === "0" ? flyDay(curDay, true) : openingFlight(); } };
+  let splashDone = QS.get("splash") === "0", mapReady = false; const fly = () => { if (splashDone && mapReady) { try { QS.get("splash") === "0" ? flyDay(curDay, true) : openingFlight(); } catch (e) { ensurePrague(0); } ensurePrague(6500); } };
   if (!splashDone) showSplash(() => { splashDone = true; fly(); });
   $("#days").addEventListener("click", e => { const b = e.target.closest(".day"); if (b) { buzz(6); selectDay(+b.dataset.i); } });
   document.addEventListener("click", e => {

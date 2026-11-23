@@ -257,8 +257,10 @@ const tilt = () => settings.is3d && !saver;
 function camOpts() { return tilt() ? { pitch: 55, bearing: -17 } : { pitch: 0, bearing: 0 }; }
 function flyDay(di, instant) {
   if (!map) return;
-  const L = dayLine(di); let pts = L.pts.map(p => p.p); if (!pts.length) pts = [[14.4213, 50.0875]];
-  const b = new maplibregl.LngLatBounds(pts[0], pts[0]); pts.forEach(p => b.extend(p)); L.legs.forEach(l => l.coords.forEach(c => b.extend(c)));
+  // רק מה שבאזור פראג: ביום הטיסה הקו מתל אביב היה מושך את המצלמה לאמצע הדרך (טורקיה)
+  const near = c => Math.abs(c[0] - 14.42) < 0.9 && Math.abs(c[1] - 50.08) < 0.6;
+  const L = dayLine(di); let pts = L.pts.map(p => p.p).filter(near); if (!pts.length) pts = [[14.4213, 50.0875]];
+  const b = new maplibregl.LngLatBounds(pts[0], pts[0]); pts.forEach(p => b.extend(p)); L.legs.forEach(l => l.coords.filter(near).forEach(c => b.extend(c)));
   // התאמה עצמאית של הזום לגבולות היום (לא תלויה בהטיה או בסיבוב הנוכחיים של המצלמה)
   const pad = mapPad(), el = map.getContainer(), mx = l => (l + 180) / 360, my = l => (1 - Math.log(Math.tan(l * R2) + 1 / Math.cos(l * R2)) / Math.PI) / 2;
   const dx = Math.max(1e-7, mx(b.getEast()) - mx(b.getWest())), dy = Math.max(1e-7, my(b.getSouth()) - my(b.getNorth()));
@@ -272,7 +274,10 @@ function flyTo(l, zoom = 16.3) {
   const o = { center: [l.lng, l.lat], zoom: Math.max(zoom, Math.min(map.getZoom(), 17)), ...camOpts(), padding: mapPad() };
   if (REDUCED) map.jumpTo(o); else map.flyTo({ ...o, duration: 1300, essential: true });
 }
+/* רשת ביטחון: אם המפה נשארה רחוק מפראג (אנימציה שנעצרה באמצע, שגיאה), קופצים ישר לעיר */
+function ensurePrague(delay) { setTimeout(() => { try { if (!map) return; const c = map.getCenter(); if (Math.abs(c.lng - 14.42) > 0.9 || Math.abs(c.lat - 50.08) > 0.6 || map.getZoom() < 8.5) { map.stop(); flyDay(curDay, true); } } catch (e) { try { map.jumpTo({ center: [14.4213, 50.0875], zoom: 12.5, pitch: 0, bearing: 0 }); } catch (e2) {} } }, delay); }
 function openingFlight() { // מבט פתיחה: טיסה קצרה מעל העיר אל התחנה הבאה
+  ensurePrague(4200);
   const L = live(curDay), s = (L.today && (L.next || L.cur)) || plan[curDay].stops.find(x => loc(x) && !isAirport(loc(x))), l = s && loc(s);
   if (!l || REDUCED || saver || isAirport(l)) { flyDay(curDay, REDUCED); return; }
   map.jumpTo({ center: [14.4185, 50.0855], zoom: 11.6, pitch: 0, bearing: 0 });

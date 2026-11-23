@@ -92,7 +92,7 @@ h3{font-size:.8rem;margin:1.2rem 0 .4rem;color:var(--mut);font-weight:600;letter
 /* ---------- HUD ---------- */
 #hud{position:fixed;z-index:5;top:calc(var(--sat) + 8px);inset-inline:10px;display:flex;flex-direction:column;gap:8px;pointer-events:none}
 #hud > *{pointer-events:auto}
-#top{display:grid;grid-template-columns:auto 1fr auto auto auto;align-items:center;gap:6px;padding:6px;padding-inline-start:14px;background:var(--glass);backdrop-filter:blur(16px) saturate(1.4);-webkit-backdrop-filter:blur(16px) saturate(1.4);border-radius:var(--r3);box-shadow:var(--sh2)}
+#top{display:grid;grid-template-columns:auto 1fr auto auto auto auto;align-items:center;gap:6px;padding:6px;padding-inline-start:14px;background:var(--glass);backdrop-filter:blur(16px) saturate(1.4);-webkit-backdrop-filter:blur(16px) saturate(1.4);border-radius:var(--r3);box-shadow:var(--sh2)}
 .clock{display:flex;flex-direction:column;line-height:1}
 .clock b{font-size:1.6rem;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
 .ck-l{font-size:.64rem;color:var(--mut);font-weight:500;margin-top:2px}
@@ -904,3 +904,14 @@ body.replay > :not(#map):not(#grp):not(#gv){visibility:hidden!important}
 @keyframes jrfade{0%,60%{opacity:1}100%{opacity:0}}
 .jb.pop{animation:jbpop .6s cubic-bezier(.3,1.6,.5,1)}
 @keyframes jbpop{40%{transform:scale(1.18)}}
+
+/* ---------- כפתור התפריט בפס העליון + שורת הקיצורים בתפריט ---------- */
+.tbtn.menu{min-width:46px;width:46px;padding:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;background:var(--ink)}
+.tbtn.menu i{display:block;width:18px;height:2.5px;border-radius:2px;background:var(--card)}
+@media (max-width:400px){#top{gap:4px}.tbtn{min-width:44px;padding:0 8px}.tbtn.sos{padding:0 5px}}
+.menu-top{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.menu-top button{min-height:72px;border:0;border-radius:var(--r2);background:var(--card2);display:flex;align-items:center;gap:12px;padding:0 14px;font-weight:600;font-size:.98rem;text-align:start;color:var(--ink)}
+.menu-top button span{font-size:1.6rem}
+.menu-top button.big{grid-column:1/-1;background:var(--red);color:#fff;min-height:64px;justify-content:center}
+.menu-top button.mv{grid-column:1/-1;background:color-mix(in srgb,var(--blue) 16%,var(--card2))}
+.menu-top button small{display:block;font-weight:400;font-size:.78rem;color:var(--mut)}

@@ -236,8 +236,9 @@ async function journalPublic(req, env, key, sub, cors) {
 async function dropBox(req, env, id, cors) {
   if (!env.LIMITS) return json({ error: "no storage" }, 503, cors);
   if (req.method === "PUT" && !id) {
-    if (!env.DROP_TOKEN) return json({ error: "notset" }, 503, cors);
-    if (!same(req.headers.get("x-drop-token") || "", env.DROP_TOKEN)) return json({ error: "unauthorized" }, 401, cors);
+    // מורשה: סוד ההעלאה הזמני (מהמחשב), או סיסמת היומן (העברה בין דפדפנים בטלפון)
+    const okDrop = env.DROP_TOKEN && same(req.headers.get("x-drop-token") || "", env.DROP_TOKEN), okApp = env.APP_TOKEN && same(req.headers.get("x-app-token") || "", env.APP_TOKEN);
+    if (!okDrop && !okApp) return json({ error: env.DROP_TOKEN || env.APP_TOKEN ? "unauthorized" : "notset" }, env.DROP_TOKEN || env.APP_TOKEN ? 401 : 503, cors);
     const buf = await req.arrayBuffer(); if (buf.byteLength < 64 || buf.byteLength > 24e6) return json({ error: "size" }, 413, cors);
     const nid = [...crypto.getRandomValues(new Uint8Array(16))].map(x => x.toString(16).padStart(2, "0")).join("");
     await env.LIMITS.put("drop:" + nid, buf, { expirationTtl: 86400 }); return json({ ok: true, id: nid, bytes: buf.byteLength }, 200, cors);

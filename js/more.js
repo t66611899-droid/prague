@@ -151,7 +151,7 @@ function openGoodNight(di) {
   const nx = plan[di + 1], T = tripNow(); if (typeof snowBurst === "function") snowBurst(); // סוף יום: קצת שלג
   if (!nx) { openModal(`<div class="gn"><span>✈️</span><h2>זהו, מחר הביתה</h2><p class="desc">אין עוד יום אחרי זה. שווה לבדוק את התיק ואת שעת היציאה לשדה.</p><button class="btn pri wide" data-act="close">סגור</button></div>`); return; }
   const first = nx.stops.find(s => s.at !== "hotel") || nx.stops[0], fx = nx.stops.find(isFixed), wake = Math.max(450, Math.round((nx.stops[0].m - 75) / 15) * 15), wd = wxDay(nx.date), dd = dayDate(nx.date);
-  openModal(`<div class="gn"><span>🌙</span><h2>לילה טוב</h2><p class="sub">${T.dayIdx === di ? "מה שנשאר מהיום עבר ל\"אולי בהמשך\". אפשר להחזיר מתי שרוצים." : ""}</p></div>
+  openModal(`<div class="gn"><span>🌙</span><h2>לילה טוב</h2><p class="sub">דיברת היום עם מישהו חדש? אם לא, מחר יש לך הזדמנות שנייה. אין שלישית.</p><p class="sub">${T.dayIdx === di ? "מה שנשאר מהיום עבר ל\"אולי בהמשך\". אפשר להחזיר מתי שרוצים." : ""}</p></div>
     <div class="card soft"><p class="kick">מחר · ${dd.dow} ${dd.dm}</p><b style="font-size:1.15rem">${bd(nx.title)}</b>
       <p class="desc">מתחילים ב${partOfDay(nx.stops[0].m)} עם ${bd(first.n)}.${fx ? ` הדבר הקבוע: ${bd(fx.n)} ב-${fmtT(fx.m)}.` : ""}</p>
       ${wd ? `<p class="sub"><span dir="ltr">${wxIcon(wd.code)} ${wd.max}° / ${wd.min}°</span> · ${wearAdvice(wd).split(".")[0]}</p>` : ""}</div>

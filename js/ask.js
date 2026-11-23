@@ -154,7 +154,7 @@ function askAnswer(q) {
   LS.set("askLast", q);
   box.innerHTML = (top ? `<article class="qa"><small>${c.off ? "📡 בלי אינטרנט · מהידע ששמור בטלפון" : "מהידע ששמור בטלפון"}</small><h3>${top.e.t}</h3><div class="qa-a">${top.e.a(c)}</div>${top.e.b ? `<div class="row wrap qa-b">${top.e.b(c)}</div>` : ""}</article>
       ${res.length > 1 ? `<p class="fine">אולי התכוונת ל:</p><div class="chips">${res.slice(1, 4).map(r => `<button class="chip" data-kb="${r.e.id}">${r.e.t}</button>`).join("")}</div>` : ""}`
-    : `<article class="qa"><h3>אין לי תשובה בטוחה לזה</h3><div class="qa-a">לא מצאתי את זה בידע ששמור בטלפון. אפשר לנסח אחרת, או לבחור נושא:</div><div class="chips">${["hotelway", "pt", "money", "hungry", "safety", "sos", "tickets", "phrases"].map(id => { const e = KB.find(x => x.id === id); return `<button class="chip" data-kb="${id}">${e.t}</button>`; }).join("")}</div></article>`) + claude;
+    : `<article class="qa"><h3>את זה אני לא יודע</h3><div class="qa-a">ולא אמציא לך. תנסח אחרת, תבחר נושא, או תעשה את הדבר המפחיד: תשאל מישהו ברחוב.</div><div class="chips">${["hotelway", "pt", "money", "hungry", "safety", "sos", "tickets", "phrases"].map(id => { const e = KB.find(x => x.id === id); return `<button class="chip" data-kb="${id}">${e.t}</button>`; }).join("")}</div></article>`) + claude;
   $$("#qaOut [data-kb]").forEach(b => b.onclick = () => { const e = KB.find(x => x.id === b.dataset.kb); $("#qaI").value = e.t; askAnswer(e.t); });
   $$("#qaOut [data-qa]").forEach(b => b.onclick = () => { const f = QA_ACT[b.dataset.qa]; if (f) f(b.dataset.arg); });
   const cl = $("#qaClaude"); if (cl) cl.onclick = () => askClaude(q);

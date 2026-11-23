@@ -30,7 +30,7 @@ const statue = (x, y, k) => `<g transform="translate(${x} ${y})"><rect x="-5" y=
 /* ---------- הסצנות ---------- */
 const SC = {};
 
-SC[7] = { k: "עוד 7 ימים", title: ["הספירה", "לאחור", "התחילה"], quip: "שבוע. מספיק כדי לקנות כפפות, לא מספיק כדי לשכוח אותן.", fx: "fog", tone: "cold",
+SC[7] = { k: "עוד 7 ימים", title: ["הספירה", "לאחור", "התחילה"], quip: "שבוע. בערך כמה זמן לוקח לך לדחות רעיון טוב. הפעם יש כרטיס טיסה — אין לאן לברוח.", fx: "fog", tone: "cold",
   art: () => `<defs>${lg("i7s", [[0, "#05081a"], [0.42, "#121a44"], [0.7, "#2b2c66"], [1, "#4b3a72"]])}${rg("i7m", "#cfe0ff", 0.55, [0.25, 0.18])}${lg("i7f", [[0, "#2f3a78"], [1, "#1d2453"]])}${lg("i7n", [[0, "#111536"], [1, "#05061a"]])}${rg("i7w", "#ffb45a", 0.9)}</defs>
     <rect width="390" height="844" fill="url(#i7s)"/>
     <g class="L L0">${stars(70, 7)}<circle cx="58" cy="452" r="70" fill="url(#i7m)"/><circle cx="58" cy="452" r="16" fill="#eef3ff"/><circle cx="52" cy="448" r="3.8" fill="#d9e2f7" opacity=".7"/><circle cx="63" cy="458" r="2.6" fill="#d9e2f7" opacity=".6"/></g>
@@ -46,7 +46,7 @@ SC[7] = { k: "עוד 7 ימים", title: ["הספירה", "לאחור", "התח�
       <g>${[[46, 704], [112, 712], [186, 700], [256, 716], [330, 706], [70, 744], [210, 748], [300, 742]].map(([x, y], i) => `<circle cx="${x + 2}" cy="${y + 3}" r="12" fill="url(#i7w)" opacity=".35"/><rect x="${x}" y="${y}" width="5" height="7" rx="1" fill="#ffc46e" class="tw slow" style="animation-delay:-${i * 0.9}s"/>`).join("")}</g>
       <path d="M0 676l26-22h4l20 16h30l30-26 34 26M174 662l24-20 28 22h18l36-30 38 30M322 668l18-14 28 22h22" fill="none" stroke="#e9f0ff" stroke-opacity=".55" stroke-width="2.2" stroke-linecap="round"/></g>` };
 
-SC[6] = { k: "עוד 6 ימים", title: ["גשר קרל", "בלילה"], quip: "30 פסלים על הגשר. עוד שבוע תכיר את כולם אישית.", fx: "snow", tone: "warm", shift: 165, ground: "#03050f",
+SC[6] = { k: "עוד 6 ימים", title: ["גשר קרל", "בלילה"], quip: "לגשר קרל לקח כמעט 50 שנה להיבנות. לך יש 6 ימים להפסיק לחכות לרגע המושלם.", fx: "snow", tone: "warm", shift: 165, ground: "#03050f",
   art: () => { const lamps = [36, 76, 116, 156, 196, 236, 276]; return `<defs>${lg("i6s", [[0, "#040716"], [0.55, "#101941"], [1, "#27305e"]])}${lg("i6w", [[0, "#141c45"], [0.25, "#0b1130"], [1, "#03050f"]])}${rg("i6l", "#ffbf66", 0.95, [0.18, 0.45])}${lg("i6r", [[0, "#ffbf66", 0.75], [1, "#ffbf66", 0]])}${rg("i6c", "#ffb46b", 0.42)}${lg("i6b", [[0, "#1a2150"], [1, "#0b0f2c"]])}</defs>
     <rect width="390" height="844" fill="url(#i6s)"/>
     <g class="L L0">${stars(60, 6, 380)}<circle cx="330" cy="470" r="15" fill="#f2f5ff"/><circle cx="330" cy="470" r="60" fill="url(#i6c)" opacity=".25"/></g>
@@ -62,7 +62,7 @@ SC[6] = { k: "עוד 6 ימים", title: ["גשר קרל", "בלילה"], quip: 
       <g fill="#ffcf7a" opacity=".7"><rect x="318" y="430" width="5" height="12" rx="2"/><rect x="353" y="430" width="5" height="12" rx="2"/><rect x="334" y="462" width="8" height="16" rx="4" class="tw slow"/></g>
       <path d="M-10 548H306" stroke="#c9d3ff" stroke-opacity=".35" stroke-width="1"/></g>`; } };
 
-SC[5] = { k: "עוד 5 ימים", title: ["השווקים", "כבר דולקים"], quip: "טרדלניק חם ביד אחת, שוקו ביד השנייה. ככה מחזיקים מעמד ב-3 מעלות.", fx: "bokeh", tone: "warm",
+SC[5] = { k: "עוד 5 ימים", title: ["השווקים", "כבר דולקים"], quip: "בעוד 5 ימים אף אחד שם לא יודע מי אתה. זה לא מפחיד — זה דף חדש בלי היסטוריה.", fx: "bokeh", tone: "warm",
   art: () => { const r = rnd(55), lights = [], cols = ["#ffd27a", "#ff7a6b", "#ffe9b0", "#8fd6ff", "#ffb347"];
     [[300, 400, 150, 240, 4], [350, 470, 130, 260, 5], [410, 550, 110, 280, 6], [470, 630, 92, 298, 7]].forEach(([ty, by, xl, xr, n], t) => { for (let g = 0; g < 2; g++) { const y0 = ty + (by - ty) * (0.35 + g * 0.4); const half = ((y0 - ty) / (by - ty)) * ((xr - xl) / 2); for (let i = 0; i <= n + g * 2; i++) { const f = i / (n + g * 2), x = 195 - half + f * half * 2, y = y0 + Math.sin(f * Math.PI) * 10 - f * 6; lights.push(`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${(1.8 + r() * 1.4).toFixed(1)}" fill="${cols[(i + t + g) % cols.length]}" class="tw" style="animation-delay:-${(r() * 3).toFixed(2)}s;animation-duration:${(1.2 + r() * 1.6).toFixed(2)}s"/>`); } } });
     const hut = (x, w, c) => `<g><path d="M${x} 844V${700}h${w}V844z" fill="#2a160e"/><path d="M${x - 10} 704L${x + w / 2} ${660}L${x + w + 10} 704z" fill="${c}"/><path d="M${x - 10} 704L${x + w / 2} 660L${x + w + 10} 704l-6 3-${w / 2 + 4} -36-${w / 2 + 4} 36z" fill="#f4f7ff"/><rect x="${x + 8}" y="716" width="${w - 16}" height="34" rx="3" fill="#ffb24d" opacity=".95"/><rect x="${x + 8}" y="716" width="${w - 16}" height="34" rx="3" fill="url(#i5i)"/><path d="M${x + 4} 752h${w - 8}v6h-${w - 8}z" fill="#5a2e17"/></g>`;
@@ -79,7 +79,7 @@ SC[5] = { k: "עוד 5 ימים", title: ["השווקים", "כבר דולקים
       <g class="L L3"><path d="M0 760q195-30 390 0V844H0z" fill="url(#i5f)"/>${hut(-6, 112, "#9b2230")}${hut(140, 110, "#1f5b44")}${hut(288, 110, "#9b2230")}
         <path d="M0 690q55 20 110 4t110 6 110-4 60 0" fill="none" stroke="#2a1a14" stroke-width="1.2"/>${Array.from({ length: 16 }, (_, i) => { const x = i * 26 + 6, y = 690 + Math.sin(i * 0.9) * 7 + 6; return `<circle cx="${x}" cy="${y.toFixed(1)}" r="2.6" fill="${cols[i % 5]}" class="tw" style="animation-delay:-${(i * 0.31).toFixed(2)}s"/>`; }).join("")}</g>`; } };
 
-SC[4] = { k: "עוד 4 ימים", title: ["הלילות", "של פראג"], quip: "ארבעה לילות, שלוש מסיבות, אפס שינה מיותרת.", fx: "sparks", tone: "neon", beat: 124, shift: 150, ground: "#030108",
+SC[4] = { k: "עוד 4 ימים", title: ["הלילות", "של פראג"], quip: "על הסירה אף אחד לא יגיד 'היי' ראשון בשבילך. תתחיל להתאמן.", fx: "sparks", tone: "neon", beat: 124, shift: 150, ground: "#030108",
   art: () => `<defs>${lg("i4s", [[0, "#05020f"], [0.55, "#170a35"], [1, "#2a0f45"]])}${lg("i4w", [[0, "#16083a"], [1, "#030108"]])}${lg("i4b1", [[0, "#ff3fd1", 0], [1, "#ff3fd1", 0.7]])}${lg("i4b2", [[0, "#36e3ff", 0], [1, "#36e3ff", 0.7]])}${lg("i4b3", [[0, "#b07bff", 0], [1, "#b07bff", 0.65]])}${lg("i4win", [[0, "#ff4fd8"], [0.5, "#b46bff"], [1, "#39e6ff"]], 1, 0)}${lg("i4r1", [[0, "#ff4fd8", 0.6], [1, "#ff4fd8", 0]])}${lg("i4r2", [[0, "#39e6ff", 0.55], [1, "#39e6ff", 0]])}${rg("i4h", "#ff4fd8", 0.5)}</defs>
     <rect width="390" height="844" fill="url(#i4s)"/>
     <g class="L L0">${stars(50, 4, 360)}</g>
@@ -96,7 +96,7 @@ SC[4] = { k: "עוד 4 ימים", title: ["הלילות", "של פראג"], quip
       ${Array.from({ length: 13 }, (_, i) => { const t = i / 12, x = 110 + t * 170, y = 576 - Math.sin(t * Math.PI) * 50 + (t < 0.5 ? 0 : 0); return `<circle cx="${x.toFixed(1)}" cy="${(y).toFixed(1)}" r="1.8" fill="${["#ff6be0", "#5fe9ff", "#ffe26b"][i % 3]}" class="tw" style="animation-duration:.9s;animation-delay:-${(i * 0.13).toFixed(2)}s"/>`; }).join("")}</g>
     <g class="L L3 shimmer" opacity=".6">${Array.from({ length: 12 }, (_, i) => `<rect x="${(i * 61) % 340}" y="${660 + i * 13}" width="${24 + (i % 3) * 20}" height="1.3" rx=".6" fill="${i % 2 ? "#ff7ce2" : "#62e8ff"}" style="animation-delay:-${i * 0.41}s"/>`).join("")}</g>` };
 
-SC[3] = { k: "עוד 3 ימים", title: ["אורזים."], sub: "תיק אחד · 55×40×23 · עד 8 ק\"ג", quip: "8 ק\"ג. כל גרב נספרת. המעיל הכבד? עליך, לא בתיק.", fx: "dust", tone: "studio",
+SC[3] = { k: "עוד 3 ימים", title: ["אורזים."], sub: "תיק אחד · 55×40×23 · עד 8 ק\"ג", quip: "תיק אחד, 8 קילו. גם התירוצים צריכים להיכנס פנימה — בהצלחה עם זה.", fx: "dust", tone: "studio",
   items: [["jacket", "מעיל", 1.6], ["beanie", "כובע", 0.2], ["gloves", "כפפות", 0.2], ["socks", "גרביים", 0.4], ["power", "מטען נייד", 0.5], ["passport", "דרכון", 0.1], ["shoes", "נעליים", 0.9], ["tees", "חולצות", 1.5], ["kit", "רחצה", 0.6], ["pants", "מכנסיים", 1.4]],
   art: () => `<defs>${rg("i3bg", "#3a4170", 1, [0.4, 0.55])}${lg("i3bag", [[0, "#f05a62"], [0.55, "#d42a33"], [1, "#8e141c"]], 1, 0.2)}${lg("i3side", [[0, "#7a0f16"], [1, "#4d080d"]])}${lg("i3cone", [[0, "#fff6e0", 0.22], [1, "#fff6e0", 0]])}${rg("i3sh", "#000", 0.55)}</defs>
     <rect width="390" height="844" fill="#0b0d1a"/><circle cx="195" cy="470" r="420" fill="url(#i3bg)" opacity=".75"/>
@@ -115,13 +115,13 @@ SC[3] = { k: "עוד 3 ימים", title: ["אורזים."], sub: "תיק אחד 
         <g class="tag"><path d="M312 470q14 6 12 30" fill="none" stroke="#e8a317" stroke-width="1.6"/><rect x="306" y="500" width="40" height="26" rx="4" fill="#f7f1e6" transform="rotate(8 326 513)"/><text x="326" y="517" text-anchor="middle" font-size="8.5" font-weight="800" fill="#14161b" transform="rotate(8 326 513)" font-family="Rubik,system-ui">55×40×23</text></g>
       </g></g></g>` };
 
-SC[2] = { k: "עוד יומיים", title: ["כרטיס העלייה", "מוכן"], quip: "הצ'ק-אין נפתח בקרוב. שווה להציץ באפליקציה.", fx: "bokeh-cool", tone: "cool", hero: "pass",
+SC[2] = { k: "עוד יומיים", title: ["כרטיס העלייה", "מוכן"], quip: "הזמן לא חיכה לך כשדחית. הוא גם לא יחכה עכשיו. ההבדל — הפעם אתה זז איתו.", fx: "bokeh-cool", tone: "cool", hero: "pass",
   art: () => `<defs>${lg("i2s", [[0, "#04101f"], [0.6, "#0b2440"], [1, "#123456"]])}${lg("i2st", [[0, "#7fd3ff", 0], [0.5, "#7fd3ff", 0.35], [1, "#7fd3ff", 0]], 1, 0)}</defs>
     <rect width="390" height="844" fill="url(#i2s)"/>
     <g class="L L0 streaks">${[120, 260, 420, 610, 740].map((y, i) => `<rect x="-200" y="${y}" width="200" height="${1 + (i % 3)}" fill="url(#i2st)" style="animation-delay:-${i * 0.9}s;animation-duration:${2.6 + i * 0.5}s"/>`).join("")}</g>
     <g class="L L1" opacity=".5" stroke="#6fb7ff" stroke-opacity=".25" fill="none">${Array.from({ length: 9 }, (_, i) => `<path d="M${-20 + i * 52} 844L195 470"/>`).join("")}<path d="M0 620H390M0 700H390M0 790H390"/></g>` };
 
-SC[1] = { k: "עוד יום אחד", title: ["מחר", "טסים."], quip: "מחר בשעה כזאת אתה כבר מעל הים.", fx: "haze", tone: "sunset", shift: 125, ground: "#0b0815",
+SC[1] = { k: "עוד יום אחד", title: ["מחר", "טסים."], quip: "מחר אתה עולה לבד על מטוס. מה שמלחיץ אותך עכשיו — בעוד שבוע זה סיפור שאתה מספר.", fx: "haze", tone: "sunset", shift: 125, ground: "#0b0815",
   art: () => { const edge = []; for (let i = 0; i < 16; i++) { const t = i / 15, y = 505 + Math.pow(t, 1.9) * 339, half = 10 + Math.pow(t, 1.9) * 200, r = 0.6 + t * 3.2; edge.push(`<circle cx="${(195 - half).toFixed(1)}" cy="${y.toFixed(1)}" r="${r.toFixed(1)}" fill="#fff3d6"/><circle cx="${(195 + half).toFixed(1)}" cy="${y.toFixed(1)}" r="${r.toFixed(1)}" fill="#fff3d6"/>`); }
     const ctr = []; for (let i = 0; i < 12; i++) { const t = i / 11, y = 512 + Math.pow(t, 1.9) * 330, h = 2 + t * 16, w = 1 + t * 4; ctr.push(`<rect x="${(195 - w / 2).toFixed(1)}" y="${y.toFixed(1)}" width="${w.toFixed(1)}" height="${h.toFixed(1)}" fill="#fff" opacity=".75"/>`); }
     const chase = []; for (let i = 0; i < 8; i++) { const t = 1 - i / 8, y = 520 + Math.pow(t, 1.9) * 320; chase.push(`<circle class="chase" style="--i:${i}" cx="195" cy="${y.toFixed(1)}" r="${(1 + t * 4).toFixed(1)}" fill="#fffbe8"/>`); }
@@ -135,7 +135,7 @@ SC[1] = { k: "עוד יום אחד", title: ["מחר", "טסים."], quip: "מח
         <g transform="translate(120 548)"><path d="M10 34c-6 0-10-3-10-7s4-7 12-7h118c8 0 13 2 16 5l-2 9H10z" fill="#0d0a16"/><path d="M128 20l8-28h10l-4 28z" fill="#0d0a16"/><path d="M60 30l-22 14h14l26-14z" fill="#07050c"/><rect x="40" y="31" width="22" height="7" rx="3.5" fill="#07050c"/><path d="M14 24h104" stroke="#ffd9a8" stroke-opacity=".35" stroke-width="2" stroke-dasharray="3 3"/>
           <circle cx="140" cy="-6" r="2.2" fill="#ff3b3b" class="nav r"/><circle cx="44" cy="44" r="2" fill="#38ff7a" class="nav g"/><circle cx="148" cy="22" r="2.2" fill="#fff" class="strobe"/><path d="M36 44v8M120 34v18" stroke="#07050c" stroke-width="2"/><circle cx="36" cy="54" r="3" fill="#07050c"/><circle cx="120" cy="54" r="3" fill="#07050c"/></g></g>`; } };
 
-SC[0] = { k: "היום!", title: ["היום", "טסים."], quip: "דרכון. טלפון. מטען. זהו, אתה מוכן.", fx: "dust", tone: "terminal", hero: "board",
+SC[0] = { k: "היום!", title: ["היום", "טסים."], quip: "אף אחד לא בא להציל אותך. ואף אחד גם לא צריך. טוס.", fx: "dust", tone: "terminal", hero: "board",
   art: () => `<defs>${lg("i0s", [[0, "#1a1d4a"], [0.45, "#5a3a7a"], [0.75, "#e07a8a"], [1, "#ffb87a"]])}${lg("i0f", [[0, "#1b1d2e"], [1, "#07080f"]])}${lg("i0gl", [[0, "#fff", 0.08], [0.5, "#fff", 0], [1, "#fff", 0.05]], 1, 1)}${rg("i0lt", "#ffe2b0", 0.35)}</defs>
     <rect width="390" height="844" fill="#0c0d18"/>
     <g class="L L0"><rect x="0" y="420" width="390" height="250" fill="url(#i0s)"/><circle cx="90" cy="610" r="90" fill="url(#i0lt)"/>
@@ -190,7 +190,7 @@ const ITEM_SVG = {
 };
 
 /* ---------- חלקיקים (Canvas): שלג בעומק, ערפל, בוקה, ניצוצות ---------- */
-function makeFx(cv, kind, lite) {
+function makeFx(cv, kind, lite, noVeil) {
   const ctx = cv.getContext("2d"), dpr = Math.min(window.devicePixelRatio || 1, lite ? 1 : 2); let W = 0, H = 0, P = [], fog = [], raf = 0, t0 = performance.now(), dead = false, paused = false;
   const resize = () => { W = cv.clientWidth; H = cv.clientHeight; cv.width = W * dpr; cv.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0); };
   resize(); addEventListener("resize", resize);
@@ -200,7 +200,7 @@ function makeFx(cv, kind, lite) {
   const frame = now => {
     if (dead) return; raf = requestAnimationFrame(frame); if (paused) return; const t = (now - t0) / 1000; ctx.clearRect(0, 0, W, H);
     if (fog.length) { const clear = Math.min(1, t / 3.2), base = 0.92 - clear * 0.62; fog.forEach(f => { f.x += f.v; if (f.x - f.r > W) f.x = -f.r; const g = ctx.createRadialGradient(f.x, f.y, 0, f.x, f.y, f.r); g.addColorStop(0, `rgba(196,206,240,${(base * 0.55).toFixed(3)})`); g.addColorStop(1, "rgba(196,206,240,0)"); ctx.fillStyle = g; ctx.fillRect(f.x - f.r, f.y - f.r, f.r * 2, f.r * 2); });
-      if (t < 3.4) { ctx.fillStyle = `rgba(150,160,205,${Math.max(0, 0.85 - t / 3.4 * 0.85).toFixed(3)})`; ctx.fillRect(0, 0, W, H); } }
+      if (t < 3.4 && !noVeil) { ctx.fillStyle = `rgba(150,160,205,${Math.max(0, 0.85 - t / 3.4 * 0.85).toFixed(3)})`; ctx.fillRect(0, 0, W, H); } }
     for (const p of P) {
       p.ph += 0.02; p.x += p.vx + Math.sin(p.ph) * (kind === "snow" || kind === "fog" ? 0.35 * p.z : 0.1); p.y += p.vy;
       if (p.y > H + 20) { p.y = -20; p.x = Math.random() * W; } if (p.y < -40) { p.y = H + 30; p.x = Math.random() * W; } if (p.x > W + 30) p.x = -30; if (p.x < -30) p.x = W + 30;
@@ -223,6 +223,75 @@ const snd = (kind, at = 0) => { if (!settings.cineSound) return; try { AC = AC |
   if (kind === "boom") { o.type = "sine"; o.frequency.setValueAtTime(90, t); o.frequency.exponentialRampToValueAtTime(38, t + 0.7); g.gain.setValueAtTime(0.4, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.9); o.start(t); o.stop(t + 1); return; }
   o.type = "sawtooth"; o.frequency.setValueAtTime(220, t); o.frequency.exponentialRampToValueAtTime(880, t + 0.5); g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.05, t + 0.25); g.gain.exponentialRampToValueAtTime(0.001, t + 0.6); o.start(t); o.stop(t + 0.62); } catch (e) {} };
 
+/* ---------- מנוע 2.5D: איור מצויר + מפת עומק = מצלמה אמיתית בתוך הסצנה ----------
+   Shader אחד: פרלקסה לפי עומק (push-in, הטיה, tracking), עומק שדה, ערפל נפחי שזז, חשיפה, וינייטה וגרגר קולנועי.
+   האיורים (art/dN.jpg) נוצרו במיוחד לטיול; מפות העומק (art/zN.jpg) חושבו מהם. אם התמונה או WebGL לא זמינים: האיור הווקטורי הישן. */
+const ARTC = {};
+function loadArt(n) { if (ARTC[n]) return ARTC[n].p; const one = src => new Promise((res, rej) => { const i = new Image(); i.decoding = "async"; i.onload = () => res(i); i.onerror = rej; i.src = src; }); const o = ARTC[n] = { ok: false }; o.p = Promise.all([one(`art/d${n}.jpg`), one(`art/z${n}.jpg`)]).then(([img, dep]) => { o.img = img; o.dep = dep; o.ok = true; return o; }).catch(() => { delete ARTC[n]; return null; }); return o.p; }
+const artReady = n => (ARTC[n] && ARTC[n].ok ? ARTC[n] : null);
+const POSE0 = { z: 1, px: 0, py: 0, cx: 0, cy: 0, f: 0.3, b: 0, e: 1, fog: 0 };
+/* לכל יום: צבע הערפל, תנוחת המנוחה (מסך הספירה), ומסלול המצלמה של המיני-סרטון (זמן במ"ש → תנוחה) */
+const KF = {
+  7: { fc: [0.62, 0.68, 0.92], rest: { z: 1.04, f: 0.25, fog: 0.16 }, path: [[0, { z: 1.02, py: 0.1, f: 0.9, b: 0.02, e: 0, fog: 1 }], [500, { e: 0.6 }], [2600, { z: 1.42, py: -0.035, cy: 0.05, f: 0.2, b: 0.006, e: 1, fog: 0.3 }], [2950, { z: 1.47, py: -0.04, cy: 0.055, fog: 0.22 }]] },
+  6: { fc: [0.5, 0.56, 0.82], rest: { z: 1.05, f: 0.3, fog: 0.14 }, path: [[0, { z: 1.7, px: -0.12, py: 0.16, f: 0.75, b: 0.012, e: 0, fog: 0.5 }], [450, { e: 0.6 }], [2500, { z: 1.3, px: 0.1, py: 0, cx: -0.05, f: 0.3, b: 0.004, e: 1, fog: 0.25 }], [2950, { z: 1.22, px: 0.06, py: -0.02, cx: -0.06 }]] },
+  5: { fc: [0.95, 0.72, 0.5], rest: { z: 1.05, f: 0.3, fog: 0.08 }, path: [[0, { z: 1.5, py: 0.2, f: 1.6, b: 0.022, e: 0, fog: 0.25 }], [500, { e: 0.75 }], [1500, { z: 1.45, py: 0.14, f: 0.35, b: 0.004 }], [2700, { z: 1.3, py: -0.04, cy: 0.05, e: 1, fog: 0.12 }], [2950, { z: 1.26, py: -0.05 }]] },
+  4: { fc: [0.45, 0.2, 0.62], rest: { z: 1.05, f: 0.35, fog: 0.18 }, path: [[0, { z: 1.6, px: 0.04, py: 0.2, f: 0.9, b: 0.012, e: 0, fog: 0.7 }], [450, { e: 0.5 }], [2400, { z: 1.35, px: 0.06, py: 0.02, cy: 0.04, f: 0.35, b: 0.003, e: 1, fog: 0.3 }], [2950, { z: 1.28 }]] },
+  3: { fc: [0.2, 0.2, 0.3], rest: { z: 1.04, py: 0.05, f: 0.6, fog: 0 }, path: [[0, { z: 1.25, py: 0.12, cx: -0.06, f: 0.6, b: 0.01, e: 0 }], [380, { e: 0.15 }], [640, { e: 1 }], [2600, { z: 1.3, cx: 0.06, b: 0.004 }], [2950, { z: 1.33, cx: 0.07 }]] },
+  2: { fc: [0.2, 0.5, 0.6], rest: { z: 1.03, f: 0.5, fog: 0.04 }, path: [[0, { z: 2.1, py: -0.13, f: 0.6, b: 0.01, e: 0 }], [420, { e: 0.9 }], [1150, { z: 1.03, py: 0, b: 0.002, e: 1 }], [2950, { z: 1.06 }]] },
+  1: { fc: [1, 0.6, 0.45], rest: { z: 1.05, f: 0.2, fog: 0.1 }, path: [[0, { z: 1.7, py: 0.24, f: 0.95, b: 0.014, e: 0, fog: 0.5 }], [450, { e: 0.8 }], [2500, { z: 1.4, py: 0.04, cy: 0.06, f: 0.25, b: 0.004, e: 1, fog: 0.2 }], [2950, { z: 1.34, py: 0.02 }]] },
+  0: { fc: [0.5, 0.4, 0.56], rest: { z: 1.04, f: 0.3, fog: 0.06 }, path: [[0, { z: 2.3, px: -0.03, py: -0.2, f: 0.25, b: 0.006, e: 0 }], [520, { e: 0.9 }], [2300, { z: 1.25, px: 0, py: -0.03, cy: -0.03, e: 1 }], [2950, { z: 1.18 }]] }
+};
+function makeStage(cv, art, lite, n) {
+  let gl; try { gl = cv.getContext("webgl", { alpha: false, antialias: false, powerPreference: "high-performance" }); } catch (e) {} if (!gl) return null;
+  const VS = "attribute vec2 p;varying vec2 v;void main(){v=p*.5+.5;gl_Position=vec4(p,0.,1.);}";
+  const FS = `${lite ? "" : "#define RICH\n"}precision highp float;varying vec2 v;uniform sampler2D I,D;uniform vec2 uS,uPan,uCam,uR;uniform float uZ,uF,uB,uE,uT,uFog,uHit;uniform vec3 uFc;
+float h(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+float n2(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(h(i),h(i+vec2(1.,0.)),f.x),mix(h(i+vec2(0.,1.)),h(i+vec2(1.,1.)),f.x),f.y);}
+void main(){vec2 s=vec2(v.x,1.-v.y);vec2 uv=((s-.5)/uZ+uPan)*uS+.5;
+float d=texture2D(D,uv).r;uv-=(d-uF)*uCam;d=texture2D(D,uv).r;
+vec3 c=texture2D(I,uv).rgb;
+#ifdef RICH
+float k=abs(d-uF)*uB;if(k>.0005){c+=texture2D(I,uv+vec2(k,0.)).rgb+texture2D(I,uv-vec2(k,0.)).rgb+texture2D(I,uv+vec2(0.,k)).rgb+texture2D(I,uv-vec2(0.,k)).rgb+texture2D(I,uv+vec2(k,k)*.7).rgb+texture2D(I,uv-vec2(k,k)*.7).rgb+texture2D(I,uv+vec2(k,-k)*.7).rgb+texture2D(I,uv+vec2(-k,k)*.7).rgb;c/=9.;}
+float fg=n2(vec2(uv.x*2.4+uT*.035,uv.y*3.2-uT*.012))*.6+n2(vec2(uv.x*5.1-uT*.02,uv.y*6.3))*.4;c=mix(c,uFc,clamp(uFog*(.3+fg)*smoothstep(.8,.05,d),0.,.94));
+#endif
+c*=uE;c+=uHit*vec3(1.,.9,.72)*.3;
+float vg=smoothstep(1.25,.35,length((s-.5)*vec2(.9,1.15)));c*=mix(.6,1.,vg);
+c+=(h(s*uR+fract(uT))-.5)*.035;
+gl_FragColor=vec4(c,1.);}`;
+  const sh = (t, src) => { const o = gl.createShader(t); gl.shaderSource(o, src); gl.compileShader(o); if (!gl.getShaderParameter(o, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(o) || "shader"); return o; };
+  let pr; try { pr = gl.createProgram(); gl.attachShader(pr, sh(gl.VERTEX_SHADER, VS)); gl.attachShader(pr, sh(gl.FRAGMENT_SHADER, FS)); gl.linkProgram(pr); if (!gl.getProgramParameter(pr, gl.LINK_STATUS)) throw new Error("link"); } catch (e) { window.__mods.glErr = String(e.message).slice(0, 120); return null; }
+  gl.useProgram(pr); const buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buf); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW); const loc = gl.getAttribLocation(pr, "p"); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+  const tex = (img, unit) => { const t = gl.createTexture(); gl.activeTexture(gl.TEXTURE0 + unit); gl.bindTexture(gl.TEXTURE_2D, t); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR); gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, img); return t; };
+  try { tex(art.img, 0); tex(art.dep, 1); } catch (e) { return null; }
+  const U = {}; ["I", "D", "uS", "uPan", "uCam", "uR", "uZ", "uF", "uB", "uE", "uT", "uFog", "uHit", "uFc"].forEach(k => U[k] = gl.getUniformLocation(pr, k)); gl.uniform1i(U.I, 0); gl.uniform1i(U.D, 1); gl.uniform3fv(U.uFc, KF[n].fc);
+  const dpr = Math.min(window.devicePixelRatio || 1, lite ? 1 : 1.5); let W = 0, H = 0;
+  const size = () => { W = Math.max(2, Math.round(cv.clientWidth * dpr)); H = Math.max(2, Math.round(cv.clientHeight * dpr)); cv.width = W; cv.height = H; gl.viewport(0, 0, W, H); const as = W / H, ai = art.img.naturalWidth / art.img.naturalHeight; gl.uniform2f(U.uS, as < ai ? as / ai : 1, as < ai ? 1 : ai / as); gl.uniform2f(U.uR, W, H); };
+  size(); addEventListener("resize", size);
+  const full = p => Object.assign({}, POSE0, p), eio = k => (k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2);
+  let cur = full(KF[n].rest), segs = [], hit = 0, kick = 0, ptx = 0, pty = 0, px = 0, py = 0, dead = false, raf = 0, last = performance.now(), T = 0, drift = 1;
+  const lerp = (a, b, k) => { const o = {}; for (const key in POSE0) o[key] = a[key] + (b[key] - a[key]) * k; return o; };
+  const frame = now => {
+    if (dead) return; raf = requestAnimationFrame(frame); if (document.hidden) { last = now; return; } const dt = Math.min(50, now - last); last = now; T += dt / 1000;
+    if (segs.length) { const sg = segs[0]; sg.t += dt; const k = Math.min(1, sg.t / sg.d); cur = lerp(sg.a, sg.b, sg.lin ? k : eio(k)); if (k >= 1) { segs.shift(); if (segs.length) segs[0].a = cur; } }
+    hit *= Math.pow(0.004, dt / 1000); kick *= Math.pow(0.0008, dt / 1000); px += (ptx - px) * 0.06; py += (pty - py) * 0.06;
+    const z = cur.z + kick * 0.035, lim = Math.max(0, 0.5 - 0.5 / z), cl = v => Math.max(-lim, Math.min(lim, v));
+    gl.uniform1f(U.uZ, z); gl.uniform2f(U.uPan, cl(cur.px), cl(cur.py));
+    gl.uniform2f(U.uCam, cur.cx + (Math.sin(T * 0.23) * 0.006 + px * 0.022) * drift, cur.cy + (Math.cos(T * 0.19) * 0.004 + py * 0.016) * drift);
+    gl.uniform1f(U.uF, cur.f); gl.uniform1f(U.uB, cur.b); gl.uniform1f(U.uE, cur.e); gl.uniform1f(U.uFog, cur.fog); gl.uniform1f(U.uT, T); gl.uniform1f(U.uHit, hit);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+  };
+  raf = requestAnimationFrame(frame);
+  return {
+    set(p) { cur = full(p); segs = []; },
+    to(p, ms) { segs = [{ a: cur, b: full(Object.assign({}, cur, p)), d: Math.max(1, ms), t: 0 }]; },
+    play(path) { let prev = full(path[0][1]); cur = prev; segs = []; for (let i = 1; i < path.length; i++) { const nx = full(Object.assign({}, prev, path[i][1])); segs.push({ a: prev, b: nx, d: path[i][0] - path[i - 1][0], t: 0 }); prev = nx; } },
+    hit() { hit = 1; kick = 1; }, pointer(x, y) { ptx = x; pty = y; },
+    stop() { dead = true; cancelAnimationFrame(raf); removeEventListener("resize", size); try { const ex = gl.getExtension("WEBGL_lose_context"); ex && ex.loseContext(); } catch (e) {} }
+  };
+}
+/* אווירה (רק כשהסאונד דלוק): רוח רכה מסוננת, נכנסת ויוצאת בעדינות */
+function ambience(sec) { if (!settings.cineSound) return; try { AC = AC || new (window.AudioContext || window.webkitAudioContext)(); const len = AC.sampleRate * 2, b = AC.createBuffer(1, len, AC.sampleRate), d = b.getChannelData(0); let l = 0; for (let i = 0; i < len; i++) { l = l * 0.985 + (Math.random() * 2 - 1) * 0.015; d[i] = l * 6; } const src = AC.createBufferSource(), f = AC.createBiquadFilter(), g = AC.createGain(), t = AC.currentTime; src.buffer = b; src.loop = true; f.type = "lowpass"; f.frequency.setValueAtTime(260, t); f.frequency.linearRampToValueAtTime(900, t + sec * 0.6); f.frequency.linearRampToValueAtTime(320, t + sec); g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.09, t + 0.8); g.gain.linearRampToValueAtTime(0.0001, t + sec); src.connect(f); f.connect(g); g.connect(AC.destination); src.start(t); src.stop(t + sec + 0.1); } catch (e) {} }
+
 /* ---------- הפתיח ---------- */
 let RUN = null;
 function playIntro(n, opts = {}) {
@@ -237,12 +306,14 @@ function playIntro(n, opts = {}) {
     ${timerHtml()}${S.hero === "pass" ? "" : passHtml()}<button class="go">בוא נראה את הטיול <span>←</span></button>`;
   document.body.appendChild(el); document.body.classList.add("intro-on");
   const run = { el, n, tm: [], fx: null, onEnd: opts.onEnd, dead: false }; RUN = run;
+  const A = !REDUCED && artReady(n); if (A) { const host = el.querySelector(".art"), svg0 = host.innerHTML; host.innerHTML = `<canvas class="glc" aria-hidden="true"></canvas>`; run.gl = makeStage(host.firstChild, A, lite, n); if (run.gl) { el.classList.add("gl"); el.addEventListener("pointermove", e => run.gl.pointer(e.clientX / innerWidth - 0.5, e.clientY / innerHeight - 0.5), { passive: true }); if (!opts.hold) { if (quick || opts.fromTeaser) run.gl.set(KF[n].rest); else { run.gl.set(Object.assign({}, KF[n].rest, { z: KF[n].rest.z + 0.16, e: 0, fog: Math.min(1, (KF[n].rest.fog || 0) + 0.5), b: 0.01 })); run.gl.to(Object.assign({ b: 0, e: 1 }, KF[n].rest), 2800); } } } else host.innerHTML = svg0; }
   const later = (fn, ms) => run.tm.push(setTimeout(() => { if (!run.dead) fn(); }, quick ? Math.min(ms, 120) : ms));
   const tmr = el.querySelector(".in-timer");
   tickTimer(tmr, false); run.tick = setInterval(() => { if (!run.dead && !document.hidden) { tickTimer(tmr, true); if (el.classList.contains("t3")) snd("flap"); } }, 1000);
-  if (!REDUCED) run.fx = makeFx(el.querySelector(".fx"), S.fx, lite);
+  const start = () => {
+  if (!REDUCED) run.fx = makeFx(el.querySelector(".fx"), run.gl && S.fx === "fog" ? "snow" : S.fx, lite, !!run.gl); /* על האיור המצויר הערפל כבר ב-shader */
   requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add("t0")));
-  const TT = opts.fromTeaser ? [0, 300, 620, 900, 1300] : [250, 1200, 1800, 2600, 3400]; if (opts.fromTeaser) el.classList.add("ft");
+  const TT = opts.fromTeaser ? [220, 560, 620, 950, 1350] : [250, 1200, 1800, 2600, 3400]; if (opts.fromTeaser) el.classList.add("ft");
   later(() => { el.classList.add("t1"); if (!opts.fromTeaser) snd("whoosh"); }, TT[0]);   // כותרת
   later(() => el.classList.add("t2"), TT[1]);                                   // משפט
   later(() => { el.classList.add("t3"); }, TT[2]);                              // טיימר
@@ -255,8 +326,10 @@ function playIntro(n, opts = {}) {
   if (S.beat && !REDUCED) { const iv = 60000 / S.beat; later(() => { const b = () => { if (run.dead) return; el.classList.remove("beat"); void el.offsetWidth; el.classList.add("beat"); snd("kick"); }; b(); run.beat = setInterval(b, iv); }, 600); }
   if (n === 3) { const holder = el.querySelector(".itms"), kgEl = el.querySelector(".kg"), bar = el.querySelector(".scale s"); let kg = 0;
     S.items.forEach(([id, , w], i) => { later(() => { const side = i % 2 ? 1 : -1, g = document.createElementNS("http://www.w3.org/2000/svg", "g"); g.setAttribute("class", "itm"); g.style.setProperty("--x0", `${side * (230 + (i % 3) * 30)}px`); g.style.setProperty("--y0", `${-260 - (i % 4) * 40}px`); g.style.setProperty("--r0", `${side * (40 + i * 9)}deg`);
-      g.innerHTML = `<g transform="translate(195 440)"><g class="mv">${ITEM_SVG[id]}</g></g>`; holder.appendChild(g);
-      later(() => { kg = Math.round((kg + w) * 10) / 10; kgEl.textContent = kg.toFixed(1); bar.style.width = Math.min(100, kg / 8 * 100) + "%"; el.querySelector(".bag").classList.remove("bump"); void el.getBoundingClientRect(); el.querySelector(".bag").classList.add("bump"); snd("flap"); if (i === S.items.length - 1) el.querySelector(".scale").classList.add("ok"); }, 620); }, 500 + i * 300); }); }
+      g.innerHTML = `<g transform="translate(195 440)"><g class="mv">${ITEM_SVG[id]}</g></g>`; if (holder) holder.appendChild(g);
+      later(() => { kg = Math.round((kg + w) * 10) / 10; kgEl.textContent = kg.toFixed(1); bar.style.width = Math.min(100, kg / 8 * 100) + "%"; const bg = el.querySelector(".bag"); if (bg) { bg.classList.remove("bump"); void el.getBoundingClientRect(); bg.classList.add("bump"); } snd("flap"); if (i === S.items.length - 1) el.querySelector(".scale").classList.add("ok"); }, 620); }, 500 + i * 300); }); }
+  };
+  if (opts.hold) { el.classList.add("hold"); run.release = fast => { if (run.dead || !el.classList.contains("hold")) return; el.classList.remove("hold"); if (fast) el.classList.add("quick"); start(); }; } else start();
   // מכשיר שלא עומד בקצב: עוברים לגרסה קלה בלי לעצור
   if (!lite && !REDUCED) { let fr = 0, t0 = 0; const mon = now => { if (run.dead) return; if (!t0) t0 = now; fr++; if (now - t0 < 1500) return requestAnimationFrame(mon); if (fr / ((now - t0) / 1000) < 45) { el.classList.add("lite"); run.fx && run.fx.thin(); } }; requestAnimationFrame(mon); }
   const leave = () => closeIntro(false);
@@ -267,7 +340,7 @@ function playIntro(n, opts = {}) {
 }
 function closeIntro(silent) {
   if (silent === "all" && typeof closeTeaser === "function") closeTeaser();
-  const r = RUN; if (!r) return; RUN = null; r.dead = true; r.tm.forEach(clearTimeout); clearInterval(r.tick); clearInterval(r.beat); r.fx && r.fx.stop();
+  const r = RUN; if (!r) return; RUN = null; r.dead = true; r.tm.forEach(clearTimeout); clearInterval(r.tick); clearInterval(r.beat); r.fx && r.fx.stop(); if (r.gl) setTimeout(() => r.gl.stop(), silent ? 0 : 950);
   document.body.classList.remove("intro-on");
   if (silent) { r.el.remove(); return; }
   r.el.classList.add("out"); setTimeout(() => r.el.remove(), 900); if (r.onEnd) setTimeout(r.onEnd, 120);
@@ -289,7 +362,7 @@ async function digitPts(ch, W, H, cx, cy, want) {
   const d = x.getImageData(0, 0, W, H).data; let filled = 0; for (let i = 3; i < d.length; i += 4) if (d[i] > 128) filled++;
   const step = Math.max(4, Math.sqrt(filled / want)), pts = [];
   for (let y = step / 2; y < H; y += step) for (let xx = step / 2; xx < W; xx += step) if (d[((y | 0) * W + (xx | 0)) * 4 + 3] > 128) pts.push({ tx: xx + (Math.random() - 0.5) * step * 0.35, ty: y + (Math.random() - 0.5) * step * 0.35 });
-  return { pts, step, top: cy - asc / 2 - 4, bot: cy + asc / 2 + 4, cx, cy };
+  return { pts, step, top: cy - asc / 2 - 4, bot: cy + asc / 2 + 4, cx, cy, fs, base: cy + (asc - desc) / 2 };
 }
 const TZ_COL = { 7: ["rgba(255,206,120,1)"], 6: ["rgba(255,186,96,1)"], 5: ["rgba(255,210,122,1)", "rgba(255,104,96,1)", "rgba(130,208,255,1)", "rgba(255,240,180,1)"], 4: ["rgba(255,72,214,1)", "rgba(70,228,255,1)"], 3: ["rgba(255,210,122,1)"], 2: ["rgba(255,210,122,1)"], 1: ["rgba(255,244,214,1)"], 0: ["rgba(255,210,122,1)"] };
 const ITEM_COL = ["#2f7de1", "#e8a317", "#9a6be0", "#f04f6d", "#2fb7a3", "#5d6f9a", "#f7f1e6", "#d42a33"];
@@ -297,23 +370,25 @@ let TZ = null;
 function closeTeaser() { const t = TZ; if (!t) return; TZ = null; t.dead = true; cancelAnimationFrame(t.raf); t.tm.forEach(clearTimeout); t.el.remove(); }
 function playTeaser(n, opts = {}) {
   closeTeaser(); closeIntro(true); const S = SC[n]; if (!S || REDUCED) return playIntro(n, opts);
-  const lite = introLight(), el = document.createElement("div"); el.id = "teaser"; el.className = `s${n}${lite ? " lite" : ""}`; el.setAttribute("aria-label", "פתיח קצר");
+  let IR = null; if (artReady(n)) { IR = playIntro(n, Object.assign({}, opts, { fromTeaser: 1, hold: 1 })); if (!IR || !IR.gl) { closeIntro(true); IR = null; } } /* האיור המצויר מוכן: הסצנה רצה על הבמה של מסך הספירה עצמו */
+  const lite = introLight(), el = document.createElement("div"); el.id = "teaser"; el.className = `s${n}${lite ? " lite" : ""}${IR ? " glm" : ""}`; el.setAttribute("aria-label", "פתיח קצר");
   el.innerHTML = `<div class="tz-art"><svg viewBox="0 0 390 844" preserveAspectRatio="xMidYMid slice" aria-hidden="true">${S.ground ? `<rect width="390" height="844" fill="${S.ground}"/>` : ""}<g transform="translate(0 ${-(S.shift || 0)})">${S.art()}</g></svg></div><div class="tz-dim"></div><canvas class="tz-cv" aria-hidden="true"></canvas>${n === 0 ? `<div class="tz-board" dir="ltr"></div>` : ""}<button class="tz-skip">דלג ⏭</button>`;
   document.body.appendChild(el); document.body.classList.add("intro-on");
-  if (!opts.replay) { const z = LS.get("tzSeen", {}); z[pragueDate()] = 1; LS.set("tzSeen", z); }
+  if (!opts.replay) { const z = LS.get("tz2Seen", {}); z[pragueDate()] = 1; LS.set("tz2Seen", z); }
   const T = { el, dead: false, tm: [], raf: 0 }; TZ = T;
   const at = (ms, fn) => T.tm.push(setTimeout(() => { if (!T.dead) fn(); }, ms));
-  const toIntro = extra => { if (T.dead) return; const o = Object.assign({}, opts, extra); return playIntro(n, o); };
-  el.querySelector(".tz-skip").onclick = () => { closeTeaser(); toIntro({ quick: true }); };
+  const toIntro = extra => { if (T.dead) return; if (IR) { IR.gl.to(KF[n].rest, extra && extra.quick ? 500 : 1150); IR.release(!!(extra && extra.quick)); return IR; } const o = Object.assign({}, opts, extra); return playIntro(n, o); };
+  el.querySelector(".tz-skip").onclick = () => { const t = T; toIntro({ quick: true }); t.dead = true; closeTeaser(); };
+  if (IR) { IR.gl.play(KF[n].path); ambience(5.5); }
   const cv = el.querySelector(".tz-cv"), ctx = cv.getContext("2d"), dpr = Math.min(window.devicePixelRatio || 1, lite ? 1.5 : 2), W = cv.clientWidth, H = cv.clientHeight;
   cv.width = W * dpr; cv.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   // לוח הזמנים: כניסה איטית, שיא חד, יציאה מהירה
   const FORM = n === 0 ? 900 : 1150, PEAK = 2950, BURST = 3250, END = 4150;
-  const cols = TZ_COL[n], want = lite ? 110 : n === 3 ? 74 : n === 4 ? 150 : 190, cx = W / 2, cy = H * 0.43;
+  const cols = TZ_COL[n], want = lite ? 110 : n === 3 ? 74 : n === 4 ? 150 : 190, cx = W / 2, cy = H * (IR && n === 2 ? 0.63 : 0.43);
   let P = [], G = null, timerT = [], plane = null;
   // שלג בתלת-ממד: בזמן הטיסה פנימה הוא נמתח החוצה מהמרכז (תחושת תנועה)
   const SN = Array.from({ length: lite ? 70 : 140 }, () => ({ x: (Math.random() - 0.5) * 2, y: (Math.random() - 0.5) * 2, z: Math.random() }));
-  const fog = n === 7 ? Array.from({ length: lite ? 4 : 7 }, () => ({ x: Math.random() * W, y: H * (0.3 + Math.random() * 0.55), r: 160 + Math.random() * 160, v: 0.2 + Math.random() * 0.3 })) : [];
+  const fog = n === 7 && !IR ? Array.from({ length: lite ? 4 : 7 }, () => ({ x: Math.random() * W, y: H * (0.3 + Math.random() * 0.55), r: 160 + Math.random() * 160, v: 0.2 + Math.random() * 0.3 })) : [];
   const fogSpr = sprite("rgba(190,200,236,1)", 64);
   digitPts(n === 0 ? "0" : String(n), W, H, cx, cy, want).then(g => { G = g; if (T.dead) return;
     const N = g.pts.length; P = g.pts.map((p, i) => Object.assign(p, { col: cols[i % cols.length], d: 0, sz: 1, ord: i }));
@@ -331,12 +406,13 @@ function playTeaser(n, opts = {}) {
   // הסצנה: שחור → המצלמה טסה פנימה
   requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add("go")));
   at(300, () => snd("whoosh"));
-  at(PEAK, () => { el.classList.add("peak", "shake"); snd("boom"); buzz([28]); });
+  at(PEAK - 420, () => snd("whoosh"));
+  at(PEAK, () => { el.classList.add("peak", "shake"); snd("boom"); buzz([28]); if (IR) IR.gl.hit(); });
   at(PEAK + 320, () => el.classList.remove("shake"));
   at(BURST, () => { // מתפרק → נוחת על הטיימר האמיתי
     el.classList.add("burst"); const r = toIntro({ fromTeaser: 1 }); if (!r) return;
     const fls = [...r.el.querySelectorAll(".in-timer .fl")].map(f => f.getBoundingClientRect()).filter(b => b.width);
-    timerT = fls.length ? fls : [{ left: cx - 20, top: H * 0.7, width: 40, height: 56 }];
+    timerT = fls.length ? (n >= 1 ? fls.slice(0, 2) : fls) : [{ left: cx - 20, top: H * 0.7, width: 40, height: 56 }]; /* match cut: המספר נוחת בקלף "ימים" */
     if (n === 0) { const bd = el.querySelector(".tz-board"), br = bd.getBoundingClientRect(); for (let i = 0; i < (lite ? 90 : 160); i++) P.push({ tx: br.left + Math.random() * br.width, ty: br.top + Math.random() * br.height, col: cols[0], d: 0, sz: 1 }); }
     P.forEach((p, i) => { const b = timerT[i % timerT.length], a = Math.atan2(p.ty - cy, p.tx - cx) + (Math.random() - 0.5) * 0.9, sp = 90 + Math.random() * 150; p.bx = p.cx0 != null ? p.cx0 : p.tx; p.by = p.cy0 != null ? p.cy0 : p.ty; p.kx = p.bx + Math.cos(a) * sp; p.ky = p.by + Math.sin(a) * sp; p.ex = b.left + 4 + Math.random() * (b.width - 8); p.ey = b.top + 4 + Math.random() * (b.height - 8); p.bd = Math.random() * 120; });
   });
@@ -353,12 +429,14 @@ function playTeaser(n, opts = {}) {
     if (fog.length && t < BURST + 300) { const a = Math.max(0, 0.9 - Math.max(0, t - 600) / 1900); fog.forEach(f => { f.x += f.v * (1 + t / 1500); if (f.x - f.r > W) f.x = -f.r; ctx.globalAlpha = a; ctx.drawImage(fogSpr, f.x - f.r, f.y - f.r, f.r * 2, f.r * 2); }); }
     ctx.globalAlpha = 1;
     if (!G) return;
-    const tf = t - FORM, glowBoost = t > PEAK && t < PEAK + 300 ? 1 + (1 - (t - PEAK) / 300) * 0.32 : 1;
+    const tf = t - FORM, glowBoost = t > PEAK && t < PEAK + 300 ? 1 + (1 - (t - PEAK) / 300) * 0.1 : 1;
     // 2: המדפסת — נייר ענק יורד מהחריץ, והמספר מודפס עליו שורה-שורה
-    let paperTop = null; const slotY = H * 0.12, paperH = G.bot - G.top + 70;
+    let paperTop = null; const slotY = H * (IR ? 0.352 : 0.12), paperH = G.bot - G.top + 70;
     if (n === 2 && t < BURST + 120) { const k = eio(tf / 1500); paperTop = slotY - paperH + (G.top - 35 - (slotY - paperH)) * k; const pa = t > BURST ? Math.max(0, 1 - (t - BURST) / 120) : 1;
       ctx.globalAlpha = pa; ctx.fillStyle = "#05080f"; ctx.fillRect(cx - W * 0.42, slotY - 9, W * 0.84, 14); ctx.fillStyle = "#7fd3ff"; ctx.fillRect(cx - W * 0.38, slotY - 3, W * 0.76, 2);
       ctx.save(); ctx.beginPath(); ctx.rect(0, slotY, W, H); ctx.clip(); ctx.fillStyle = "#f7f1e6"; const pw = W * 0.72; ctx.shadowColor = "rgba(0,0,0,.5)"; ctx.shadowBlur = 24; ctx.fillRect(cx - pw / 2, paperTop, pw, paperH); ctx.shadowBlur = 0; ctx.fillStyle = "#d42a33"; ctx.fillRect(cx - pw / 2, paperTop, pw, 26); ctx.fillStyle = "#fff"; ctx.font = "800 11px Rubik,system-ui"; ctx.textAlign = "left"; ctx.fillText("BOARDING PASS · QS1285", cx - pw / 2 + 12, paperTop + 17); ctx.restore(); ctx.globalAlpha = 1; }
+    const ks = t < PEAK - 380 ? 0.95 : t < PEAK - 90 ? 0.95 - 0.05 * ((t - (PEAK - 380)) / 290) : t < PEAK + 70 ? 0.9 + 0.19 * ((t - (PEAK - 90)) / 160) : t < PEAK + 320 ? 1.09 - 0.09 * ((t - (PEAK + 70)) / 250) : 1; /* anticipation → hit → settle */
+    if (n >= 1 && t > PEAK && t < PEAK + 300 && G.fs) { const k = (t - PEAK) / 300; ctx.save(); ctx.globalCompositeOperation = "lighter"; ctx.globalAlpha = (1 - k) * (1 - k) * 0.3; ctx.font = `900 ${G.fs * ks}px Rubik, system-ui, sans-serif`; ctx.textAlign = "center"; ctx.textBaseline = "alphabetic"; ctx.fillStyle = cols[0]; ctx.fillText(String(n), cx, cy + (G.base - cy) * ks); ctx.restore(); }
     for (const p of P) {
       let x = p.tx, y = p.ty, al = 1, sz = 1, spr = p.col;
       if (t < BURST) {
@@ -369,6 +447,7 @@ function playTeaser(n, opts = {}) {
         else if (n === 4) { al = ease(k * 3); if (k > 0 && k < 0.35) { ctx.globalCompositeOperation = "lighter"; ctx.strokeStyle = p.col.replace(/,\s*[\d.]+\)$/, `,${(0.55 * (1 - k / 0.35)).toFixed(3)})`); ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(cx, H * 0.69); ctx.lineTo(p.tx, p.ty); ctx.stroke(); } }
         else if (n === 3) { const e = Math.min(1, Math.max(0, k)), fall = e * e; y = p.sy + (p.ty - p.sy) * fall; if (e >= 1) { const b = Math.max(0, (tf - p.d - 520) / 220); y = p.ty - Math.sin(Math.min(1, b) * Math.PI) * 6 * (1 - Math.min(1, b)); } }
         else if (n === 2) { if (paperTop == null) continue; y = p.ty - (G.top - 35) + paperTop; al = y > slotY ? 1 : 0; }
+        if (n !== 2 && n !== 3) { x = cx + (x - cx) * ks; y = cy + (y - cy) * ks; }
         p.cx0 = x; p.cy0 = y;
       } else {
         const u = eio((t - BURST - (p.bd || 0)) / 720), q = 1 - u; x = q * q * p.bx + 2 * q * u * p.kx + u * u * p.ex; y = q * q * p.by + 2 * q * u * p.ky + u * u * p.ey; sz = 1 - u * 0.45; al = u > 0.92 ? (1 - u) / 0.08 : 1; if (n === 3 || n === 2) spr = cols[0];
@@ -377,7 +456,7 @@ function playTeaser(n, opts = {}) {
       if ((n === 3 || n === 2) && t < BURST) { // חפצים / דיו: מוצקים, עם זוהר עדין
         ctx.globalCompositeOperation = "source-over"; ctx.globalAlpha = al;
         if (n === 3) { const s = G.step * 0.82; ctx.fillStyle = p.ic; ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x - s / 2, y - s / 2, s, s, 3) : ctx.rect(x - s / 2, y - s / 2, s, s); ctx.fill(); ctx.fillStyle = "rgba(255,255,255,.18)"; ctx.fillRect(x - s / 2, y - s / 2, s, 2); }
-        else { ctx.fillStyle = t > PEAK ? "#e8a317" : "#14161b"; const s = G.step * 0.6; ctx.fillRect(x - s / 2, y - s / 2, s, s); }
+        else { ctx.fillStyle = "#14161b"; const s = G.step * 0.6; ctx.fillRect(x - s / 2, y - s / 2, s, s); }
         if (t > PEAK) { ctx.globalCompositeOperation = "lighter"; const r = 14 * glowBoost; ctx.globalAlpha = al * 0.6; ctx.drawImage(sprite(cols[0]), x - r, y - r, r * 2, r * 2); }
         continue; }
       ctx.globalCompositeOperation = "lighter"; ctx.globalAlpha = al * (n === 5 ? 0.62 : 0.78); const r = (G.step * 0.95 + 3) * sz * glowBoost; ctx.drawImage(sprite(spr), x - r, y - r, r * 2, r * 2);
@@ -395,10 +474,13 @@ function playTeaser(n, opts = {}) {
 window.playTeaser = playTeaser;
 
 /* ---------- מתי מנגנים: במקום מסך הספירה, בכל כניסה עד ההמראה ---------- */
+try { const s0 = sceneFor(); if (s0 != null) loadArt(s0); setTimeout(() => { if (navigator.onLine) [7, 6, 5, 4, 3, 2, 1, 0].forEach(k => { fetch(`art/d${k}.jpg`).catch(() => {}); fetch(`art/z${k}.jpg`).catch(() => {}); }); }, 12000); } catch (e) {}
 window.showSplash = (old => function (done) {
   let n = null; const f = QS.get("intro"); try { n = f && /^[0-7]$/.test(f) ? +f : f === "0" ? null : sceneFor(); if (QS.get("splash") === "welcome" || QS.get("cine")) n = null; } catch (e) { n = null; }
   if (n == null) return old.apply(this, arguments);
-  try { const today = !f && !!LS.get("tzSeen", {})[pragueDate()]; /* סימון נפרד: גם מי שראה היום את המסך בגרסה הקודמת יקבל את המיני-סרטון */ if (today || QS.get("tz") === "0") playIntro(n, { quick: today, onEnd: done }); else playTeaser(n, { onEnd: done }); } catch (e) { console.warn("intro failed", e); window.__mods.introErr = String(e && e.message || e); closeIntro(true); return old.apply(this, arguments); }
+  try { const today = !f && !!LS.get("tz2Seen", {})[pragueDate()]; /* סימון נפרד: גם מי שראה היום את המסך בגרסה הקודמת יקבל את המיני-סרטון */
+    const go = () => { const w = document.getElementById("introWait"); try { if (today || QS.get("tz") === "0") playIntro(n, { quick: today, onEnd: done }); else playTeaser(n, { onEnd: done }); } catch (e) { console.warn("intro failed", e); window.__mods.introErr = String(e && e.message || e); closeIntro("all"); old(done); } if (w) setTimeout(() => w.remove(), 60); };
+    if (REDUCED || artReady(n)) go(); else { const w = document.createElement("div"); w.id = "introWait"; w.style.cssText = "position:fixed;inset:0;z-index:9790;background:#05061a"; document.body.appendChild(w); Promise.race([loadArt(n), sleep(1400)]).then(go, go); } /* מחכים רגע לאיור, בלי הבזק של המפה */ } catch (e) { console.warn("intro failed", e); window.__mods.introErr = String(e && e.message || e); closeIntro(true); return old.apply(this, arguments); }
 })(window.showSplash);
 
 /* ---------- בתפריט: לצפות שוב ---------- */
@@ -407,7 +489,7 @@ function introSection() {
   const cur = sceneFor();
   return `<h3 class="in-mh">✈️ הספירה לאחור</h3><p class="sub">פתיח לכל יום עד הטיסה. ${cur != null ? `היום: <b>${NAMES[cur]}</b>.` : ""}</p><div class="in-mg">${[7, 6, 5, 4, 3, 2, 1, 0].map(k => `<button data-in="${k}"${k === cur ? ` class="cur"` : ""}><b>${k ? k : "✈"}</b><span>${NAMES[k]}</span></button>`).join("")}</div>`;
 }
-function bindIntroSection() { $$("#mbody [data-in]").forEach(b => b.onclick = () => { closeModal(); setTimeout(() => playTeaser(+b.dataset.in, { replay: 1 }), 260); }); }
+function bindIntroSection() { $$("#mbody [data-in]").forEach(b => b.onclick = () => { closeModal(); const k = +b.dataset.in; Promise.race([loadArt(k), sleep(1500)]).then(() => playTeaser(k, { replay: 1 })); }); }
 if (typeof window.openCineMenu === "function") {
   window.openCineMenu = (old => function () { old.apply(this, arguments); try { const sub = $("#mbody .sub"); (sub || $("#mbody")).insertAdjacentHTML(sub ? "afterend" : "afterbegin", introSection()); bindIntroSection(); } catch (e) {} })(window.openCineMenu);
 } else {
@@ -451,7 +533,7 @@ body.intro-on #splash,body.intro-on #modal,body.intro-on #toast{opacity:0!import
 #intro .ttl .w:only-child i,#intro.s1 .ttl .w:first-child i,#intro.s0 .ttl .w:first-child i{color:#fff}
 #intro .sub{margin:8px 0 0;font-weight:700;font-size:1rem;color:#ffd27a;opacity:0;transition:opacity .6s .2s}
 #intro.t1 .sub{opacity:1}
-#intro .quip{display:table;padding:7px 12px;margin:12px 0 0 auto;border-radius:12px;background:rgba(6,8,24,.5);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);max-width:30ch;font-size:1.02rem;line-height:1.45;font-weight:500;color:rgba(255,255,255,.86);text-shadow:0 2px 14px rgba(0,0,0,.6);opacity:0;transform:translateY(12px);transition:opacity .8s cubic-bezier(.16,1,.3,1),transform .8s cubic-bezier(.16,1,.3,1)}
+#intro .quip{display:table;padding:7px 12px;margin:12px 0 0 auto;border-radius:12px;background:rgba(6,8,24,.5);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);max-width:33ch;font-size:.96rem;line-height:1.45;font-weight:500;color:rgba(255,255,255,.86);text-shadow:0 2px 14px rgba(0,0,0,.6);opacity:0;transform:translateY(12px);transition:opacity .8s cubic-bezier(.16,1,.3,1),transform .8s cubic-bezier(.16,1,.3,1)}
 #intro.t2 .quip{opacity:1;transform:none}
 /* טיימר: ספרות מתהפכות */
 #intro .in-timer{position:absolute;left:0;right:0;bottom:calc(env(safe-area-inset-bottom,0px) + 228px);z-index:4;display:flex;justify-content:center;align-items:flex-start;gap:5px;perspective:600px}
@@ -584,6 +666,13 @@ body.intro-on #splash,body.intro-on #modal,body.intro-on #toast{opacity:0!import
 #teaser .tz-board i.f{animation:tzF .085s ease-out}@keyframes tzF{from{transform:perspective(200px) rotateX(-70deg)}to{transform:none}}
 #teaser.peak .tz-board i{color:#4dff94;text-shadow:0 0 18px rgba(77,255,148,.7)}
 #teaser.lite .tz-art{filter:none!important}#teaser.lite .tz-skip{-webkit-backdrop-filter:none;backdrop-filter:none;background:rgba(0,0,0,.4)}
+#intro.gl:not(.out) .art{opacity:1;transform:none;transition:none}
+#intro .glc{position:absolute;inset:0;width:100%;height:100%;display:block}
+#intro.gl .grain{display:none}
+#intro.gl .vig{background:linear-gradient(180deg,rgba(4,6,18,.55),rgba(4,6,18,.08) 30%,transparent 46%,rgba(4,6,18,.55) 68%,rgba(4,6,18,.86))}
+#intro.hold>:not(.art){opacity:0!important;pointer-events:none!important;transition:none!important}
+#intro.gl:not(.hold) .vig{transition:opacity .9s}
+#intro.gl .in-bp .slot{visibility:hidden}#intro.s2.gl .in-bp{top:37vh}#teaser.glm{background:transparent}#teaser.glm .tz-art,#teaser.glm .tz-dim{display:none}
 .in-mh{margin:6px 0 2px}.in-mg{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:8px 0 16px}.in-mg button{border:0;border-radius:14px;background:var(--card2);color:var(--ink);padding:10px 4px;display:flex;flex-direction:column;align-items:center;gap:4px;font:600 .72rem Rubik,sans-serif;line-height:1.15;text-align:center}.in-mg b{font-size:1.3rem}.in-mg .cur{box-shadow:inset 0 0 0 2px var(--red,#d42a33)}
 `; document.head.appendChild(st); })();
 

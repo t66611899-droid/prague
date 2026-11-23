@@ -8,7 +8,7 @@
 (function () {
 "use strict";
 try {
-const CINE_MISSION = ["להגיע לפראג בשלום ולמצוא את המעטפה", "לשרוד את הקור ולהגיע לסירה ב-19:00", "לכבוש את התצפיות ולהגיע ל-EPIC עם דרכון", "למלא את התיק (עד 8 ק\"ג!) ולהגיע ל-Duplex אחרי חצות", "מס עירוני, Bolt, והמראה ב-12:45"];
+const CINE_MISSION = ["לנחות, למצוא את המעטפה, ולהבין שהגעת לבד עד לכאן", "לשרוד את הקור, לעלות על הסירה ב-19:00, ולהגיד \"היי\" ראשון. פעם אחת לפחות", "לכבוש את התצפיות ולהגיע ל-EPIC עם דרכון. אף אחד שם לא מכיר אותך, תנצל את זה", "תיק עד 8 ק\"ג, Duplex אחרי חצות. לישון תספיק בארץ", "מס עירוני, יציאה ב-09:45, המראה ב-12:45. הביתה חוזר מישהו קצת אחר"];
 const cineLight = () => REDUCED || saver || (navigator.deviceMemory && navigator.deviceMemory < 3) || (navigator.hardwareConcurrency && navigator.hardwareConcurrency < 4) || (window._batt && window._batt.level < 0.2 && !window._batt.charging) || QS.get("cine") === "light";
 const canFly = () => !cineLight() && typeof map !== "undefined" && map && map.isStyleLoaded && map.isStyleLoaded(); // המפה מוכנה לטיסת מצלמה
 const cineSeen = () => LS.get("cineSeen", {});
@@ -124,7 +124,7 @@ async function cineRecap(di, opts = {}) {
   const places = day.stops.filter(s => marks[s.id] === "done").length, nx = plan[di + 1];
   r.stage.innerHTML = `<div class="cn-title"><small>תקציר · יום ${di + 1}</small><h1>${esc(day.title)}</h1><p>${walked ? "המסלול שהלכת בפועל" : "המסלול של היום"}</p></div>
     <div class="cn-stats" hidden><div class="cn-nums four"><div><b data-n="${km.toFixed(1)}" data-d="1">0</b><small>ק"מ</small></div><div><b data-n="${Math.round(km * 1350)}" data-d="0">0</b><small>צעדים בערך</small></div><div><b data-n="${places}" data-d="0">0</b><small>מקומות</small></div><div><b data-n="${photos}" data-d="0">0</b><small>תמונות</small></div></div></div>
-    <div class="cn-done" hidden><h2>משימה הושלמה ✓</h2><p>${nx ? `מחר: <b>${esc(nx.title)}</b>` : "מחר: הביתה ✈️"}</p><div class="row"><button class="btn pri" id="cnSend">💌 לשלוח להורים</button><button class="btn" id="cnClose">סגור</button></div></div>`;
+    <div class="cn-done" hidden><h2>משימה הושלמה ✓</h2><p class="cn-push">${km.toFixed(1)} ק"מ, ${places} מקומות, 0 תירוצים.</p><p>${nx ? `מחר: <b>${esc(nx.title)}</b>. עוד אחד.` : "מחר: הביתה ✈️. מה שהתחלת כאן לא נגמר בנחיתה."}</p><div class="row"><button class="btn pri" id="cnSend">💌 לשלוח להורים</button><button class="btn" id="cnClose">סגור</button></div></div>`;
   r.stage.querySelector("#cnClose").onclick = () => cineClose();
   r.stage.querySelector("#cnSend").onclick = async e => { const b = e.target; b.disabled = true; b.textContent = "מכין…"; try { const thumbs = []; for (const m of ms.slice(0, 3)) { const xm = (m.media || [])[0], u = xm ? await thumbUrl(xm.id) : (m.th || [])[0]; if (u) thumbs.push(u); } const blob = await recapPoster(di, { km, places, photos, thumbs }); await addMoment([new File([blob], "recap.jpg", { type: "image/jpeg" })], `תקציר יום ${di + 1}: ${km.toFixed(1)} ק"מ, ${places} מקומות, ${photos} תמונות 🏁`, ["משימה הושלמה ✓"], "p", null, () => {}); b.textContent = "נשלח 💌"; toast("התקציר נשלח לדף ההורים 💌"); } catch (err) { b.disabled = false; b.textContent = "💌 לשלוח להורים"; toast("לא הצלחתי להכין את התקציר"); } };
   const ready = lite ? false : await Promise.race([mapReadyP(), wait(2500).then(() => false)]); if (!alive(r)) return;

@@ -941,3 +941,5 @@ button,a,.btn,label,summary,[data-act],[data-q],[data-c],[data-in],.day,.st-main
 #sheetBody,.mbox{touch-action:pan-y}
 .st-main{touch-action:pan-y}
 img{-webkit-user-drag:none}
+
+.dl-push,.cn-push{margin:10px 0 0;font-weight:700;font-size:1.02rem;line-height:1.4;color:var(--must,#e8a317)}

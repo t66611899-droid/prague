@@ -328,7 +328,7 @@ function checkReminders() {
   const T = tripNow(); if (T.dayIdx < 0) return; const sent = LS.get("rem", {});
   for (const s of plan[T.dayIdx].stops) {
     const dt = pm(s) - T.min; if (!s.big || marks[s.id] || sent[s.id] || dt > 20 || dt < 0) continue;
-    sent[s.id] = 1; LS.set("rem", sent); const title = `בעוד ${Math.round(dt)} דק': ${s.n}`, o = { body: s.w || "כדאי להתחיל לזוז", icon: "icons/icon-192.png", tag: s.id };
+    sent[s.id] = 1; LS.set("rem", sent); const title = `בעוד ${Math.round(dt)} דק': ${s.n}`, o = { body: s.w || "זוז. לחשוב על זה תספיק בדרך.", icon: "icons/icon-192.png", tag: s.id };
     if (navigator.serviceWorker && navigator.serviceWorker.ready) navigator.serviceWorker.ready.then(r => r.showNotification(title, o)).catch(() => { try { new Notification(title, o); } catch (e) {} });
     else try { new Notification(title, o); } catch (e) {}
   }

@@ -32,7 +32,7 @@ function openArrive(openK) {
   const room = $("#arrRoom"); if (room) room.oninput = () => { me.room = room.value.trim(); LS.set("me", me); };
   $$("#mbody [data-arr]").forEach(b => b.onclick = () => { const a = b.dataset.arr, li = b.closest("li"), k = li && li.dataset.k;
     if (a === "open") openArrive(k);
-    else if (a === "done") { const s = arrSt(); if (s[k]) delete s[k]; else s[k] = 1; LS.set("arr", s); buzz(10); const nx = ARR_STEPS.find(x => !s[x.k]); if (!nx) { toast("🎉 אתה בחדר. לילה טוב!", 3600); } openArrive(s[k] && nx ? nx.k : k); const c = $("#mbody li.cur"); if (c) c.scrollIntoView({ block: "nearest", behavior: "smooth" }); }
+    else if (a === "done") { const s = arrSt(); if (s[k]) delete s[k]; else s[k] = 1; LS.set("arr", s); buzz(10); const nx = ARR_STEPS.find(x => !s[x.k]); if (!nx) { toast("🎉 אתה בחדר. לבד, בעיר זרה, והסתדרת. לילה טוב.", 4200); } openArrive(s[k] && nx ? nx.k : k); const c = $("#mbody li.cur"); if (c) c.scrollIntoView({ block: "nearest", behavior: "smooth" }); }
     else if (a === "me") openMe();
     else if (a === "sos") openSOS();
     else if (a === "taxi") showTaxi();

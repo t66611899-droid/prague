@@ -70,7 +70,7 @@ function countdownSplash(done, mode) { // mode: out (לפני הטיסה) | air 
 /* ---------- "ברוך הבא לפראג": חד-פעמי, אחרי הנחיתה ---------- */
 function welcomeSplash(done) {
   const sp = $("#splash"); LS.set("welcomed", 1); sp.className = "cd wl " + (wantDark() ? "nt" : "dy"); sp.hidden = false;
-  sp.innerHTML = `${skylineSvg()}${snowHtml(30)}<div class="cd-in wl-in"><span class="wl-flag">🇨🇿</span><h1>ברוך הבא לפראג</h1><p class="wl-s">Vítejte v Praze</p>
+  sp.innerHTML = `${skylineSvg()}${snowHtml(30)}<div class="cd-in wl-in"><span class="wl-flag">🇨🇿</span><h1>ברוך הבא לפראג</h1><p class="wl-s">Vítejte v Praze · עשית את זה. עכשיו מתחיל החלק הכיף</p>
     <ul class="wl-l"><li><b>1</b>מפעילים את ה-eSIM</li><li><b>2</b>טרוליבוס 59 + מטרו (כרטיס 90 דק'), או Bolt</li><li><b>3</b>כניסה עצמית למלון: יש מדריך צעד-אחר-צעד</li><li><b>4</b>הודעה קצרה הביתה שנחתת</li></ul>
     <div class="row"><button class="cd-go">למפה ←</button><button class="cd-go alt" id="wlWa">💬 נחתתי</button></div></div>`;
   setTimeout(snowBurst, 400); buzz([20, 60, 20, 60, 40]);
@@ -80,12 +80,13 @@ function welcomeSplash(done) {
 
 /* ---------- מסך הפתיחה של כל יום ---------- */
 function dailySplash(done) {
-  const T = tripNow(), h = T.hour, hello = h >= 5 && h < 12 ? "בוקר טוב" : h < 17 ? "צהריים טובים" : h < 22 ? "ערב טוב" : "לילה טוב";
+  const T = tripNow(), h = T.hour, hello = h >= 5 && h < 12 ? "בוקר" : h < 17 ? "צהריים" : h < 22 ? "ערב" : "לילה";
+  const PUSH = ["נחתת לבד בעיר זרה. מי שחיכה ל\"רגע הנכון\" עדיין בבית.", "היום אתה מדבר עם לפחות אדם זר אחד. לא מו\"מ.", "קר? טוב. גם נוח היה לך בבית.", "יום רביעי מתוך חמישה. מה שלא תעז היום, תסביר לעצמך בטיסה חזרה.", "יום אחרון. אל תארוז את האומץ יחד עם הגרביים."];
   const di = T.dayIdx >= 0 ? T.dayIdx : plan.length - 1, day = plan[di], wd = typeof wxDay === "function" ? wxDay(day.date) : null;
   let top = day.stops.filter(s => (s.big || sinfo(s).big) && s.at !== "hotel"); const seen = new Set(); top = top.filter(s => !seen.has(s.at || s.id) && seen.add(s.at || s.id)).slice(0, 3);
   const sp = $("#splash"); sp.className = "cd dl " + (wantDark() ? "nt" : "dy"); sp.hidden = false;
-  sp.innerHTML = `${skylineSvg()}${snowHtml(18)}<div class="cd-in dl-in"><p class="cd-k">${hello}, עומר</p><h1>${T.phase === "during" ? `יום ${di + 1} מתוך ${plan.length}` : "היה טיול 🇨🇿"}</h1>
-    <p class="wl-s">${T.phase === "during" ? bd(day.title) : "כל המסלולים, היומן והסיכומים עדיין כאן"}</p>
+  sp.innerHTML = `${skylineSvg()}${snowHtml(18)}<div class="cd-in dl-in"><p class="cd-k">${hello}, עומר.</p><h1>${T.phase === "during" ? `יום ${di + 1} מתוך ${plan.length}` : "היה טיול 🇨🇿"}</h1>
+    <p class="wl-s">${T.phase === "during" ? bd(day.title) : "הכול עדיין כאן. השאלה מה אתה עושה עם זה עכשיו"}</p>${T.phase === "during" && PUSH[di] ? `<p class="dl-push">${PUSH[di]}</p>` : ""}
     ${wd ? `<p class="dl-wx"><span dir="ltr">${wxIcon(wd.code)} ${wd.max}° / ${wd.min}°</span> · ${wearAdvice(wd).split(".")[0]}</p>` : ""}
     ${T.phase === "during" ? `<ul class="dl-l">${top.map(s => `<li><span>${sinfo(s).ic}</span><b>${bd(s.n)}</b><i>${isFixed(s) ? fmtT(s.m) : partOfDay(s.m)}</i></li>`).join("")}</ul>` : ""}
     <button class="cd-go">למפה ←</button></div>`;

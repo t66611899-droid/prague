@@ -33,7 +33,7 @@ const SC = {};
 SC[7] = { k: "עוד 7 ימים", title: ["הספירה", "לאחור", "התחילה"], quip: "שבוע. מספיק כדי לקנות כפפות, לא מספיק כדי לשכוח אותן.", fx: "fog", tone: "cold",
   art: () => `<defs>${lg("i7s", [[0, "#05081a"], [0.42, "#121a44"], [0.7, "#2b2c66"], [1, "#4b3a72"]])}${rg("i7m", "#cfe0ff", 0.55, [0.25, 0.18])}${lg("i7f", [[0, "#2f3a78"], [1, "#1d2453"]])}${lg("i7n", [[0, "#111536"], [1, "#05061a"]])}${rg("i7w", "#ffb45a", 0.9)}</defs>
     <rect width="390" height="844" fill="url(#i7s)"/>
-    <g class="L L0">${stars(70, 7)}<circle cx="336" cy="338" r="80" fill="url(#i7m)"/><circle cx="336" cy="338" r="19" fill="#eef3ff"/><circle cx="329" cy="333" r="4.4" fill="#d9e2f7" opacity=".7"/><circle cx="342" cy="345" r="3" fill="#d9e2f7" opacity=".6"/></g>
+    <g class="L L0">${stars(70, 7)}<circle cx="58" cy="452" r="70" fill="url(#i7m)"/><circle cx="58" cy="452" r="16" fill="#eef3ff"/><circle cx="52" cy="448" r="3.8" fill="#d9e2f7" opacity=".7"/><circle cx="63" cy="458" r="2.6" fill="#d9e2f7" opacity=".6"/></g>
     <g class="L L1" fill="url(#i7f)"><path d="M0 500C80 470 160 462 230 466S350 478 390 472V844H0z"/>
       <path d="M104 437l8-9h184l8 9z"/><path d="M108 468V436h192v32z"/><path d="M138 436v-16l7-9 7 9v16zM282 436v-14l6-8 6 8v14z"/>
       <path d="M214 436V354h22v82z"/><path d="M210 357h30v-6h-30z"/><path d="M214 351c0-15 22-15 22 0z"/><path d="M218 338c0-13 14-13 14 0z"/><path d="M223 325l2-30 2 30z"/>
@@ -242,14 +242,15 @@ function playIntro(n, opts = {}) {
   tickTimer(tmr, false); run.tick = setInterval(() => { if (!run.dead && !document.hidden) { tickTimer(tmr, true); if (el.classList.contains("t3")) snd("flap"); } }, 1000);
   if (!REDUCED) run.fx = makeFx(el.querySelector(".fx"), S.fx, lite);
   requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add("t0")));
-  later(() => { el.classList.add("t1"); snd("whoosh"); }, 250);             // כותרת
-  later(() => el.classList.add("t2"), 1200);                                   // משפט
-  later(() => { el.classList.add("t3"); }, 1800);                              // טיימר
-  later(() => el.classList.add("t4"), 2600);                                   // כרטיס
-  later(() => { el.classList.add("t5"); buzz(8); }, 3400);                     // כפתור
+  const TT = opts.fromTeaser ? [0, 300, 620, 900, 1300] : [250, 1200, 1800, 2600, 3400]; if (opts.fromTeaser) el.classList.add("ft");
+  later(() => { el.classList.add("t1"); if (!opts.fromTeaser) snd("whoosh"); }, TT[0]);   // כותרת
+  later(() => el.classList.add("t2"), TT[1]);                                   // משפט
+  later(() => { el.classList.add("t3"); }, TT[2]);                              // טיימר
+  later(() => el.classList.add("t4"), TT[3]);                                   // כרטיס
+  later(() => { el.classList.add("t5"); buzz(8); }, TT[4]);                     // כפתור
   // לכל סצנה רגע משלה
   if (S.hero === "board") later(() => boardFlip(el, quick), 600);
-  if (n === 6) el.querySelectorAll(".lampx,.lampc").forEach(l => { const i = +l.style.getPropertyValue("--i"); later(() => { l.classList.add("on"); snd("chime"); }, 700 + i * 260); });
+  if (n === 6) el.querySelectorAll(".lampx,.lampc").forEach(l => { const i = +l.style.getPropertyValue("--i"); later(() => { l.classList.add("on"); if (!opts.fromTeaser) snd("chime"); }, opts.fromTeaser ? 0 : 700 + i * 260); });
   if (n === 5) later(() => snd("chime"), 900);
   if (S.beat && !REDUCED) { const iv = 60000 / S.beat; later(() => { const b = () => { if (run.dead) return; el.classList.remove("beat"); void el.offsetWidth; el.classList.add("beat"); snd("kick"); }; b(); run.beat = setInterval(b, iv); }, 600); }
   if (n === 3) { const holder = el.querySelector(".itms"), kgEl = el.querySelector(".kg"), bar = el.querySelector(".scale s"); let kg = 0;
@@ -265,6 +266,7 @@ function playIntro(n, opts = {}) {
   return run;
 }
 function closeIntro(silent) {
+  if (silent === "all" && typeof closeTeaser === "function") closeTeaser();
   const r = RUN; if (!r) return; RUN = null; r.dead = true; r.tm.forEach(clearTimeout); clearInterval(r.tick); clearInterval(r.beat); r.fx && r.fx.stop();
   document.body.classList.remove("intro-on");
   if (silent) { r.el.remove(); return; }
@@ -272,11 +274,131 @@ function closeIntro(silent) {
 }
 Object.defineProperty(window, "__introActive", { get: () => !!RUN, configurable: true });
 
+
+/* ---------- מיני-סרטון (4–5 שנ') לפני מסך הספירה: המספר של היום הוא הכוכב ----------
+   שחור → שלג → המצלמה טסה לתוך הסצנה → המספר נבנה מתוך הסצנה עצמה → שיא (בס + רטט) → מתפרק לחלקיקים שנוחתים בדיוק על קלפי הטיימר.
+   חי ב-Canvas: נוחת על הקלפים האמיתיים במסך, בלי הורדה, חד בכל מסך. זוהר = ספרייטים מוכנים מראש + חיבור אור (lighter), זול לטלפון. */
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const SPR = {};
+function sprite(col, r = 16) { const k = col + r; if (SPR[k]) return SPR[k]; const c = document.createElement("canvas"); c.width = c.height = r * 2; const x = c.getContext("2d"), g = x.createRadialGradient(r, r, 0, r, r, r); const a = v => col.replace(/,\s*[\d.]+\)$/, `,${v})`); g.addColorStop(0, "rgba(255,255,255,1)"); g.addColorStop(0.16, a(1)); g.addColorStop(0.42, a(0.28)); g.addColorStop(1, a(0)); x.fillStyle = g; x.fillRect(0, 0, r * 2, r * 2); return SPR[k] = c; }
+async function digitPts(ch, W, H, cx, cy, want) {
+  try { await Promise.race([document.fonts.load("900 200px Rubik"), sleep(650)]); } catch (e) {}
+  const c = document.createElement("canvas"); c.width = W; c.height = H; const x = c.getContext("2d"), fs = Math.min(H * 0.58, W * 1.2);
+  x.font = `900 ${fs}px Rubik, system-ui, sans-serif`; x.textAlign = "center"; x.textBaseline = "alphabetic"; const m = x.measureText(ch), asc = m.actualBoundingBoxAscent || fs * 0.72, desc = m.actualBoundingBoxDescent || 0;
+  x.fillStyle = "#fff"; x.fillText(ch, cx, cy + (asc - desc) / 2);
+  const d = x.getImageData(0, 0, W, H).data; let filled = 0; for (let i = 3; i < d.length; i += 4) if (d[i] > 128) filled++;
+  const step = Math.max(4, Math.sqrt(filled / want)), pts = [];
+  for (let y = step / 2; y < H; y += step) for (let xx = step / 2; xx < W; xx += step) if (d[((y | 0) * W + (xx | 0)) * 4 + 3] > 128) pts.push({ tx: xx + (Math.random() - 0.5) * step * 0.35, ty: y + (Math.random() - 0.5) * step * 0.35 });
+  return { pts, step, top: cy - asc / 2 - 4, bot: cy + asc / 2 + 4, cx, cy };
+}
+const TZ_COL = { 7: ["rgba(255,206,120,1)"], 6: ["rgba(255,186,96,1)"], 5: ["rgba(255,210,122,1)", "rgba(255,104,96,1)", "rgba(130,208,255,1)", "rgba(255,240,180,1)"], 4: ["rgba(255,72,214,1)", "rgba(70,228,255,1)"], 3: ["rgba(255,210,122,1)"], 2: ["rgba(255,210,122,1)"], 1: ["rgba(255,244,214,1)"], 0: ["rgba(255,210,122,1)"] };
+const ITEM_COL = ["#2f7de1", "#e8a317", "#9a6be0", "#f04f6d", "#2fb7a3", "#5d6f9a", "#f7f1e6", "#d42a33"];
+let TZ = null;
+function closeTeaser() { const t = TZ; if (!t) return; TZ = null; t.dead = true; cancelAnimationFrame(t.raf); t.tm.forEach(clearTimeout); t.el.remove(); }
+function playTeaser(n, opts = {}) {
+  closeTeaser(); closeIntro(true); const S = SC[n]; if (!S || REDUCED) return playIntro(n, opts);
+  const lite = introLight(), el = document.createElement("div"); el.id = "teaser"; el.className = `s${n}${lite ? " lite" : ""}`; el.setAttribute("aria-label", "פתיח קצר");
+  el.innerHTML = `<div class="tz-art"><svg viewBox="0 0 390 844" preserveAspectRatio="xMidYMid slice" aria-hidden="true">${S.ground ? `<rect width="390" height="844" fill="${S.ground}"/>` : ""}<g transform="translate(0 ${-(S.shift || 0)})">${S.art()}</g></svg></div><div class="tz-dim"></div><canvas class="tz-cv" aria-hidden="true"></canvas>${n === 0 ? `<div class="tz-board" dir="ltr"></div>` : ""}<button class="tz-skip">דלג ⏭</button>`;
+  document.body.appendChild(el); document.body.classList.add("intro-on");
+  if (!opts.replay) { const z = LS.get("tzSeen", {}); z[pragueDate()] = 1; LS.set("tzSeen", z); }
+  const T = { el, dead: false, tm: [], raf: 0 }; TZ = T;
+  const at = (ms, fn) => T.tm.push(setTimeout(() => { if (!T.dead) fn(); }, ms));
+  const toIntro = extra => { if (T.dead) return; const o = Object.assign({}, opts, extra); return playIntro(n, o); };
+  el.querySelector(".tz-skip").onclick = () => { closeTeaser(); toIntro({ quick: true }); };
+  const cv = el.querySelector(".tz-cv"), ctx = cv.getContext("2d"), dpr = Math.min(window.devicePixelRatio || 1, lite ? 1.5 : 2), W = cv.clientWidth, H = cv.clientHeight;
+  cv.width = W * dpr; cv.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  // לוח הזמנים: כניסה איטית, שיא חד, יציאה מהירה
+  const FORM = n === 0 ? 900 : 1150, PEAK = 2950, BURST = 3250, END = 4150;
+  const cols = TZ_COL[n], want = lite ? 110 : n === 3 ? 74 : n === 4 ? 150 : 190, cx = W / 2, cy = H * 0.43;
+  let P = [], G = null, timerT = [], plane = null;
+  // שלג בתלת-ממד: בזמן הטיסה פנימה הוא נמתח החוצה מהמרכז (תחושת תנועה)
+  const SN = Array.from({ length: lite ? 70 : 140 }, () => ({ x: (Math.random() - 0.5) * 2, y: (Math.random() - 0.5) * 2, z: Math.random() }));
+  const fog = n === 7 ? Array.from({ length: lite ? 4 : 7 }, () => ({ x: Math.random() * W, y: H * (0.3 + Math.random() * 0.55), r: 160 + Math.random() * 160, v: 0.2 + Math.random() * 0.3 })) : [];
+  const fogSpr = sprite("rgba(190,200,236,1)", 64);
+  digitPts(n === 0 ? "0" : String(n), W, H, cx, cy, want).then(g => { G = g; if (T.dead) return;
+    const N = g.pts.length; P = g.pts.map((p, i) => Object.assign(p, { col: cols[i % cols.length], d: 0, sz: 1, ord: i }));
+    if (n === 6 || n === 1) { const key = n === 6 ? p => { let a = Math.atan2(p.ty - g.cy, p.tx - g.cx) + Math.PI / 2; if (a < 0) a += Math.PI * 2; return a; } : p => -p.ty; P.sort((a, b) => key(a) - key(b)); P.forEach((p, i) => p.d = i * (n === 6 ? 1350 : 950) / N); }
+    else if (n === 7) P.forEach(p => p.d = Math.random() * 1250);
+    else if (n === 5) P.forEach(p => { p.d = Math.random() * 650; p.sx = cx + (Math.random() - 0.5) * 170; p.sy = H * (0.6 + Math.random() * 0.25); });
+    else if (n === 4) { P.sort((a, b) => a.ty - b.ty); P.forEach((p, i) => { const beat = Math.floor(i / N * 4); p.d = beat * 484 + (i % Math.ceil(N / 4)) * (260 / Math.ceil(N / 4)); p.col = cols[beat % 2]; }); for (let b = 0; b < 4; b++) at(FORM + b * 484, () => { el.classList.remove("beat"); void el.offsetWidth; el.classList.add("beat"); snd("kick"); }); }
+    else if (n === 3) { P.sort((a, b) => b.ty - a.ty); P.forEach((p, i) => { p.d = i * 1350 / N; p.sy = -30 - Math.random() * 120; p.ic = ITEM_COL[i % ITEM_COL.length]; }); }
+    else if (n === 2) P.forEach(p => p.d = 0);
+    else if (n === 0) P = [];
+  });
+  // לוח יציאות ענק: NOW BOARDING
+  if (n === 0) { const bd = el.querySelector(".tz-board"), rows = ["NOW", "BOARDING"]; bd.innerHTML = rows.map(r => `<div>${r.split("").map(ch => `<i data-c="${ch}"></i>`).join("")}</div>`).join("");
+    const A = "ABCDEFGHIJKLMNOPRSTUVWXYZ0123456789"; bd.querySelectorAll("i").forEach((c, k) => { const flips = 6 + (k * 3) % 7; for (let j = 0; j <= flips; j++) at(FORM - 300 + k * 55 + j * 85, () => { c.textContent = j === flips ? c.dataset.c : A[(Math.random() * A.length) | 0]; c.classList.remove("f"); void c.offsetWidth; c.classList.add("f"); if (j === flips && k % 3 === 0) snd("flap"); }); }); }
+  // הסצנה: שחור → המצלמה טסה פנימה
+  requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add("go")));
+  at(300, () => snd("whoosh"));
+  at(PEAK, () => { el.classList.add("peak", "shake"); snd("boom"); buzz([28]); });
+  at(PEAK + 320, () => el.classList.remove("shake"));
+  at(BURST, () => { // מתפרק → נוחת על הטיימר האמיתי
+    el.classList.add("burst"); const r = toIntro({ fromTeaser: 1 }); if (!r) return;
+    const fls = [...r.el.querySelectorAll(".in-timer .fl")].map(f => f.getBoundingClientRect()).filter(b => b.width);
+    timerT = fls.length ? fls : [{ left: cx - 20, top: H * 0.7, width: 40, height: 56 }];
+    if (n === 0) { const bd = el.querySelector(".tz-board"), br = bd.getBoundingClientRect(); for (let i = 0; i < (lite ? 90 : 160); i++) P.push({ tx: br.left + Math.random() * br.width, ty: br.top + Math.random() * br.height, col: cols[0], d: 0, sz: 1 }); }
+    P.forEach((p, i) => { const b = timerT[i % timerT.length], a = Math.atan2(p.ty - cy, p.tx - cx) + (Math.random() - 0.5) * 0.9, sp = 90 + Math.random() * 150; p.bx = p.cx0 != null ? p.cx0 : p.tx; p.by = p.cy0 != null ? p.cy0 : p.ty; p.kx = p.bx + Math.cos(a) * sp; p.ky = p.by + Math.sin(a) * sp; p.ex = b.left + 4 + Math.random() * (b.width - 8); p.ey = b.top + 4 + Math.random() * (b.height - 8); p.bd = Math.random() * 120; });
+  });
+  at(END, () => closeTeaser());
+  const ease = k => k < 0 ? 0 : k > 1 ? 1 : 1 - Math.pow(1 - k, 3), eio = k => k < 0 ? 0 : k > 1 ? 1 : k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
+  const t0 = performance.now(); let lastTick = 0;
+  const frame = now => {
+    if (T.dead) return; T.raf = requestAnimationFrame(frame); const t = now - t0; ctx.clearRect(0, 0, W, H);
+    // שלג: מואץ בזמן הטיסה פנימה, רגוע אחר כך
+    const warp = t < 2200 ? Math.sin(Math.min(1, t / 2200) * Math.PI) * 0.022 : 0.002;
+    ctx.globalCompositeOperation = "source-over"; ctx.fillStyle = "#fff";
+    for (const f of SN) { f.z -= warp + 0.002; if (f.z <= 0.02) { f.z = 1; f.x = (Math.random() - 0.5) * 2; f.y = (Math.random() - 0.5) * 2; } f.y += 0.0012; const px = cx + f.x / f.z * W * 0.5, py = H * 0.45 + f.y / f.z * H * 0.5, r = (1 - f.z) * 2.6 + 0.3; if (px < -10 || px > W + 10 || py < -10 || py > H + 10) continue; ctx.globalAlpha = Math.min(1, (1 - f.z) * 1.4) * (t < 350 ? t / 350 : 1) * (t > BURST ? Math.max(0, 1 - (t - BURST) / 500) : 1); ctx.beginPath(); ctx.arc(px, py, r, 0, 6.283); ctx.fill(); if (warp > 0.01) { ctx.globalAlpha *= 0.35; ctx.fillRect(px, py, (px - cx) * warp * 3, (py - H * 0.45) * warp * 3); } }
+    // ערפל (7): מתפזר וחושף את המספר
+    if (fog.length && t < BURST + 300) { const a = Math.max(0, 0.9 - Math.max(0, t - 600) / 1900); fog.forEach(f => { f.x += f.v * (1 + t / 1500); if (f.x - f.r > W) f.x = -f.r; ctx.globalAlpha = a; ctx.drawImage(fogSpr, f.x - f.r, f.y - f.r, f.r * 2, f.r * 2); }); }
+    ctx.globalAlpha = 1;
+    if (!G) return;
+    const tf = t - FORM, glowBoost = t > PEAK && t < PEAK + 300 ? 1 + (1 - (t - PEAK) / 300) * 0.32 : 1;
+    // 2: המדפסת — נייר ענק יורד מהחריץ, והמספר מודפס עליו שורה-שורה
+    let paperTop = null; const slotY = H * 0.12, paperH = G.bot - G.top + 70;
+    if (n === 2 && t < BURST + 120) { const k = eio(tf / 1500); paperTop = slotY - paperH + (G.top - 35 - (slotY - paperH)) * k; const pa = t > BURST ? Math.max(0, 1 - (t - BURST) / 120) : 1;
+      ctx.globalAlpha = pa; ctx.fillStyle = "#05080f"; ctx.fillRect(cx - W * 0.42, slotY - 9, W * 0.84, 14); ctx.fillStyle = "#7fd3ff"; ctx.fillRect(cx - W * 0.38, slotY - 3, W * 0.76, 2);
+      ctx.save(); ctx.beginPath(); ctx.rect(0, slotY, W, H); ctx.clip(); ctx.fillStyle = "#f7f1e6"; const pw = W * 0.72; ctx.shadowColor = "rgba(0,0,0,.5)"; ctx.shadowBlur = 24; ctx.fillRect(cx - pw / 2, paperTop, pw, paperH); ctx.shadowBlur = 0; ctx.fillStyle = "#d42a33"; ctx.fillRect(cx - pw / 2, paperTop, pw, 26); ctx.fillStyle = "#fff"; ctx.font = "800 11px Rubik,system-ui"; ctx.textAlign = "left"; ctx.fillText("BOARDING PASS · QS1285", cx - pw / 2 + 12, paperTop + 17); ctx.restore(); ctx.globalAlpha = 1; }
+    for (const p of P) {
+      let x = p.tx, y = p.ty, al = 1, sz = 1, spr = p.col;
+      if (t < BURST) {
+        const k = (tf - p.d) / (n === 5 ? 900 : n === 3 ? 520 : 420); if (k <= 0 && n !== 2) continue;
+        if (n === 7) { al = ease(k); sz = 0.7 + 0.5 * Math.sin(t / 260 + p.tx) * 0.3; }
+        else if (n === 6 || n === 1) { al = ease(k * 2); sz = k < 0.5 ? 1 + (0.5 - k) * (n === 1 ? 1.1 : 2.2) : 1; if (n === 1 && k > 1 && t < PEAK) al = 0.45 + 0.55 * Math.max(0, Math.sin((t - p.ty * 3) / 90)); if (n === 6 && k > 0 && k < 0.06 && now - lastTick > 90) { lastTick = now; snd("flap"); } }
+        else if (n === 5) { const e = eio(k), mx = (p.sx + p.tx) / 2 + (p.tx - cx) * 0.6, my = Math.min(p.sy, p.ty) - 120; x = (1 - e) * (1 - e) * p.sx + 2 * (1 - e) * e * mx + e * e * p.tx; y = (1 - e) * (1 - e) * p.sy + 2 * (1 - e) * e * my + e * e * p.ty; al = Math.min(1, k * 3); }
+        else if (n === 4) { al = ease(k * 3); if (k > 0 && k < 0.35) { ctx.globalCompositeOperation = "lighter"; ctx.strokeStyle = p.col.replace(/,\s*[\d.]+\)$/, `,${(0.55 * (1 - k / 0.35)).toFixed(3)})`); ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(cx, H * 0.69); ctx.lineTo(p.tx, p.ty); ctx.stroke(); } }
+        else if (n === 3) { const e = Math.min(1, Math.max(0, k)), fall = e * e; y = p.sy + (p.ty - p.sy) * fall; if (e >= 1) { const b = Math.max(0, (tf - p.d - 520) / 220); y = p.ty - Math.sin(Math.min(1, b) * Math.PI) * 6 * (1 - Math.min(1, b)); } }
+        else if (n === 2) { if (paperTop == null) continue; y = p.ty - (G.top - 35) + paperTop; al = y > slotY ? 1 : 0; }
+        p.cx0 = x; p.cy0 = y;
+      } else {
+        const u = eio((t - BURST - (p.bd || 0)) / 720), q = 1 - u; x = q * q * p.bx + 2 * q * u * p.kx + u * u * p.ex; y = q * q * p.by + 2 * q * u * p.ky + u * u * p.ey; sz = 1 - u * 0.45; al = u > 0.92 ? (1 - u) / 0.08 : 1; if (n === 3 || n === 2) spr = cols[0];
+      }
+      if (al <= 0.01) continue;
+      if ((n === 3 || n === 2) && t < BURST) { // חפצים / דיו: מוצקים, עם זוהר עדין
+        ctx.globalCompositeOperation = "source-over"; ctx.globalAlpha = al;
+        if (n === 3) { const s = G.step * 0.82; ctx.fillStyle = p.ic; ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x - s / 2, y - s / 2, s, s, 3) : ctx.rect(x - s / 2, y - s / 2, s, s); ctx.fill(); ctx.fillStyle = "rgba(255,255,255,.18)"; ctx.fillRect(x - s / 2, y - s / 2, s, 2); }
+        else { ctx.fillStyle = t > PEAK ? "#e8a317" : "#14161b"; const s = G.step * 0.6; ctx.fillRect(x - s / 2, y - s / 2, s, s); }
+        if (t > PEAK) { ctx.globalCompositeOperation = "lighter"; const r = 14 * glowBoost; ctx.globalAlpha = al * 0.6; ctx.drawImage(sprite(cols[0]), x - r, y - r, r * 2, r * 2); }
+        continue; }
+      ctx.globalCompositeOperation = "lighter"; ctx.globalAlpha = al * (n === 5 ? 0.62 : 0.78); const r = (G.step * 0.95 + 3) * sz * glowBoost; ctx.drawImage(sprite(spr), x - r, y - r, r * 2, r * 2);
+    }
+    // 1: המטוס עובר דרך ה-1
+    if (n === 1 && tf > 950 && tf < 1900) { const k = eio((tf - 950) / 950), px = W * -0.1 + W * 1.2 * k, py = H * 0.82 - H * 0.62 * k, ang = Math.atan2(-H * 0.62, W * 1.2); ctx.globalCompositeOperation = "lighter"; for (let i = 0; i < 14; i++) { const kk = k - i * 0.012; if (kk < 0) break; ctx.globalAlpha = 0.35 * (1 - i / 14); const r = 10 - i * 0.5; ctx.drawImage(sprite("rgba(255,230,190,1)"), W * -0.1 + W * 1.2 * kk - r, H * 0.82 - H * 0.62 * kk - r, r * 2, r * 2); }
+      ctx.globalCompositeOperation = "source-over"; ctx.globalAlpha = 1; ctx.save(); ctx.translate(px, py); ctx.rotate(ang); ctx.scale(1.5, 1.5); ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.moveTo(22, 0); ctx.lineTo(10, -3); ctx.lineTo(-2, -16); ctx.lineTo(-7, -16); ctx.lineTo(0, -3); ctx.lineTo(-14, -3); ctx.lineTo(-19, -9); ctx.lineTo(-22, -9); ctx.lineTo(-19, 0); ctx.lineTo(-22, 9); ctx.lineTo(-19, 9); ctx.lineTo(-14, 3); ctx.lineTo(0, 3); ctx.lineTo(-7, 16); ctx.lineTo(-2, 16); ctx.lineTo(10, 3); ctx.closePath(); ctx.fill(); ctx.restore(); }
+    // הבזק השיא
+    if (t > PEAK && t < PEAK + 240) { ctx.globalCompositeOperation = "lighter"; ctx.globalAlpha = 0.16 * (1 - (t - PEAK) / 240); const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, H * 0.6); g.addColorStop(0, cols[0]); g.addColorStop(1, "rgba(0,0,0,0)"); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H); }
+    ctx.globalAlpha = 1; ctx.globalCompositeOperation = "source-over";
+  };
+  T.raf = requestAnimationFrame(frame);
+  return T;
+}
+window.playTeaser = playTeaser;
+
 /* ---------- מתי מנגנים: במקום מסך הספירה, בכל כניסה עד ההמראה ---------- */
 window.showSplash = (old => function (done) {
   let n = null; const f = QS.get("intro"); try { n = f && /^[0-7]$/.test(f) ? +f : f === "0" ? null : sceneFor(); if (QS.get("splash") === "welcome" || QS.get("cine")) n = null; } catch (e) { n = null; }
   if (n == null) return old.apply(this, arguments);
-  try { const quick = !f && !!seen()[pragueDate()]; playIntro(n, { quick, onEnd: done }); } catch (e) { console.warn("intro failed", e); window.__mods.introErr = String(e && e.message || e); closeIntro(true); return old.apply(this, arguments); }
+  try { const today = !f && !!LS.get("tzSeen", {})[pragueDate()]; /* סימון נפרד: גם מי שראה היום את המסך בגרסה הקודמת יקבל את המיני-סרטון */ if (today || QS.get("tz") === "0") playIntro(n, { quick: today, onEnd: done }); else playTeaser(n, { onEnd: done }); } catch (e) { console.warn("intro failed", e); window.__mods.introErr = String(e && e.message || e); closeIntro(true); return old.apply(this, arguments); }
 })(window.showSplash);
 
 /* ---------- בתפריט: לצפות שוב ---------- */
@@ -285,7 +407,7 @@ function introSection() {
   const cur = sceneFor();
   return `<h3 class="in-mh">✈️ הספירה לאחור</h3><p class="sub">פתיח לכל יום עד הטיסה. ${cur != null ? `היום: <b>${NAMES[cur]}</b>.` : ""}</p><div class="in-mg">${[7, 6, 5, 4, 3, 2, 1, 0].map(k => `<button data-in="${k}"${k === cur ? ` class="cur"` : ""}><b>${k ? k : "✈"}</b><span>${NAMES[k]}</span></button>`).join("")}</div>`;
 }
-function bindIntroSection() { $$("#mbody [data-in]").forEach(b => b.onclick = () => { closeModal(); setTimeout(() => playIntro(+b.dataset.in, { replay: 1 }), 260); }); }
+function bindIntroSection() { $$("#mbody [data-in]").forEach(b => b.onclick = () => { closeModal(); setTimeout(() => playTeaser(+b.dataset.in, { replay: 1 }), 260); }); }
 if (typeof window.openCineMenu === "function") {
   window.openCineMenu = (old => function () { old.apply(this, arguments); try { const sub = $("#mbody .sub"); (sub || $("#mbody")).insertAdjacentHTML(sub ? "afterend" : "afterbegin", introSection()); bindIntroSection(); } catch (e) {} })(window.openCineMenu);
 } else {
@@ -329,7 +451,7 @@ body.intro-on #splash,body.intro-on #modal,body.intro-on #toast{opacity:0!import
 #intro .ttl .w:only-child i,#intro.s1 .ttl .w:first-child i,#intro.s0 .ttl .w:first-child i{color:#fff}
 #intro .sub{margin:8px 0 0;font-weight:700;font-size:1rem;color:#ffd27a;opacity:0;transition:opacity .6s .2s}
 #intro.t1 .sub{opacity:1}
-#intro .quip{margin:12px 0 0;max-width:30ch;font-size:1.02rem;line-height:1.45;font-weight:500;color:rgba(255,255,255,.86);text-shadow:0 2px 14px rgba(0,0,0,.6);opacity:0;transform:translateY(12px);transition:opacity .8s cubic-bezier(.16,1,.3,1),transform .8s cubic-bezier(.16,1,.3,1)}
+#intro .quip{display:table;padding:7px 12px;margin:12px 0 0 auto;border-radius:12px;background:rgba(6,8,24,.5);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);max-width:30ch;font-size:1.02rem;line-height:1.45;font-weight:500;color:rgba(255,255,255,.86);text-shadow:0 2px 14px rgba(0,0,0,.6);opacity:0;transform:translateY(12px);transition:opacity .8s cubic-bezier(.16,1,.3,1),transform .8s cubic-bezier(.16,1,.3,1)}
 #intro.t2 .quip{opacity:1;transform:none}
 /* טיימר: ספרות מתהפכות */
 #intro .in-timer{position:absolute;left:0;right:0;bottom:calc(env(safe-area-inset-bottom,0px) + 228px);z-index:4;display:flex;justify-content:center;align-items:flex-start;gap:5px;perspective:600px}
@@ -378,7 +500,7 @@ body.intro-on #splash,body.intro-on #modal,body.intro-on #toast{opacity:0!import
 #intro.t5 .go{opacity:1;transform:none}
 #intro .go:active{transform:scale(.97)}
 #intro.out{pointer-events:none}#intro.out .art{transform:scale(1.35);opacity:0;transition:transform .9s cubic-bezier(.6,0,.4,1),opacity .8s}#intro.out .copy,#intro.out .in-timer,#intro.out .in-pass,#intro.out .go,#intro.out .hdr,#intro.out .in-board,#intro.out .in-bp,#intro.out .scale{opacity:0;transform:translateY(20px);transition:opacity .4s,transform .5s}#intro.out{background:transparent;transition:background .8s}#intro.out .fx,#intro.out .grain,#intro.out .vig{opacity:0;transition:opacity .6s}
-#intro.quick *{transition-delay:0s!important;animation-delay:0s!important}#intro.quick .art,#intro.quick .L{transition-duration:1.4s}
+#intro.quick *{transition-delay:0s!important;animation-delay:0s!important}#intro.ft .art{opacity:1;transform:scale(1.22);transition:transform 7s cubic-bezier(.16,.84,.24,1)}#intro.ft .L{transform:none}#intro.ft.t0 .art{transform:scale(1)}#intro.quick .art,#intro.quick .L{transition-duration:1.4s}
 /* סצנות */
 #intro.s6 .lampx .glow,#intro.s6 .lampx .refl{opacity:0;transition:opacity 1.1s ease}#intro.s6 .lampx.on .glow{opacity:1;animation:inFlick 4s ease-in-out infinite}#intro.s6 .lampx.on .refl{opacity:.7}
 #intro.s6 .lampc{opacity:.25;transition:opacity .3s}#intro.s6 .lampc.on{opacity:1}
@@ -431,7 +553,7 @@ body.intro-on #splash,body.intro-on #modal,body.intro-on #toast{opacity:0!import
 #intro .in-board .mine i{color:#ffd27a;background:#211a0b}#intro .in-board .mine .c3 i{color:#4dff94;animation:inBlink 1.2s steps(1) infinite}@keyframes inBlink{50%{opacity:.4}}
 
 /* גרסה קלה: בלי טשטוש, בלי גרגר, פחות חלקיקים — אבל אותו איור ואותה כוריאוגרפיה */
-#intro.lite .grain{display:none}#intro.lite .ttl .w i{filter:none!important}#intro.lite .hdr button,#intro.lite .kick span{-webkit-backdrop-filter:none;backdrop-filter:none;background:rgba(0,0,0,.35)}#intro.lite .bm{mix-blend-mode:normal;opacity:.6}
+@media (max-height:740px){#intro .in-bp{top:calc(env(safe-area-inset-top,0px) + 238px);transform:scale(.7)}}#intro.lite .grain{display:none}#intro.lite .quip{-webkit-backdrop-filter:none;backdrop-filter:none;background:rgba(6,8,24,.62)}#intro.lite .ttl .w i{filter:none!important}#intro.lite .hdr button,#intro.lite .kick span{-webkit-backdrop-filter:none;backdrop-filter:none;background:rgba(0,0,0,.35)}#intro.lite .bm{mix-blend-mode:normal;opacity:.6}
 @media (prefers-reduced-motion:reduce){#intro *{animation-duration:.01s!important;transition-duration:.2s!important}}
 @media (max-height:700px){#intro .copy{top:calc(env(safe-area-inset-top,0px) + 7vh)}#intro .ttl{font-size:clamp(2.4rem,12vw,3.6rem)}#intro .quip{font-size:.92rem}#intro .in-timer{bottom:calc(env(safe-area-inset-bottom,0px) + 200px)}#intro .fl{height:min(12vw,50px)}#intro .in-pass{height:96px;bottom:calc(env(safe-area-inset-bottom,0px) + 84px)}#intro .in-pass .rt b{font-size:1.5rem}#intro .go{height:54px}}
 #cine .lux-fx{position:absolute;inset:0;width:100%;height:100%;z-index:1;pointer-events:none;opacity:.85}
@@ -442,6 +564,26 @@ body.intro-on #splash,body.intro-on #modal,body.intro-on #toast{opacity:0!import
 #cine .cn-go::after{content:"";position:absolute;inset:0;background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,.35) 50%,transparent 70%);transform:translateX(120%);animation:inSweep 3.2s 1s ease-in-out infinite}
 #cine .cn-title h1{filter:drop-shadow(0 8px 22px rgba(0,0,0,.45))}
 #cine .cn-stats,#cine .cn-end{-webkit-backdrop-filter:blur(16px) saturate(140%);backdrop-filter:blur(16px) saturate(140%);background:rgba(10,12,26,.62)!important;border-color:rgba(255,255,255,.14)!important}
+#teaser{position:fixed;inset:0;z-index:9850;background:#000;overflow:hidden;transition:background .45s}
+#teaser .tz-art,#teaser .tz-dim,#teaser .tz-cv{position:absolute;inset:0;pointer-events:none}
+#teaser .tz-art{opacity:0;transform:scale(.9);transform-origin:50% 44%;filter:blur(10px) brightness(.35);transition:opacity 1.3s ease .25s,transform 2.6s cubic-bezier(.6,0,.2,1) .2s,filter 1.8s ease .25s}
+#teaser.go .tz-art{opacity:1;transform:scale(1.22);filter:blur(0) brightness(.62)}
+#teaser .tz-art svg{width:100%;height:100%;display:block}
+#teaser .tz-dim{background:radial-gradient(120% 80% at 50% 43%,rgba(0,0,10,.15) 20%,rgba(0,0,10,.7));opacity:0;transition:opacity 1.2s .6s}#teaser.go .tz-dim{opacity:1}
+#teaser .tz-cv{width:100%;height:100%}
+#teaser .tz-skip{position:absolute;top:calc(env(safe-area-inset-top,0px) + 12px);inset-inline-start:14px;z-index:3;height:40px;border:0;border-radius:20px;background:rgba(255,255,255,.14);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);color:#fff;font:600 .9rem Rubik,sans-serif;padding:0 14px}
+#teaser.burst{background:transparent;pointer-events:none}#teaser.burst .tz-art,#teaser.burst .tz-dim,#teaser.burst .tz-board{opacity:0;transition:opacity .42s}#teaser.burst .tz-skip{opacity:0;pointer-events:none}
+#teaser.shake .tz-art,#teaser.shake .tz-cv{animation:tzShake .3s linear}@keyframes tzShake{20%{transform:translate(-5px,3px) scale(1.22)}40%{transform:translate(4px,-4px) scale(1.22)}60%{transform:translate(-3px,-2px) scale(1.22)}80%{transform:translate(2px,3px) scale(1.22)}}
+#teaser.shake .tz-cv{animation-name:tzShakeC}@keyframes tzShakeC{20%{transform:translate(-5px,3px)}40%{transform:translate(4px,-4px)}60%{transform:translate(-3px,-2px)}80%{transform:translate(2px,3px)}}
+#teaser.s4.beat .tz-art{animation:tzBeat .4s cubic-bezier(.2,.8,.2,1)}@keyframes tzBeat{0%{filter:brightness(1)}100%{filter:brightness(.62)}}
+#teaser .tz-board{position:absolute;left:10px;right:10px;top:30vh;z-index:2;display:flex;flex-direction:column;align-items:center;gap:12px;opacity:0;transform:translateY(16px) scale(.96);transition:opacity .7s .5s,transform 1.4s cubic-bezier(.16,1,.3,1) .5s}
+#teaser.go .tz-board{opacity:1;transform:none}
+#teaser .tz-board div{display:flex;gap:5px}
+#teaser .tz-board i{font-style:normal;display:flex;align-items:center;justify-content:center;width:min(10.4vw,46px);height:min(15vw,66px);border-radius:6px;background:linear-gradient(#1d2030 50%,#15172a 50%);color:#ffd27a;font:800 min(9vw,40px)/1 ui-monospace,Menlo,monospace;box-shadow:0 10px 24px rgba(0,0,0,.6),inset 0 -1px 0 rgba(0,0,0,.6);position:relative}
+#teaser .tz-board i::after{content:"";position:absolute;left:0;right:0;top:50%;height:1px;background:rgba(0,0,0,.65)}
+#teaser .tz-board i.f{animation:tzF .085s ease-out}@keyframes tzF{from{transform:perspective(200px) rotateX(-70deg)}to{transform:none}}
+#teaser.peak .tz-board i{color:#4dff94;text-shadow:0 0 18px rgba(77,255,148,.7)}
+#teaser.lite .tz-art{filter:none!important}#teaser.lite .tz-skip{-webkit-backdrop-filter:none;backdrop-filter:none;background:rgba(0,0,0,.4)}
 .in-mh{margin:6px 0 2px}.in-mg{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:8px 0 16px}.in-mg button{border:0;border-radius:14px;background:var(--card2);color:var(--ink);padding:10px 4px;display:flex;flex-direction:column;align-items:center;gap:4px;font:600 .72rem Rubik,sans-serif;line-height:1.15;text-align:center}.in-mg b{font-size:1.3rem}.in-mg .cur{box-shadow:inset 0 0 0 2px var(--red,#d42a33)}
 `; document.head.appendChild(st); })();
 

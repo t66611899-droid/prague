@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>פראג</title>
+<meta name="description" content="המסלול שלי בפראג">
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#d42a33">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="פראג">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="vendor/maplibre-gl.css">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div id="map" aria-label="מפת פראג"></div>
+
+<div id="hud">
+  <header id="top">
+    <div class="clock"><b id="ck">--:--</b><span class="ck-l">פראג</span></div>
+    <p id="st" aria-live="polite"></p>
+    <button id="wx" class="tbtn" aria-label="מזג אוויר">🌡️</button>
+    <button id="nowBtn" class="tbtn now">עכשיו</button>
+    <button id="sos" class="tbtn sos" aria-label="חירום">SOS</button>
+  </header>
+  <nav id="days" role="tablist" aria-label="ימי הטיול"></nav>
+  <div id="net" hidden>📡 בלי אינטרנט · הכול שמור</div>
+  <div id="navChip" hidden></div>
+</div>
+
+<div id="fabs">
+  <button id="fabChat" class="fab chat" aria-label="צ'אט עם Claude"><span>💬</span><small>Claude</small></button>
+  <button id="fabHere" class="fab" aria-label="מה יש פה?"><span>📍</span><small>מה פה?</small></button>
+  <button id="fabEv" class="fab" aria-label="שכבת אירועים"><span>🔥</span><small>אירועים</small></button>
+  <button id="fab3d" class="fab" aria-label="תלת-ממד"><b>3D</b></button>
+  <button id="fabLoc" class="fab loc" aria-label="מרכז עליי"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M12 2 4.5 20.3l.7.7L12 18l6.8 3 .7-.7z" fill="currentColor"/></svg></button>
+</div>
+<div id="playCard" aria-live="polite"></div>
+
+<section id="sheet" aria-label="המסלול" data-state="low">
+  <button id="grab" aria-label="פתח או סגור את הרשימה"><i></i></button>
+  <div id="sheetBody">
+    <div id="nextCard"></div>
+    <div id="nxMore"></div>
+    <div id="player">
+      <button id="playBtn" aria-label="נגן את היום">▶</button>
+      <input id="scrub" type="range" aria-label="שעה ביום" dir="ltr">
+      <output id="scrubT">--:--</output>
+      <button id="speedBtn" aria-label="מהירות הנגן">x1</button>
+    </div>
+    <div id="quick">
+      <button data-q="claude">💬 שאל את Claude</button>
+      <button data-q="cold">🥶 קר לי / נמאס</button>
+      <button data-q="delay">⏱️ דחיתי</button>
+      <button data-q="today">☀️ היום שלי</button>
+      <button data-q="exp">💰 הוצאות</button>
+      <button data-q="pack">🎒 מה לקחת</button>
+      <button data-q="more">⋯ עוד</button>
+    </div>
+    <div id="listHead">
+      <div class="lh-t"><h2 id="listTitle"></h2><small id="listSub"></small></div>
+      <label class="sw mini"><span>ספונטני</span><input type="checkbox" id="spont"><i></i></label>
+      <button id="editBtn" class="lnk">עריכה</button>
+    </div>
+    <ol id="list"></ol>
+    <div id="listFoot">
+      <button id="addBtn" class="btn">➕ להוסיף תחנה</button>
+      <button id="resetBtn" class="btn ghost" hidden>↩︎ התוכנית המקורית</button>
+    </div>
+    <p class="fine attr">לחיצה ארוכה על המפה מוסיפה משהו שראית בדרך.<br><span id="attr"></span></p>
+  </div>
+</section>
+
+<div id="pop" aria-live="polite"></div>
+<div id="modal" hidden>
+  <div id="mback"></div>
+  <div id="mbox" class="mbox" role="dialog" aria-modal="true">
+    <button id="mclose" aria-label="סגור">✕</button>
+    <div id="mbody"></div>
+  </div>
+</div>
+<div id="toast" role="status" aria-live="polite"></div>
+<div id="splash" hidden></div>
+
+<script src="vendor/maplibre-gl.js"></script>
+<script src="data.js"></script>
+<script src="routes.js"></script>
+<script src="js/config.js"></script>
+<script src="js/core.js"></script>
+<script src="js/map.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/chat.js"></script>
+<script src="js/extras.js"></script>
+</body>
+</html>

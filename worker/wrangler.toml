@@ -1,0 +1,17 @@
+name = "prague-chat"
+main = "worker.js"
+compatibility_date = "2026-01-01"
+workers_dev = true
+
+# הסודות (ANTHROPIC_API_KEY, APP_TOKEN) לא נמצאים כאן. מגדירים אותם ב-Cloudflare בלבד.
+[vars]
+ALLOWED_ORIGIN = "https://t66611899-droid.github.io"
+DAILY_LIMIT = "40"
+
+[[kv_namespaces]]
+binding = "LIMITS"
+id = "c5f11dadfd3e41be9e5de5a86034a664"
+
+# חיפוש אירועים: 09:00 ו-16:00 בשעון פראג (חורף = UTC+1)
+[triggers]
+crons = ["0 8,15 * * *"]

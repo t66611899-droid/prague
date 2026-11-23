@@ -1,0 +1,55 @@
+/* service worker: האפליקציה, הנתונים והמפה של מרכז פראג עובדים גם בלי קליטה */
+const V = "prg-v2";
+const SHELL = ["./", "index.html", "styles.css", "data.js", "routes.js", "manifest.webmanifest",
+  "js/config.js", "js/core.js", "js/map.js", "js/ui.js", "js/chat.js", "js/extras.js",
+  "vendor/maplibre-gl.js", "vendor/maplibre-gl.css", "icons/icon.svg", "icons/icon-192.png", "icons/icon-512.png", "icons/icon-180.png"];
+const MAP = "prg-map", MEDIA = "prg-media";
+
+self.addEventListener("install", e => { e.waitUntil(caches.open(V).then(c => c.addAll(SHELL)).then(() => self.skipWaiting())); });
+self.addEventListener("activate", e => {
+  e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k.startsWith("prg-v") && k !== V).map(k => caches.delete(k)))).then(() => self.clients.claim()));
+});
+
+// כתובות האריחים כוללות גרסה שמתחלפת כל שבוע. מנרמלים אותה כדי שאריח שמור יעבוד גם אחרי עדכון.
+function tileKey(url) { const m = /^(https:\/\/tiles\.openfreemap\.org\/planet\/)[^/]+(\/\d+\/\d+\/\d+\.pbf)$/.exec(url); return m ? m[1] + "_" + m[2] : url; }
+
+async function cacheFirst(req, name, key) {
+  const c = await caches.open(name), hit = await c.match(key || req, { ignoreVary: true });
+  if (hit) return hit;
+  const res = await fetch(req); if (res.ok || res.type === "opaque") c.put(key || req, res.clone()); return res;
+}
+async function staleWhileRevalidate(req, name) {
+  const c = await caches.open(name), hit = await c.match(req, { ignoreVary: true, ignoreSearch: req.mode === "navigate" });
+  const net = fetch(req).then(res => { if (res.ok) c.put(req, res.clone()); return res; }).catch(() => null);
+  return hit || (await net) || (req.mode === "navigate" ? c.match("index.html") : Response.error());
+}
+
+// קבצי האפליקציה: קודם מהרשת (כדי לקבל עדכונים), ואם אין קליטה או שהיא איטית, מהמטמון
+async function networkFirst(req, name) {
+  const c = await caches.open(name), opt = { ignoreVary: true, ignoreSearch: true };
+  try {
+    const res = await Promise.race([fetch(req), new Promise((_, rej) => setTimeout(() => rej(new Error("slow")), 3000))]);
+    if (res.ok) c.put(req, res.clone()); return res;
+  } catch (e) { return (await c.match(req, opt)) || (req.mode === "navigate" ? c.match("index.html") : fetch(req)); }
+}
+
+self.addEventListener("fetch", e => {
+  const req = e.request; if (req.method !== "GET") return;
+  const u = new URL(req.url);
+  if (u.origin === location.origin) { e.respondWith(networkFirst(req, V)); return; }
+  if (u.hostname === "tiles.openfreemap.org") {
+    if (/\.(pbf|png|json)$/.test(u.pathname) && !u.pathname.startsWith("/styles")) e.respondWith(cacheFirst(req, MAP, tileKey(req.url)).catch(() => Response.error()));
+    else e.respondWith(staleWhileRevalidate(req, MAP)); // סגנונות ו-TileJSON
+    return;
+  }
+  if (u.hostname.endsWith("basemaps.cartocdn.com")) { e.respondWith(cacheFirst(req, MAP).catch(() => Response.error())); return; }
+  if (u.hostname === "fonts.googleapis.com") { e.respondWith(staleWhileRevalidate(req, MEDIA)); return; }
+  if (u.hostname === "fonts.gstatic.com" || u.hostname === "upload.wikimedia.org") { e.respondWith(cacheFirst(req, MEDIA).catch(() => Response.error())); return; }
+  if (u.hostname === "en.wikipedia.org") { e.respondWith(staleWhileRevalidate(req, MEDIA)); return; }
+  // מזג אוויר, חיפוש, ניתוב וצ'אט: תמיד מהרשת (האפליקציה שומרת בעצמה מה שצריך)
+});
+
+self.addEventListener("notificationclick", e => {
+  e.notification.close();
+  e.waitUntil(self.clients.matchAll({ type: "window" }).then(cs => cs.length ? cs[0].focus() : self.clients.openWindow("./")));
+});

@@ -742,3 +742,34 @@ button.ritem{flex-direction:column;align-items:stretch;justify-content:center;ga
 #splash.cd h1,.wl-l li,.dl-l li{animation-name:rise2}
 .wl-flag,.cd-ms{animation-name:pop2}
 #splash.cd .wl-l{margin-bottom:16px;gap:10px}
+
+/* ---------- יומן טיול להורים ---------- */
+.jm{background:var(--card2);border-radius:var(--r2);overflow:hidden;margin:0 0 12px;cursor:pointer;transition:transform .15s var(--spring)}
+.jm:active{transform:scale(.985)}
+.jm-ph{display:grid;gap:2px;position:relative}
+.jm-ph:empty{display:none}
+.jm-ph img{display:block;width:100%;height:100%;object-fit:cover;aspect-ratio:4/3;background:var(--line)}
+.jm-ph.n1 img{aspect-ratio:16/9}
+.jm-ph.n2{grid-template-columns:1fr 1fr}.jm-ph.n2 img{aspect-ratio:1}
+.jm-ph.n3{grid-template-columns:2fr 1fr;grid-template-rows:1fr 1fr}.jm-ph.n3 img{aspect-ratio:auto}.jm-ph.n3 img:first-child{grid-row:1/3;aspect-ratio:1}
+.jm-ph span{position:absolute;bottom:8px;inset-inline-end:8px;background:rgba(0,0,0,.6);color:#fff;border-radius:10px;padding:3px 9px;font-size:.8rem;font-weight:600}
+.jm-b{padding:12px 14px}
+.jm-b p{margin:0 0 4px;font-size:1rem;line-height:1.45}
+.jm-b small{color:var(--mut);font-size:.82rem}
+.jm-f{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.jb{font-style:normal;font-size:.76rem;font-weight:600;border-radius:10px;padding:4px 9px;background:var(--card);color:var(--mut)}
+.jb.ok{color:var(--ok)}.jb.wait{color:var(--ink);background:color-mix(in srgb,var(--must) 30%,var(--card))}.jb.re{color:var(--red-ink)}
+.jm-re{margin:8px 0 0!important;font-size:.88rem!important;color:var(--mut)}.jm-re b{color:var(--ink)}
+.jr-note{margin:12px 0 0;padding:10px 12px;border-radius:var(--r1);font-size:.86rem;background:color-mix(in srgb,var(--must) 18%,var(--card))}
+.jr-pick{display:flex;flex-direction:column;align-items:center;gap:2px;padding:22px 12px;margin-top:8px;border:2px dashed var(--line);border-radius:var(--r2);text-align:center;cursor:pointer}
+.jr-pick span{font-size:2rem}.jr-pick small{color:var(--mut);font-size:.8rem}
+.jr-pick.has{padding:10px;flex-direction:row;justify-content:center;gap:8px}.jr-pick.has span{font-size:1.2rem}.jr-pick.has small{display:none}
+.jr-prev{display:flex;gap:8px;overflow-x:auto;margin-top:10px;scrollbar-width:none}
+.jr-prev:empty{display:none}
+.jr-prev img{flex:none;width:96px;height:96px;object-fit:cover;border-radius:14px;background:var(--card2)}
+.jr-prev.big img{width:150px;height:150px}
+.fld textarea{font:inherit;color:var(--ink);background:var(--card2);border:1.5px solid var(--line);border-radius:var(--r1);padding:10px 12px;resize:none;font-size:1rem}
+.seg{display:flex;gap:6px;padding:4px;border-radius:var(--r1);background:var(--card2);margin:12px 0 0}
+.seg button{flex:1;min-height:46px;border:0;border-radius:calc(var(--r1) - 4px);background:transparent;font-weight:600;font-size:.92rem;color:var(--mut)}
+.seg button.sel{background:var(--card);color:var(--ink);box-shadow:0 1px 5px rgba(0,0,0,.12)}
+.steps{margin:10px 0;padding-inline-start:22px;display:flex;flex-direction:column;gap:8px;font-size:.92rem;line-height:1.5}

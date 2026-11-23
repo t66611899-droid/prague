@@ -123,14 +123,89 @@ async function pidFeed(cors) {
   return new Response(JSON.stringify({ updated: new Date().toISOString(), items: [...a, ...b] }), { status: 200, headers: { "content-type": "application/json; charset=utf-8", "cache-control": "public, max-age=600", ...cors } });
 }
 
+/* ---------- יומן טיול להורים ----------
+   הכול ב-KV (חינם): jr:meta = הרגעים, jr:img:<id> = תמונה, jr:re = תגובות ההורים, jr:share = המפתח הסודי של הקישור.
+   העלאה ועריכה רק עם APP_TOKEN. דף ההורים קורא רק דרך /j/<מפתח> ורואה רק רגעים שסומנו "להורים". */
+const jGet = async (env, k, d) => { const v = await env.LIMITS.get(k); try { return v ? JSON.parse(v) : d; } catch (e) { return d; } };
+const jPut = (env, k, v) => env.LIMITS.put(k, JSON.stringify(v));
+const cut = (v, n) => String(v == null ? "" : v).slice(0, n);
+const okId = id => /^[a-z0-9]{6,24}$/.test(id || "");
+async function journalOwner(req, env, sub, cors) {
+  if (!env.LIMITS) return json({ error: "no storage" }, 503, cors);
+  if (!env.APP_TOKEN) return json({ error: "notset" }, 503, cors);
+  if (!same(req.headers.get("x-app-token") || "", env.APP_TOKEN)) return json({ error: "unauthorized" }, 401, cors);
+  const meta = await jGet(env, "jr:meta", { moments: [], stats: {}, loc: null }), M = req.method;
+  if (M === "GET" && sub === "") return json({ meta, re: await jGet(env, "jr:re", {}), share: (await env.LIMITS.get("jr:share")) || "" }, 200, cors);
+  if (M === "PUT" && sub.startsWith("/img/")) {
+    const id = sub.slice(5); if (!okId(id)) return json({ error: "bad id" }, 400, cors);
+    const buf = await req.arrayBuffer(); if (buf.byteLength < 200 || buf.byteLength > 1900000) return json({ error: "size" }, 413, cors);
+    await env.LIMITS.put("jr:img:" + id, buf); return json({ ok: true, bytes: buf.byteLength }, 200, cors);
+  }
+  if (M === "POST" && sub === "/moment") {
+    let b; try { b = await req.json(); } catch (e) { return json({ error: "bad json" }, 400, cors); }
+    if (!okId(b.id)) return json({ error: "bad id" }, 400, cors);
+    const mo = { id: b.id, t: +b.t || Date.now(), date: /^\d{4}-\d\d-\d\d$/.test(b.date || "") ? b.date : "", time: cut(b.time, 5), text: cut(b.text, 400), where: cut(b.where, 80),
+      lat: typeof b.lat === "number" ? +b.lat.toFixed(3) : null, lng: typeof b.lng === "number" ? +b.lng.toFixed(3) : null, imgs: (Array.isArray(b.imgs) ? b.imgs : []).filter(okId).slice(0, 6), vis: b.vis === "me" ? "me" : "p" };
+    meta.moments = meta.moments.filter(x => x.id !== mo.id); meta.moments.push(mo); meta.moments.sort((a, c) => a.t - c.t); meta.moments = meta.moments.slice(-200);
+    meta.updated = Date.now(); await jPut(env, "jr:meta", meta); return json({ ok: true, count: meta.moments.length }, 200, cors);
+  }
+  if (M === "DELETE" && sub.startsWith("/moment/")) {
+    const id = sub.slice(8), mo = meta.moments.find(x => x.id === id); if (!mo) return json({ ok: true, gone: true }, 200, cors);
+    meta.moments = meta.moments.filter(x => x.id !== id); meta.updated = Date.now(); await jPut(env, "jr:meta", meta);
+    for (const i of mo.imgs) await env.LIMITS.delete("jr:img:" + i);
+    const re = await jGet(env, "jr:re", {}); if (re[id]) { delete re[id]; await jPut(env, "jr:re", re); }
+    return json({ ok: true }, 200, cors);
+  }
+  if (M === "POST" && sub === "/share") {
+    let b = {}; try { b = await req.json(); } catch (e) {}
+    if (b.action === "stop") { await env.LIMITS.delete("jr:share"); return json({ ok: true, share: "" }, 200, cors); }
+    let k = await env.LIMITS.get("jr:share");
+    if (!k || b.action === "rotate") { k = [...crypto.getRandomValues(new Uint8Array(16))].map(x => x.toString(16).padStart(2, "0")).join(""); await env.LIMITS.put("jr:share", k); }
+    return json({ ok: true, share: k }, 200, cors);
+  }
+  if (M === "POST" && sub === "/loc") {
+    let b = {}; try { b = await req.json(); } catch (e) {}
+    meta.loc = b.off || typeof b.lat !== "number" ? null : { where: cut(b.where, 60), lat: +b.lat.toFixed(2), lng: +b.lng.toFixed(2), t: Date.now() }; // רק אזור כללי
+    await jPut(env, "jr:meta", meta); return json({ ok: true }, 200, cors);
+  }
+  if (M === "POST" && sub === "/stats") {
+    let b = {}; try { b = await req.json(); } catch (e) {}
+    if (/^\d{4}-\d\d-\d\d$/.test(b.date || "")) { meta.stats[b.date] = { km: Math.max(0, Math.min(80, +b.km || 0)), places: Math.max(0, Math.min(60, +b.places || 0)) }; await jPut(env, "jr:meta", meta); }
+    return json({ ok: true }, 200, cors);
+  }
+  return json({ error: "not found" }, 404, cors);
+}
+async function journalPublic(req, env, key, sub, cors) {
+  if (!env.LIMITS) return json({ error: "no storage" }, 503, cors);
+  const share = await env.LIMITS.get("jr:share"); if (!share || !same(key, share)) return json({ error: "gone" }, 404, cors);
+  const meta = await jGet(env, "jr:meta", { moments: [], stats: {}, loc: null }), vis = meta.moments.filter(m => m.vis === "p");
+  if (req.method === "GET" && sub === "") return json({ moments: vis, re: await jGet(env, "jr:re", {}), stats: meta.stats || {}, loc: meta.loc && Date.now() - meta.loc.t < 3 * 36e5 ? meta.loc : null, updated: meta.updated || 0 }, 200, { ...cors, "cache-control": "no-store" });
+  if (req.method === "GET" && sub.startsWith("/img/")) {
+    const id = sub.slice(5); if (!okId(id) || !vis.some(m => m.imgs.includes(id))) return new Response("not found", { status: 404, headers: cors });
+    const buf = await env.LIMITS.get("jr:img:" + id, "arrayBuffer"); if (!buf) return new Response("not found", { status: 404, headers: cors });
+    return new Response(buf, { status: 200, headers: { "content-type": "image/jpeg", "cache-control": "private, max-age=604800", ...cors } });
+  }
+  if (req.method === "POST" && sub === "/react") {
+    let b = {}; try { b = await req.json(); } catch (e) {}
+    if (!vis.some(m => m.id === b.id)) return json({ error: "no moment" }, 404, cors);
+    const day = "jr:rc:" + new Date().toISOString().slice(0, 10), n = +(await env.LIMITS.get(day)) || 0; if (n > 300) return json({ error: "limit" }, 429, cors);
+    await env.LIMITS.put(day, String(n + 1), { expirationTtl: 172800 });
+    const re = await jGet(env, "jr:re", {}); re[b.id] = [...(re[b.id] || []), { n: cut(b.name, 16) || "משפחה", h: !!b.heart, x: cut(b.text, 140), ts: Date.now() }].slice(-20);
+    await jPut(env, "jr:re", re); return json({ ok: true, re: re[b.id] }, 200, cors);
+  }
+  return json({ error: "not found" }, 404, cors);
+}
+
 export default {
   async scheduled(event, env, ctx) { ctx.waitUntil(findEvents(env, false)); },
   async fetch(req, env) {
     const origin = req.headers.get("Origin") || "", allow = env.ALLOWED_ORIGIN || "*";
-    const cors = { "Access-Control-Allow-Origin": allow === "*" ? "*" : allow, "Access-Control-Allow-Headers": "content-type,x-app-token", "Access-Control-Allow-Methods": "GET,POST,OPTIONS", "Access-Control-Max-Age": "86400", "Vary": "Origin" };
+    const cors = { "Access-Control-Allow-Origin": allow === "*" ? "*" : allow, "Access-Control-Allow-Headers": "content-type,x-app-token", "Access-Control-Allow-Methods": "GET,POST,PUT,DELETE,OPTIONS", "Access-Control-Max-Age": "86400", "Vary": "Origin" };
     if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
     const path = new URL(req.url).pathname.replace(/\/+$/, "");
     if (req.method === "GET" && path.endsWith("/pid")) return pidFeed(cors);
+    const jo = /\/journal(\/.*)?$/.exec(path); if (jo) return journalOwner(req, env, jo[1] || "", cors);
+    const jp = /\/j\/([a-f0-9]{32})(\/.*)?$/.exec(path); if (jp) return journalPublic(req, env, jp[1], jp[2] || "", cors);
     if (req.method === "GET" && path.endsWith("/events")) { // האירועים שהחיפוש המתוזמן מצא. קריאה בלבד, בלי סודות
       const v = env.LIMITS ? await env.LIMITS.get("events") : null;
       return new Response(v || '{"items":[]}', { status: 200, headers: { "content-type": "application/json; charset=utf-8", "cache-control": "public, max-age=600", ...cors } });

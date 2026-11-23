@@ -55,7 +55,9 @@ function fixText(tn) {
   const ctxRtl = HEB.test(p.textContent || "") || getComputedStyle(p).direction === "rtl"; if (!ctxRtl) return;
   RISKY.lastIndex = 0; if (!RISKY.test(s)) return; RISKY.lastIndex = 0;
   const frag = document.createDocumentFragment(); let last = 0, m;
-  while ((m = RISKY.exec(s))) { const run = m[0].trimEnd(); if (run.length < 2 || HEB.test(run)) continue; if (m.index > last) frag.appendChild(document.createTextNode(s.slice(last, m.index))); const b = document.createElement("bdi"); b.dir = "ltr"; b.textContent = run; frag.appendChild(b); last = m.index + run.length; }
+  while ((m = RISKY.exec(s))) { let run = m[0].trimEnd(), at = m.index;
+    if (/^[+\u2212-]/.test(run) && at > 0 && /[\p{L}]/u.test(s[at - 1])) { run = run.slice(1); at += 1; if (!/[\s\u2013\u2014\/-]/.test(run.replace(/^\d[\d.,:]*/, "").charAt(0) || "") || !/\d[\d.,:]*\s?[\u2013\u2014-]\s?\d|\d{2,}[\s\u00a0-]\d{2,}/.test(run)) continue; } /* "ו-19", "ב-19:00": המקף שייך למילה, זה לא מינוס */
+    if (run.length < 2 || HEB.test(run)) continue; if (at > last) frag.appendChild(document.createTextNode(s.slice(last, at))); const b = document.createElement("bdi"); b.dir = "ltr"; b.textContent = run; frag.appendChild(b); last = at + run.length; }
   if (!last) return; if (last < s.length) frag.appendChild(document.createTextNode(s.slice(last))); tn.replaceWith(frag);
 }
 function fixTree(root) { if (!root || root.nodeType !== 1 || root.closest && root.closest(SKIP)) return; const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT), list = []; let n; while ((n = w.nextNode())) list.push(n); list.forEach(fixText); }

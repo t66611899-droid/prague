@@ -17,8 +17,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="vendor/maplibre-gl.css">
-<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="vendor/maplibre-gl.css?v=9">
+<link rel="stylesheet" href="styles.css?v=9">
 </head>
 <body>
 <div id="map" aria-label="מפת פראג"></div>
@@ -94,17 +94,27 @@
 <div id="splash" hidden></div>
 <div id="big" hidden></div>
 
-<script src="vendor/maplibre-gl.js"></script>
-<script src="data.js"></script>
-<script src="routes.js"></script>
-<script src="js/config.js"></script>
-<script src="js/core.js"></script>
-<script src="js/map.js"></script>
-<script src="js/ui.js"></script>
-<script src="js/chat.js"></script>
-<script src="js/flow.js"></script>
-<script src="js/safety.js"></script>
-<script src="js/updates.js"></script>
-<script src="js/extras.js"></script>
+<script>
+/* התאוששות: אם העלייה נכשלת (למשל קבצים מגרסאות שונות מיד אחרי עדכון), מנקים את מטמון האפליקציה וטוענים מחדש פעם אחת */
+window.__boot = function (why) {
+  try { if (window.__booted || Date.now() - (+sessionStorage.getItem("prg.heal") || 0) < 60000) return; sessionStorage.setItem("prg.heal", Date.now()); } catch (e) { return; }
+  var go = function () { location.replace(location.pathname + "?r=" + Date.now() + location.hash); };
+  if (window.caches) caches.keys().then(function (ks) { return Promise.all(ks.filter(function (k) { return /^prg-v/.test(k); }).map(function (k) { return caches.delete(k); })); }).then(go, go); else go();
+};
+window.addEventListener("error", function (e) { if (!window.__booted) window.__boot(e.message); });
+window.addEventListener("unhandledrejection", function (e) { if (!window.__booted) window.__boot(String(e.reason)); });
+</script>
+<script src="vendor/maplibre-gl.js?v=9"></script>
+<script src="data.js?v=9"></script>
+<script src="routes.js?v=9"></script>
+<script src="js/config.js?v=9"></script>
+<script src="js/core.js?v=9"></script>
+<script src="js/map.js?v=9"></script>
+<script src="js/ui.js?v=9"></script>
+<script src="js/chat.js?v=9"></script>
+<script src="js/flow.js?v=9"></script>
+<script src="js/safety.js?v=9"></script>
+<script src="js/updates.js?v=9"></script>
+<script src="js/extras.js?v=9"></script>
 </body>
 </html>

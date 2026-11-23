@@ -432,6 +432,7 @@ async function init() {
   }
   try { await initMap(); } catch (e) { console.error(e); $("#map").innerHTML = emptyState("🗺️", "המפה לא נטענה", "הרשימה והשעות עובדות כרגיל. כדאי לרענן כשיש קליטה."); return; }
   applyTheme(); initBattery();
+  window.__booted = true; // העלייה הצליחה
   const onLoad = () => { if (mapReady) return; mapReady = true; renderAll(); drawEvents(); updateFab(); fly(); if (settings.gps || QS.get("gps")) startGPS(false); loadEvents(); };
   if (map.loaded()) onLoad(); else map.once("load", onLoad);
   setTimeout(onLoad, 7000); // גם אם אריחים מתעכבים, האפליקציה ממשיכה

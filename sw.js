@@ -1,5 +1,5 @@
 /* service worker: האפליקציה, הנתונים והמפה של מרכז פראג עובדים גם בלי קליטה */
-const V = "prg-v28";
+const V = "prg-v29";
 const SHELL = ["./", "index.html", "styles.css", "data.js", "routes.js", "manifest.webmanifest",
   "js/config.js", "js/core.js", "js/map.js", "js/ui.js", "js/chat.js", "js/flow.js", "js/safety.js", "js/updates.js", "js/more.js", "js/gallery.js", "js/media.js", "js/journal.js", "js/arrive.js", "js/tickets.js", "js/ask.js", "js/prep.js", "js/import.js", "js/harel.js", "js/docs.js", "js/transfer.js", "family.html", "js/splash.js", "js/extras.js", "prague.ics",
   "vendor/maplibre-gl.js", "vendor/maplibre-gl.css", "icons/icon.svg", "icons/icon-192.png", "icons/icon-512.png", "icons/icon-180.png"];
@@ -21,16 +21,23 @@ async function cacheFirst(req, name, key) {
 async function staleWhileRevalidate(req, name) {
   const c = await caches.open(name), hit = await c.match(req, { ignoreVary: true, ignoreSearch: req.mode === "navigate" });
   const net = fetch(req).then(res => { if (res.ok) c.put(req, res.clone()); return res; }).catch(() => null);
-  return hit || (await net) || (req.mode === "navigate" ? c.match("index.html") : Response.error());
+  return hit || (await Promise.race([net, new Promise(r => setTimeout(() => r(null), 6000))])) || (req.mode === "navigate" ? c.match("index.html") : Response.error());
 }
 
 // קבצי האפליקציה: קודם מהרשת (כדי לקבל עדכונים), ואם אין קליטה או שהיא איטית, מהמטמון
 async function networkFirst(req, name) {
   const c = await caches.open(name), opt = { ignoreVary: true, ignoreSearch: true };
+  const want = new URL(req.url).searchParams.get("v"), sameVer = !want || want === V.slice(5); // V = "prg-vN"
+  const net = fetch(req); net.catch(() => {});
   try {
-    const res = await Promise.race([fetch(req), new Promise((_, rej) => setTimeout(() => rej(new Error("slow")), 3000))]);
-    if (res.ok) c.put(req, res.clone()); return res;
-  } catch (e) { return (await c.match(req, opt)) || (req.mode === "navigate" ? c.match("index.html") : fetch(req)); }
+    const res = await Promise.race([net, new Promise((_, rej) => setTimeout(() => rej(new Error("slow")), 3000))]);
+    if (res.ok && sameVer) c.put(req, res.clone()); return res;
+  } catch (e) {
+    const hit = sameVer ? await c.match(req, opt) : null; // קובץ מגרסה אחרת = לא מהמטמון (ערבוב גרסאות שובר את העלייה)
+    if (hit) return hit;
+    if (req.mode === "navigate") { const ix = await c.match("index.html"); if (ix) return ix; }
+    return net;
+  }
 }
 
 self.addEventListener("fetch", e => {

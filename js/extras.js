@@ -397,7 +397,7 @@ async function loadEvents() {
 async function init() {
   const T0 = tripNow(); curDay = T0.dayIdx >= 0 ? T0.dayIdx : T0.phase === "after" ? plan.length - 1 : 0;
   document.documentElement.style.setProperty("--day", DAYC[curDay]); document.documentElement.dataset.theme = wantDark() ? "dark" : "light";
-  initSheet(); initListEvents(); renderAll(); setSheet("low", true); renderNet();
+  initSheet(); initListEvents(); renderAll(); setSheet("low", true); renderNet(); window.__ui = true; // הממשק עלה (שומר העלייה נרגע)
   let splashDone = QS.get("splash") === "0", mapReady = false; const fly = () => { if (splashDone && mapReady) { try { QS.get("splash") === "0" ? flyDay(curDay, true) : openingFlight(); } catch (e) { ensurePrague(0); } ensurePrague(6500); } };
   if (!splashDone) showSplash(() => { splashDone = true; fly(); });
   $("#days").addEventListener("click", e => { const b = e.target.closest(".day"); if (b) { buzz(6); selectDay(+b.dataset.i); } });

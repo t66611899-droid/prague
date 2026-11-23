@@ -11,14 +11,46 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="פראג">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<script>
+/* שומר עלייה: אם משהו נכשל בעלייה, במקום מסך לבן מופיע "משהו השתבש · לטעון מחדש".
+   הניקוי מוחק רק את קבצי האפליקציה השמורים (מטמון + service worker), אף פעם לא את הנתונים (פרטים, כרטיסים, יומן). */
+(function () {
+  var errs = [];
+  function note(m) { try { m = String(m || "").slice(0, 300); errs.push(m); localStorage.setItem("prg.lastErr", JSON.stringify({ t: Date.now(), m: m, ua: navigator.userAgent.slice(0, 160) })); } catch (e) {} }
+  window.__bootErrs = errs;
+  window.addEventListener("error", function (e) { if (!window.__ui) note((e.message || "error") + " @ " + String(e.filename || "").split("/").pop() + ":" + (e.lineno || "")); }, true);
+  window.addEventListener("unhandledrejection", function (e) { if (!window.__ui) note("promise: " + (e.reason && (e.reason.message || e.reason))); });
+  window.__safeReload = function () {
+    var b = document.getElementById("bootFailBtn"); if (b) { b.disabled = true; b.textContent = "מנקה ומעלה מחדש…"; }
+    var jobs = [];
+    try { if (navigator.serviceWorker) jobs.push(navigator.serviceWorker.getRegistrations().then(function (rs) { return Promise.all(rs.map(function (r) { return r.unregister(); })); })); } catch (e) {}
+    try { if (window.caches) jobs.push(caches.keys().then(function (ks) { return Promise.all(ks.filter(function (k) { return k.indexOf("prg-v") === 0; }).map(function (k) { return caches.delete(k); })); })); } catch (e) {}
+    var go = function () { location.replace(location.pathname + "?r=" + Date.now() + location.hash); };
+    Promise.all(jobs).then(go, go); setTimeout(go, 4000);
+  };
+  function show() {
+    if (window.__ui || document.getElementById("bootFail")) return;
+    var d = document.createElement("div"); d.id = "bootFail";
+    d.setAttribute("style", "position:fixed;inset:0;z-index:99999;background:#14161b;color:#fff;font:16px/1.5 -apple-system,system-ui,sans-serif;direction:rtl;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px");
+    d.innerHTML = '<div style="font-size:3rem">🧳</div><h1 style="margin:10px 0 6px;font-size:1.5rem">משהו השתבש בעלייה</h1><p style="margin:0 0 18px;opacity:.8;max-width:30ch">הנתונים שלך שמורים ולא נמחקים (פרטים, כרטיסים, יומן). רק טוענים את האפליקציה מחדש.</p><button id="bootFailBtn" style="min-height:54px;min-width:220px;border:0;border-radius:27px;background:#d42a33;color:#fff;font:700 1.1rem -apple-system,system-ui,sans-serif">לטעון מחדש</button><details style="margin-top:22px;opacity:.6;font-size:.8rem;max-width:90vw"><summary>פרטים טכניים</summary><div dir="ltr" style="text-align:left;word-break:break-word;margin-top:6px" id="bootFailMsg"></div></details>';
+    (document.body || document.documentElement).appendChild(d);
+    document.getElementById("bootFailMsg").textContent = (errs.join(" | ") || "timeout") + " · " + (document.querySelector('script[src*="extras.js"]') || {}).src;
+    document.getElementById("bootFailBtn").onclick = window.__safeReload;
+  }
+  window.__bootFail = show;
+  /* בדיקה: אחרי 2.5 שנ' עם שגיאה, או אחרי 15 שנ' בלי שהממשק עלה */
+  setTimeout(function () { if (!window.__ui && errs.length) show(); }, 2500);
+  var waited = 0; (function later() { waited += 5000; setTimeout(function () { if (window.__ui) return; if (document.readyState === "complete" || waited >= 45000) show(); else later(); }, waited === 5000 ? 15000 : 5000); })(); // ברשת איטית מחכים שהקבצים ייטענו
+})();
+</script>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="vendor/maplibre-gl.css?v=28">
-<link rel="stylesheet" href="styles.css?v=28">
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<link rel="stylesheet" href="vendor/maplibre-gl.css?v=29">
+<link rel="stylesheet" href="styles.css?v=29">
 </head>
 <body>
 <div id="map" aria-label="מפת פראג"></div>
@@ -106,30 +138,30 @@ window.__boot = function (why) {
 window.addEventListener("error", function (e) { if (!window.__booted) window.__boot(e.message); });
 window.addEventListener("unhandledrejection", function (e) { if (!window.__booted) window.__boot(String(e.reason)); });
 </script>
-<script src="vendor/maplibre-gl.js?v=28"></script>
-<script src="data.js?v=28"></script>
-<script src="routes.js?v=28"></script>
-<script src="js/config.js?v=28"></script>
-<script src="js/core.js?v=28"></script>
-<script src="js/map.js?v=28"></script>
-<script src="js/ui.js?v=28"></script>
-<script src="js/chat.js?v=28"></script>
-<script src="js/flow.js?v=28"></script>
-<script src="js/safety.js?v=28"></script>
-<script src="js/updates.js?v=28"></script>
-<script src="js/more.js?v=28"></script>
-<script src="js/gallery.js?v=28"></script>
-<script src="js/media.js?v=28"></script>
-<script src="js/journal.js?v=28"></script>
-<script src="js/arrive.js?v=28"></script>
-<script src="js/tickets.js?v=28"></script>
-<script src="js/ask.js?v=28"></script>
-<script src="js/prep.js?v=28"></script>
-<script src="js/import.js?v=28"></script>
-<script src="js/harel.js?v=28"></script>
-<script src="js/docs.js?v=28"></script>
-<script src="js/transfer.js?v=28"></script>
-<script src="js/splash.js?v=28"></script>
-<script src="js/extras.js?v=28"></script>
+<script src="vendor/maplibre-gl.js?v=29"></script>
+<script src="data.js?v=29"></script>
+<script src="routes.js?v=29"></script>
+<script src="js/config.js?v=29"></script>
+<script src="js/core.js?v=29"></script>
+<script src="js/map.js?v=29"></script>
+<script src="js/ui.js?v=29"></script>
+<script src="js/chat.js?v=29"></script>
+<script src="js/flow.js?v=29"></script>
+<script src="js/safety.js?v=29"></script>
+<script src="js/updates.js?v=29"></script>
+<script src="js/more.js?v=29"></script>
+<script src="js/gallery.js?v=29"></script>
+<script src="js/media.js?v=29"></script>
+<script src="js/journal.js?v=29"></script>
+<script src="js/arrive.js?v=29"></script>
+<script src="js/tickets.js?v=29"></script>
+<script src="js/ask.js?v=29"></script>
+<script src="js/prep.js?v=29"></script>
+<script src="js/import.js?v=29"></script>
+<script src="js/harel.js?v=29"></script>
+<script src="js/docs.js?v=29"></script>
+<script src="js/transfer.js?v=29"></script>
+<script src="js/splash.js?v=29"></script>
+<script src="js/extras.js?v=29"></script>
 </body>
 </html>

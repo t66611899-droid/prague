@@ -57,7 +57,9 @@
       <button id="speedBtn" aria-label="מהירות הנגן">x1</button>
     </div>
     <div id="quick">
-      <button data-q="claude">💬 שאל את Claude</button>
+      <button data-q="upd">🔔 עדכונים<i id="updBadge" hidden>0</i></button>
+      <button data-q="wa">💬 ווטסאפ</button>
+      <button data-q="claude">✨ שאל את Claude</button>
       <button data-q="cold">🥶 קר לי / נמאס</button>
       <button data-q="delay">⏱️ דחיתי</button>
       <button data-q="today">☀️ היום שלי</button>
@@ -67,6 +69,7 @@
     </div>
     <div id="listHead">
       <div class="lh-t"><h2 id="listTitle"></h2><small id="listSub"></small></div>
+      <button id="freeBtn" class="chipbtn" aria-label="יום חופשי">🧭 חופשי</button>
       <label class="sw mini"><span>ספונטני</span><input type="checkbox" id="spont"><i></i></label>
       <button id="editBtn" class="lnk">עריכה</button>
     </div>
@@ -89,6 +92,7 @@
 </div>
 <div id="toast" role="status" aria-live="polite"></div>
 <div id="splash" hidden></div>
+<div id="big" hidden></div>
 
 <script src="vendor/maplibre-gl.js"></script>
 <script src="data.js"></script>
@@ -98,6 +102,9 @@
 <script src="js/map.js"></script>
 <script src="js/ui.js"></script>
 <script src="js/chat.js"></script>
+<script src="js/flow.js"></script>
+<script src="js/safety.js"></script>
+<script src="js/updates.js"></script>
 <script src="js/extras.js"></script>
 </body>
 </html>

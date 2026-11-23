@@ -4,10 +4,10 @@
 /* ---------- מזג אוויר (Open-Meteo, בלי מפתח). בלי רשת מציגים את התחזית האחרונה ששמורה ---------- */
 let wx = LS.get("wx", null);
 async function loadWeather() {
-  if (isOffline() || (wx && Date.now() - wx.t < 3 * 36e5)) return;
+  if (isOffline() || (wx && Date.now() - wx.t < 29 * 60000)) return;
   try {
     const j = await fetchJson("https://api.open-meteo.com/v1/forecast?latitude=50.0875&longitude=14.4213&hourly=temperature_2m,apparent_temperature,precipitation_probability,snowfall,weather_code&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max,snowfall_sum,weather_code&timezone=Europe%2FPrague&forecast_days=16", 9000);
-    if (!j.daily) return; wx = { t: Date.now(), d: j.daily, h: j.hourly }; LS.set("wx", wx); renderTop();
+    if (!j.daily) return; wx = { t: Date.now(), d: j.daily, h: j.hourly }; LS.set("wx", wx); renderTop(); if (typeof refreshUpdates === "function") refreshUpdates();
   } catch (e) {}
 }
 const wxIcon = c => c == null ? "🌡️" : c === 0 ? "☀️" : c <= 2 ? "⛅" : c === 3 ? "☁️" : c <= 48 ? "🌫️" : (c >= 71 && c <= 77) || c === 85 || c === 86 ? "❄️" : c >= 95 ? "⛈️" : "🌧️";
@@ -238,7 +238,7 @@ async function summaryImage(di) {
 }
 
 /* ---------- חירום ---------- */
-function openSOS() {
+function openSOS_v1() {
   const ins = (me.ins || "").replace(/[^\d+]/g, "");
   openModal(`<h2>🆘 חירום</h2>
     <a class="sosb big" href="tel:112"><b>112</b><span>חירום בכל אירופה: משטרה, אמבולנס, כיבוי. מדברים אנגלית.</span></a>
@@ -250,7 +250,7 @@ function openSOS() {
 }
 
 /* ---------- הפרטים שלי (רק במכשיר) ---------- */
-function openMe() {
+function openMe_v1() {
   const f = (k, label, ph, type = "text") => `<label class="fld">${label}<input data-me="${k}" type="${type}" value="${esc(me[k] || "")}" placeholder="${ph}" dir="auto" autocomplete="off"></label>`;
   openModal(`<h2>🔒 הפרטים שלי</h2><p class="sub">נשמר רק בטלפון הזה. לא נשלח לשום מקום ולא נמצא בקוד של האתר.</p>
     <div class="card soft"><b>🏨 מיקום המלון</b><p class="sub" id="hotSt">${me.hotel ? "מוגדר: " + esc(me.hotel.q || "נקודה על המפה") : "כרגע מסומן אזור כללי. כדי שהמסלולים יהיו מדויקים, קובעים את המקום המדויק."}</p>
@@ -272,9 +272,9 @@ function openMe() {
 
 /* ---------- "עוד" + הגדרות ---------- */
 function openMore() {
-  const items = [["today", "☀️", "היום שלי"], ["wx", "🌡️", "מזג אוויר"], ["pack", "🎒", "מה לקחת"], ["exp", "💰", "הוצאות"], ["sum", "📊", "סיכום היום"], ["off", "📥", "בלי אינטרנט"], ["me", "🔒", "הפרטים שלי"], ["sos", "🆘", "חירום"], ...(CONFIG.server ? [["chat", "💬", "חיבור Claude"]] : []), ["set", "⚙️", "הגדרות"], ["inst", "📲", "מסך הבית"], ["add", "➕", "להוסיף תחנה"]];
+  const items = [["upd", "🔔", "עדכונים"], ["wa", "💬", "ווטסאפ"], ["cal", "📅", "תזכורות ליומן"], ["tips", "💡", "כדאי לדעת"], ["phr", "🗣️", "משפטים"], ["free", "🧭", "יום חופשי"], ["today", "☀️", "היום שלי"], ["wx", "🌡️", "מזג אוויר"], ["pack", "🎒", "מה לקחת"], ["exp", "💰", "הוצאות"], ["sum", "📊", "סיכום היום"], ["off", "📥", "בלי אינטרנט"], ["me", "🔒", "הפרטים שלי"], ["sos", "🆘", "חירום"], ...(CONFIG.server ? [["chat", "💬", "חיבור Claude"]] : []), ["set", "⚙️", "הגדרות"], ["inst", "📲", "מסך הבית"], ["add", "➕", "להוסיף תחנה"]];
   openModal(`<h2>עוד</h2><div class="menu">${items.map(i => `<button data-m="${i[0]}"><span>${i[1]}</span>${i[2]}</button>`).join("")}</div>`);
-  const fn = { today: () => openToday(curDay), wx: openWeather, pack: openPack, exp: openExp, sum: () => openSummary(curDay), off: openOffline, me: openMe, sos: openSOS, set: openSettings, chat: openChatSetup, inst: openInstall, add: () => addStopFlow() };
+  const fn = { upd: openUpdates, wa: openWa, cal: openCalendar, tips: openTips, phr: openPhrases, free: openFree, today: () => openToday(curDay), wx: openWeather, pack: openPack, exp: openExp, sum: () => openSummary(curDay), off: openOffline, me: openMe, sos: openSOS, set: openSettings, chat: openChatSetup, inst: openInstall, add: () => addStopFlow() };
   $$("#mbody [data-m]").forEach(b => b.onclick = fn[b.dataset.m]);
 }
 function openSettings() {
@@ -408,23 +408,27 @@ async function init() {
   $("#days").addEventListener("click", e => { const b = e.target.closest(".day"); if (b) { buzz(6); selectDay(+b.dataset.i); } });
   document.addEventListener("click", e => {
     const a = e.target.closest("[data-act]"); if (a) onAct(a.dataset.act, a.dataset.id);
+    const up = e.target.closest("[data-up]"); if (up) { if (up.dataset.up === "open") openUpdates(); else { const s = LS.get("updSeen", {}); s[up.dataset.k] = 1; LS.set("updSeen", s); renderNext(); setSheet(sheetState); } }
+    const dw = e.target.closest("[data-dw]"); if (dw) dwellAnswer(dw.dataset.dw === "add");
     const ev = e.target.closest("[data-ev]"); if (ev && window._evNew) { if (ev.dataset.ev === "open") { flyTo(window._evNew, 16); openPlace({ near: window._evNew }); } else { const s = LS.get("evSeen", {}); s[window._evNew.name] = 1; LS.set("evSeen", s); renderNext(); setSheet(sheetState); } }
   });
   $("#mback").onclick = closeModal; $("#mclose").onclick = closeModal;
   addEventListener("keydown", e => { if (e.key === "Escape") closeModal(); });
-  $("#nowBtn").onclick = goNow; $("#sos").onclick = openSOS; $("#wx").onclick = openWeather;
+  $("#nowBtn").onclick = goNow; $("#sos").onclick = () => openSOS(); $("#wx").onclick = openWeather;
   $("#fabLoc").onclick = locateTap; $("#fab3d").onclick = toggle3D; $("#fabHere").onclick = () => openNearby(); $("#fabEv").onclick = toggleEvents;
   $("#playBtn").onclick = playDay; $("#speedBtn").onclick = cycleSpeed;
   $("#scrub").addEventListener("input", e => { stopPlay(); playState = null; hidePlayCard(); setPlay(+e.target.value); renderPlayer(); });
   $("#spont").onchange = e => { settings.spont = e.target.checked; saveSet(); renderAll(); toast(settings.spont ? "מצב ספונטני: בלי שעות, הולכים למה שקרוב" : "חזרנו לשעות"); };
   $("#editBtn").onclick = () => { editMode = !editMode; if (editMode && !isDesktop()) setSheet("full"); renderList(); };
   $("#addBtn").onclick = () => addStopFlow(); $("#resetBtn").onclick = () => { if (confirm("להחזיר את כל הימים לתוכנית המקורית?")) resetPlan(); };
-  const Q = { here: () => openNearby(), claude: openChat, cold: openCold, delay: openDelay, today: () => openToday(curDay), exp: openExp, pack: openPack, more: openMore };
+  const Q = { what: openWhat, upd: openUpdates, wa: openWa, here: () => openNearby(), claude: openChat, cold: openCold, delay: openDelay, today: () => openToday(curDay), exp: openExp, pack: openPack, more: openMore };
   $("#quick").addEventListener("click", e => { const b = e.target.closest("[data-q]"); if (b) Q[b.dataset.q](); });
-  addEventListener("online", () => { renderNet(); toast("הרשת חזרה ✓"); loadWeather(); loadEvents(); flushChatQueue(); });
+  addEventListener("online", () => { renderNet(); toast("הרשת חזרה ✓"); loadWeather(); loadPid(); loadFx(); loadEvents(); flushChatQueue(); });
   addEventListener("offline", renderNet);
   matchMedia("(prefers-color-scheme: dark)").addEventListener("change", applyTheme);
-  setInterval(() => { applyTheme(); renderLive(); checkReminders(); }, 20000);
+  setInterval(() => { applyTheme(); renderLive(); checkReminders(); leaveReminder(); }, 20000);
+  setInterval(() => { loadWeather(); loadPid(); loadFx(); refreshUpdates(); }, 5 * 60000); // הבדיקה כל 5 דק', הרענון בפועל כל חצי שעה
+  initSwipe(); $("#freeBtn").onclick = openFree; refreshUpdates(); loadPid(); loadFx();
   loadWeather();
   if ("serviceWorker" in navigator && location.protocol !== "file:" && QS.get("sw") !== "0") {
     navigator.serviceWorker.register("sw.js").catch(() => {});

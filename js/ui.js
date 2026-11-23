@@ -67,7 +67,11 @@ function renderDays() {
 }
 
 /* ---------- כרטיס "התחנה הבאה" ---------- */
-function homeRow() { // בלילה: כפתור "הביתה" בולט עם זמן ההליכה למלון
+function homeRow() { // בלילה: כפתור "הביתה" בולט עם זמן ההליכה למלון, ועדכון להורים בלחיצה
+  const hh = place("hotel"), dd = gps ? hav(gps, hh) : null, at = dd != null && dd < 80;
+  return `<div class="nrow"><a class="btn home" href="${navUrl(hh)}" target="_blank" rel="noopener">🏠 הביתה${dd != null ? ` · ${fmtDur(walkEst(dd))} ברגל` : " ברגל"}</a><button class="btn dark" data-act="bolt">🚕 Bolt</button></div><div class="nrow"><button class="btn wa" data-act="${at ? "wahome" : "waway"}">${at ? "💬 הגעתי בשלום" : "💬 אני בדרך למלון"}</button></div>`;
+}
+function homeRow_v1() {
   const h = place("hotel"), d = gps ? hav(gps, h) : null;
   return `<div class="nrow"><a class="btn home" href="${navUrl(h)}" target="_blank" rel="noopener">🏠 הביתה${d != null ? ` · ${fmtDur(walkEst(d))} ברגל` : " ברגל"}</a><button class="btn dark" data-act="bolt">🚕 Bolt</button></div>`;
 }
@@ -104,7 +108,8 @@ function renderNext() {
 
 /* ---------- נגן ---------- */
 function renderPlayer() {
-  const st = plan[curDay].stops, a = pm(st[0]), b = pm(st[st.length - 1]), sc = $("#scrub"), L = live(curDay);
+  const st = plan[curDay].stops; $("#player").hidden = !st.length; if (!st.length) return;
+  const a = pm(st[0]), b = pm(st[st.length - 1]), sc = $("#scrub"), L = live(curDay);
   sc.min = a; sc.max = Math.max(b, a + 1); sc.step = 1;
   const v = playT != null ? playT : L.today ? Math.min(b, Math.max(a, L.now)) : a;
   sc.value = v; sc.style.setProperty("--f", ((v - a) / Math.max(1, b - a) * 100) + "%");
@@ -156,7 +161,7 @@ function goNow() {
 /* ---------- פעולות ---------- */
 function markDone(id) { setMark(id, "done"); delete autoOff[id]; LS.set("autoOff", autoOff); buzz([18, 40, 18]); renderAll(); }
 function unmark(id) { setMark(id, null); autoOff[id] = 1; LS.set("autoOff", autoOff); renderAll(); }
-function skipStop(id) { const s = findStop(id); if (s && s.big) { toast("על זה לא מדלגים 🙂"); return; } setMark(id, "skip"); buzz(12); renderAll(); toast("דילגנו. ממשיכים הלאה"); }
+function skipStop(id) { const s = findStop(id); if (s && s.big) { toast("זה קבוע, אבל אפשר לשנות דרך \"עריכה\""); return; } laterStop(id); }
 function focusStop(id) { const s = findStop(id), l = s && loc(s); if (l) { flyTo(l); if (!isDesktop()) setSheet("low"); } else toast("לתחנה הזאת אין מיקום על המפה"); }
 function showArrive(s) { // אנימציית ✓ קטנה כשמגיעים
   const p = $("#pop"); p.innerHTML = `<svg viewBox="0 0 52 52" aria-hidden="true"><circle cx="26" cy="26" r="23"/><path d="M15 27l8 8 15-17"/></svg><b>הגעת</b><span>${bd(s.n)}</span>`;
@@ -167,6 +172,8 @@ function onAct(act, id) {
   else if (act === "done") { const s = findStop(id); markDone(id); closeModal(); if (s) showArrive(s); }
   else if (act === "undone") { unmark(id); closeModal(); }
   else if (act === "skip") { skipStop(id); closeModal(); }
+  else if (act === "what") openWhat();
+  else if (act === "later") { laterStop(id); closeModal(); }
   else if (act === "delay") openDelay();
   else if (act === "drop") openDrop();
   else if (act === "play") { if (!isDesktop()) setSheet("low"); playDay(); }
@@ -174,6 +181,8 @@ function onAct(act, id) {
   else if (act === "today") openToday(curDay);
   else if (act === "pack") openPack();
   else if (act === "bolt") openBolt();
+  else if (act === "waway") waSend(msgOnWay());
+  else if (act === "wahome") waSend(msgHome());
   else if (act === "navin") { const s = findStop(id), l = s && loc(s); if (l) startNav(l, s.n); closeModal(); }
   else if (act === "close") closeModal();
 }

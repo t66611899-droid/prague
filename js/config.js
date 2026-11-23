@@ -4,6 +4,8 @@ const CONFIG = {
   // false = האפליקציה לא פונה לשרת בכלל: Claude נפתח ב-claude.ai, אין התראות, והאירועים הם רק הקבועים.
   // כדי להפעיל בעתיד את הצ'אט הפנימי, חיפוש האירועים וההתראות: לשנות ל-true ולהגדיר את המפתחות ב-Cloudflare.
   server: false,
+  // פיד התקלות הציבורי של התחבורה בפראג (PID). עובר דרך השרת רק כי לפיד עצמו אין CORS. בלי מפתח ובלי סודות.
+  pidUrl: "https://prague-chat.bloombarber.workers.dev/pid",
   chatUrl: "https://prague-chat.bloombarber.workers.dev",
   // מפתח ציבורי של Web Push (לא סוד)
   vapidPublic: "BL1wKzVNWdylek1wLHayfBEwohzmUqydt-HzwKBf94lTeNoJAcdvZpq93BiAj7Xex35SbxXVUfU4d0vlgErjONA"

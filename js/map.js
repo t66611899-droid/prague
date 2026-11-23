@@ -328,7 +328,7 @@ function onPos(pos) {
     meMarker = new maplibregl.Marker({ element: el, rotationAlignment: "map", pitchAlignment: "map" }).setLngLat([gps.lng, gps.lat]).addTo(map);
     if (heading != null) setHeading(heading);
   } else meMarker.setLngLat([gps.lng, gps.lat]);
-  drawAcc(); trackPoint(); autoArrive();
+  drawAcc(); trackPoint(); autoArrive(); if (typeof flowOnPos === "function") flowOnPos();
   if (first && userWantsFollow) { follow = true; userWantsFollow = false; }
   if (follow && !playRaf) map.easeTo({ center: [gps.lng, gps.lat], zoom: Math.max(map.getZoom(), 15.5), duration: REDUCED ? 0 : 700, padding: mapPad() });
   updateFab(); if (typeof renderLive === "function") renderLive();

@@ -108,6 +108,21 @@ async function notifyHot(env, items) { // רק ציון 5, רק אירועים �
   await env.LIMITS.put(ck, String(count), { expirationTtl: 172800 }); await env.LIMITS.put("pushtold", JSON.stringify(told.slice(-60)));
 }
 
+/* ---------- תחבורה: פיד התקלות והשינויים הרשמי של PID, מומר ל-JSON (לפיד עצמו אין CORS). בלי סודות. ---------- */
+async function pidFeed(cors) {
+  const get = async (u, live) => {
+    try {
+      const r = await fetch(u, { headers: { "user-agent": "Mozilla/5.0 (prague-trip)" }, cf: { cacheTtl: 600, cacheEverything: true } }), x = await r.text();
+      return [...x.matchAll(/<item>([\s\S]*?)<\/item>/g)].map(m => {
+        const it = m[1], g = t => { const k = new RegExp("<" + t + ">([\\s\\S]*?)</" + t + ">").exec(it); return k ? k[1].replace(/<!\[CDATA\[|\]\]>/g, "").trim() : ""; }, iso = v => /^\d{9,11}$/.test(v) ? new Date(+v * 1000).toISOString() : "";
+        return { title: g("title").slice(0, 160), link: /^https:\/\/pid\.cz\//.test(g("link")) ? g("link") : "", from: iso(g("dateFrom")), to: iso(g("dateTo")), lines: [...it.matchAll(/<line>([^<]*)<\/line>/g)].map(l => l[1].trim()).slice(0, 40), live };
+      });
+    } catch (e) { return []; }
+  };
+  const [a, b] = await Promise.all([get("https://pid.cz/feed/rss-mimoradnosti/", true), get("https://pid.cz/feed/rss-vyluky/", false)]);
+  return new Response(JSON.stringify({ updated: new Date().toISOString(), items: [...a, ...b] }), { status: 200, headers: { "content-type": "application/json; charset=utf-8", "cache-control": "public, max-age=600", ...cors } });
+}
+
 export default {
   async scheduled(event, env, ctx) { ctx.waitUntil(findEvents(env, false)); },
   async fetch(req, env) {
@@ -115,6 +130,7 @@ export default {
     const cors = { "Access-Control-Allow-Origin": allow === "*" ? "*" : allow, "Access-Control-Allow-Headers": "content-type,x-app-token", "Access-Control-Allow-Methods": "GET,POST,OPTIONS", "Access-Control-Max-Age": "86400", "Vary": "Origin" };
     if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
     const path = new URL(req.url).pathname.replace(/\/+$/, "");
+    if (req.method === "GET" && path.endsWith("/pid")) return pidFeed(cors);
     if (req.method === "GET" && path.endsWith("/events")) { // האירועים שהחיפוש המתוזמן מצא. קריאה בלבד, בלי סודות
       const v = env.LIMITS ? await env.LIMITS.get("events") : null;
       return new Response(v || '{"items":[]}', { status: 200, headers: { "content-type": "application/json; charset=utf-8", "cache-control": "public, max-age=600", ...cors } });

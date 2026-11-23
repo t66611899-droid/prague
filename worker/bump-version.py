@@ -24,6 +24,7 @@ if "window.__boot" not in s:
 io.open(p, "w", encoding="utf8").write(s)
 
 p = ROOT + "sw.js"; s = io.open(p, encoding="utf8").read()
+OLD_V = re.search(r'const V = "prg-v(\d+)";', s).group(1)
 s = re.sub(r'const V = "prg-v\d+";', f'const V = "prg-v{V}";', s)
 io.open(p, "w", encoding="utf8").write(s)
 
@@ -34,3 +35,10 @@ if "window.__booted = true" not in s:
     s = s.replace(a, "  window.__booted = true; // העלייה הצליחה\n" + a, 1)
 io.open(p, "w", encoding="utf8").write(s)
 print("version", V)
+
+# שער פריסה (כלל קבוע): דפדפן עם נתונים מהגרסה הקודמת חייב לעלות על הגרסה החדשה עם 13/13 כרטיסים וכל הפרטים.
+# אם הבדיקה נכשלת, מחזירים את מספר הגרסה ולא פורסים.
+if "--skip-upgrade-test" not in sys.argv and subprocess.call(["node", ROOT + "worker/check-upgrade.cjs"]) != 0:
+    for f, pat, rep_ in ((ROOT + "index.html", r'\?v=' + V + r'(?=")', "?v=" + OLD_V), (ROOT + "sw.js", r'const V = "prg-v\d+";', f'const V = "prg-v{OLD_V}";')):
+        t = io.open(f, encoding="utf8").read(); io.open(f, "w", encoding="utf8").write(re.sub(pat, rep_, t))
+    sys.exit(f"עצרתי: בדיקת השדרוג נכשלה. הגרסה הוחזרה ל-{OLD_V} ולא פורסים")

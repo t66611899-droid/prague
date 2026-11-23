@@ -12,9 +12,10 @@ function harelCard() {
   return `<div class="hrl"><b>🏥 ביטוח הראל · מוקד 24/7</b><small>הם מפנים לבית חולים או מרפאה ומסדרים את התשלום. דחוף ממש? קודם 112.</small>
     ${pol ? `<div class="hrl-pol"><small>מספר פוליסה (להקראה)</small><b dir="ltr">${esc(pol)}</b></div>` : `<button class="lnk" data-hr="me">➕ להוסיף את מספר הפוליסה ב"הפרטים שלי"</button>`}
     <div class="row wrap"><a class="btn hrl-call" href="tel:${HAREL.tel}">📞 להתקשר למוקד</a><button class="btn wa" data-hr="wa">💬 ווטסאפ למוקד</button></div>
+    ${typeof tixN === "function" && tixN("ins") ? `<button class="btn wide" data-hr="pol">📄 לפתוח את הפוליסה</button>` : ""}
     <p class="fine">ווטסאפ: <bdi dir="ltr">${HAREL.waShow}</bdi> · טלפון: <bdi dir="ltr">${HAREL.telShow}</bdi>. ההודעה כוללת את הפוליסה, המיקום והשעה, ואפשר לערוך לפני ששולחים.</p></div>`;
 }
-const bindHarel = root => $$("[data-hr]", root || document).forEach(b => b.onclick = () => b.dataset.hr === "wa" ? harelWa() : openMe());
+const bindHarel = root => $$("[data-hr]", root || document).forEach(b => b.onclick = () => b.dataset.hr === "wa" ? harelWa() : b.dataset.hr === "pol" ? showTicket("ins") : openMe());
 
 /* מסך החירום: כרטיס הראל במקום הכפתור הכללי של "מוקד הביטוח" */
 window.openSOS = (old => function (test) {

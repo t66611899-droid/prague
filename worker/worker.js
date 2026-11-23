@@ -197,6 +197,26 @@ async function journalPublic(req, env, key, sub, cors) {
   return json({ error: "not found" }, 404, cors);
 }
 
+/* ---------- תיבת מסירה זמנית (מסמכים לטלפון) ----------
+   חבילה מוצפנת (AES-GCM, הקוד נשאר אצל עומר) נשמרת ב-KV עם מזהה אקראי, ונמחקת בהורדה הראשונה או אחרי 24 שעות.
+   העלאה רק עם DROP_TOKEN (סוד ב-Cloudflare). השרת לא יכול לפענח את התוכן. */
+async function dropBox(req, env, id, cors) {
+  if (!env.LIMITS) return json({ error: "no storage" }, 503, cors);
+  if (req.method === "PUT" && !id) {
+    if (!env.DROP_TOKEN) return json({ error: "notset" }, 503, cors);
+    if (!same(req.headers.get("x-drop-token") || "", env.DROP_TOKEN)) return json({ error: "unauthorized" }, 401, cors);
+    const buf = await req.arrayBuffer(); if (buf.byteLength < 64 || buf.byteLength > 24e6) return json({ error: "size" }, 413, cors);
+    const nid = [...crypto.getRandomValues(new Uint8Array(16))].map(x => x.toString(16).padStart(2, "0")).join("");
+    await env.LIMITS.put("drop:" + nid, buf, { expirationTtl: 86400 }); return json({ ok: true, id: nid, bytes: buf.byteLength }, 200, cors);
+  }
+  if (req.method === "GET" && /^[a-f0-9]{32}$/.test(id || "")) {
+    const buf = await env.LIMITS.get("drop:" + id, "arrayBuffer"); if (!buf) return json({ error: "gone" }, 404, cors);
+    await env.LIMITS.delete("drop:" + id); // הורדה אחת בלבד
+    return new Response(buf, { status: 200, headers: { "content-type": "application/octet-stream", "cache-control": "no-store", ...cors } });
+  }
+  return json({ error: "not found" }, 404, cors);
+}
+
 export default {
   async scheduled(event, env, ctx) { ctx.waitUntil(findEvents(env, false)); },
   async fetch(req, env) {
@@ -205,6 +225,7 @@ export default {
     if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
     const path = new URL(req.url).pathname.replace(/\/+$/, "");
     if (req.method === "GET" && path.endsWith("/pid")) return pidFeed(cors);
+    const dr = /\/drop(?:\/([a-f0-9]{32}))?$/.exec(path); if (dr) return dropBox(req, env, dr[1] || "", cors);
     const jo = /\/journal(\/.*)?$/.exec(path); if (jo) return journalOwner(req, env, jo[1] || "", cors);
     const jp = /\/j\/([a-f0-9]{32})(\/.*)?$/.exec(path); if (jp) return journalPublic(req, env, jp[1], jp[2] || "", cors);
     if (req.method === "GET" && path.endsWith("/events")) { // האירועים שהחיפוש המתוזמן מצא. קריאה בלבד, בלי סודות

@@ -21,7 +21,7 @@ function openTickets(focus) {
   openModal(`<h2>🎟️ הכרטיסים שלי</h2><p class="sub">צילום מסך של ה-QR או קובץ PDF. נשמר רק בטלפון הזה ועובד בלי אינטרנט. ${total ? "" : "מוסיפים פעם אחת בבית, לפני הטיסה."}</p>
     <div class="tix">${TIX_EV.map(e => { const fs = tix[e.k] || [], st = tixState(e);
       return `<section class="tk ${st}${focus === e.k ? " focus" : ""}" data-k="${e.k}"><header><span>${e.ic}</span><div><b>${e.n}</b><small>${e.sub}</small></div>${st === "now" ? `<i class="tk-now">עכשיו</i>` : ""}</header>
-        ${fs.length ? `<div class="tk-f">${fs.map(f => `<button class="tk-i" data-id="${f.id}"><span>${f.pdf ? "📄" : "🖼️"}</span><b>${esc(f.name)}</b><small>${f.pdf ? "PDF" : "להצגה במסך מלא"}</small><i data-x="${f.id}" aria-label="מחק">✕</i></button>`).join("")}</div>` : `<p class="fine">${e.hint}</p>`}
+        ${fs.length ? `<div class="tk-f">${fs.map(f => `<button class="tk-i" data-id="${f.id}"><span>${f.pdf ? (/\.pkpass$/i.test(f.name) ? "🎫" : "📄") : "🔳"}</span><b>${esc(f.name)}</b><small>${f.label || (f.pdf ? (/\.pkpass$/i.test(f.name) ? "להוסיף ל-Wallet" : "PDF") : "להצגה במסך מלא")}</small><i data-x="${f.id}" aria-label="מחק">✕</i></button>`).join("")}</div>` : `<p class="fine">${e.hint}</p>`}
         <label class="btn${fs.length ? "" : " pri"} wide" style="display:flex;margin-top:8px">➕ ${fs.length ? "להוסיף עוד" : "להוסיף כרטיס"}<input type="file" accept="image/*,application/pdf" multiple hidden data-add="${e.k}"></label></section>`; }).join("")}</div>
     <p class="fine">טיפ: ל-QR הכי נוח צילום מסך של הקוד. PDF נפתח בתצוגת הקבצים של הטלפון. בכניסה למועדון צריך גם תעודה מזהה פיזית.</p>`, "tall");
   if (focus) { const el = $(`#mbody .tk[data-k="${focus}"]`); if (el) el.scrollIntoView({ block: "center" }); }

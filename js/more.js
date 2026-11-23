@@ -148,7 +148,7 @@ function doEnough() {
   renderAll(); openGoodNight(di);
 }
 function openGoodNight(di) {
-  const nx = plan[di + 1], T = tripNow();
+  const nx = plan[di + 1], T = tripNow(); if (typeof snowBurst === "function") snowBurst(); // סוף יום: קצת שלג
   if (!nx) { openModal(`<div class="gn"><span>✈️</span><h2>זהו, מחר הביתה</h2><p class="desc">אין עוד יום אחרי זה. שווה לבדוק את התיק ואת שעת היציאה לשדה.</p><button class="btn pri wide" data-act="close">סגור</button></div>`); return; }
   const first = nx.stops.find(s => s.at !== "hotel") || nx.stops[0], fx = nx.stops.find(isFixed), wake = Math.max(450, Math.round((nx.stops[0].m - 75) / 15) * 15), wd = wxDay(nx.date), dd = dayDate(nx.date);
   openModal(`<div class="gn"><span>🌙</span><h2>לילה טוב</h2><p class="sub">${T.dayIdx === di ? "מה שנשאר מהיום עבר ל\"אולי בהמשך\". אפשר להחזיר מתי שרוצים." : ""}</p></div>

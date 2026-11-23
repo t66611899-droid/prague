@@ -629,3 +629,115 @@ button.ritem{flex-direction:column;align-items:stretch;justify-content:center;ga
 .diary figcaption b{font-size:.84rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .diary figcaption small{font-size:.72rem;color:var(--mut)}
 .diary figure button{position:absolute;top:6px;inset-inline-end:6px;width:36px;height:36px;border-radius:50%;border:0;background:rgba(0,0,0,.5);color:#fff}
+
+/* ============ מסך הפתיחה: טיימר, קו הרקיע, שלג, כרטיס עלייה למטוס ============ */
+:root{--gold:#d9b25a;--night:#0c1536;--snowc:#f4f7fb}
+#splash.cd{position:fixed;inset:0;z-index:40;padding:0;display:block;overflow:hidden;cursor:default;color:#fff;transition:transform .7s var(--ease),opacity .7s;background:linear-gradient(180deg,#070d26 0%,#141d4a 42%,#3a2a5e 74%,#7a3b4f 100%)}
+#splash.cd::before{display:none}
+#splash.cd.dy{color:#16203f;background:linear-gradient(180deg,#bcd6f0 0%,#dbe7f3 40%,#f6e3d9 72%,#f3c9b4 100%)}
+#splash.cd.out{transform:translateY(-8%) scale(1.06);opacity:0;pointer-events:none}
+.sky{position:absolute;inset:auto 0 calc(var(--sab) + 232px) 0;width:100%;height:auto;display:block}
+#splash.cd::after{content:"";position:absolute;inset:auto 0 0 0;height:calc(var(--sab) + 233px);background:linear-gradient(180deg,#0a112c,#060a1c);pointer-events:none}
+#splash.cd.dy::after{background:linear-gradient(180deg,#4c5f86,#3b4c72)}
+#splash.cd.wl .sky,#splash.cd.dl .sky{bottom:0}
+#splash.cd.wl::after,#splash.cd.dl::after{display:none}
+.sky .l1{fill:#1a2452}.sky .l2{fill:#111a40}.sky .l3{fill:#0a112c}.sky .l3s{stroke:#1a2452}.sky .rv{fill:#0a112c;opacity:.9}
+.sky .lamp{fill:var(--gold)}.sky .xm .c0{fill:#ff5a5f}.sky .xm .c1{fill:var(--gold)}.sky .xm .c2{fill:#6fd08c}
+.dy .sky .l1{fill:#8ea3c4}.dy .sky .l2{fill:#6f84a8}.dy .sky .l3{fill:#4c5f86}.dy .sky .l3s{stroke:#8ea3c4}.dy .sky .rv{fill:#4c5f86;opacity:.55}.dy .sky .lamp{fill:#fff2c4}
+.tw{animation:tw 2.6s ease-in-out infinite}
+@keyframes tw{0%,100%{opacity:1}50%{opacity:.25}}
+.snow{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.snow i{position:absolute;top:-12px;width:var(--s);height:var(--s);border-radius:50%;background:var(--snowc);animation:fall var(--d) linear infinite;will-change:transform}
+.dy .snow i{background:#fff;box-shadow:0 0 0 1px rgba(120,140,180,.25)}
+@keyframes fall{to{transform:translate3d(26px,105vh,0)}}
+.burst{position:fixed;inset:0;z-index:70;pointer-events:none;overflow:hidden}
+.burst i{position:absolute;top:-14px;width:var(--s);height:var(--s);border-radius:50%;background:#fff;box-shadow:0 0 6px rgba(160,190,255,.8);animation:burst 2.9s cubic-bezier(.2,.6,.4,1) forwards}
+@keyframes burst{to{transform:translate3d(var(--x),102vh,0) rotate(200deg);opacity:.2}}
+.cd-top{position:absolute;inset:calc(var(--sat) + 6px) 0 auto 0;height:21%;min-height:120px;direction:ltr}
+.route{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.route .dash{stroke:currentColor;stroke-opacity:.5;stroke-width:1.6;stroke-dasharray:3 6;vector-effect:non-scaling-stroke}
+.route .pt{fill:var(--gold)}
+.route .pl path{fill:currentColor}
+.ap{position:absolute;font-size:.7rem;font-weight:700;letter-spacing:.12em;opacity:.8}
+.ap.a1{left:3%;bottom:2%}.ap.a2{right:3%;top:22%}
+.cd-in{position:absolute;inset:0;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:calc(var(--sat) + 21vh) 18px calc(var(--sab) + 22px);gap:12px;text-align:center}
+.cd-k{margin:0;font-size:1rem;font-weight:500;opacity:.9;letter-spacing:.01em}
+.flaps{display:flex;direction:rtl;align-items:flex-start;justify-content:center;gap:6px}
+.fu{display:flex;flex-direction:column;align-items:center;gap:6px}
+.fu small{font-size:.72rem;font-weight:500;opacity:.8}
+.fd{display:flex;gap:3px;perspective:400px}
+.flap{position:relative;display:grid;place-items:center;width:clamp(30px,9.4vw,44px);height:clamp(48px,15vw,68px);border-radius:9px;background:linear-gradient(180deg,#1b2238 0%,#1b2238 49%,#0f1424 51%,#161c30 100%);color:#fdf6e3;font-size:clamp(1.7rem,8.6vw,2.7rem);font-weight:700;font-variant-numeric:tabular-nums;line-height:1;box-shadow:0 6px 16px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.12);transform-origin:50% 50%;backface-visibility:hidden}
+.flap::after{content:"";position:absolute;inset:50% 0 auto 0;height:1.5px;background:rgba(0,0,0,.55)}
+.dy .flap{background:linear-gradient(180deg,#23305c 0%,#23305c 49%,#172146 51%,#1e2a52 100%)}
+.flap.flip{animation:flip .32s cubic-bezier(.4,0,.2,1)}
+@keyframes flip{0%{transform:rotateX(0)}48%{transform:rotateX(-88deg)}52%{transform:rotateX(88deg)}100%{transform:rotateX(0)}}
+.flaps .col{font-style:normal;font-size:clamp(1.4rem,6vw,2rem);font-weight:700;opacity:.55;padding-top:clamp(8px,3.2vw,16px)}
+.flaps.nod .flap{width:clamp(40px,12.5vw,56px);height:clamp(60px,19vw,84px);font-size:clamp(2.1rem,11vw,3.3rem)}
+.cd-line{margin:2px 0 0;min-height:1.5em;font-size:1.02rem;font-weight:600;transition:opacity .35s,transform .35s var(--ease)}
+.cd-line.out{opacity:0;transform:translateY(8px)}
+.cd-sub{margin:2px 0 0;font-size:.86rem;opacity:.9;max-width:32ch;line-height:1.5}
+.cd-ms{display:flex;flex-direction:column;gap:2px;padding:10px 16px;border-radius:var(--r2);background:linear-gradient(100deg,rgba(217,178,90,.95),rgba(232,163,23,.95));color:#1b1c20;max-width:340px;animation:pop .6s var(--spring) .3s both;box-shadow:0 8px 24px rgba(0,0,0,.3)}
+.cd-ms b{font-size:1.05rem}.cd-ms span{font-size:.82rem;line-height:1.4}
+@keyframes pop{from{transform:scale(.6);opacity:0}}
+/* כרטיס עלייה למטוס עם פינות חתוכות */
+.bp{margin-top:auto;width:100%;max-width:360px;direction:ltr;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:4px 10px;padding:14px 18px 12px;color:#16203f;background:#fdfaf3;border-radius:18px;box-shadow:0 14px 34px rgba(0,0,0,.35);-webkit-mask:radial-gradient(circle 11px at 0 62%,#0000 98%,#000) left/51% 100% no-repeat,radial-gradient(circle 11px at 100% 62%,#0000 98%,#000) right/51% 100% no-repeat;mask:radial-gradient(circle 11px at 0 62%,#0000 98%,#000) left/51% 100% no-repeat,radial-gradient(circle 11px at 100% 62%,#0000 98%,#000) right/51% 100% no-repeat}
+.bp-a{display:flex;flex-direction:column;line-height:1.05}
+.bp-a:last-of-type{text-align:right}
+.bp-a small{font-size:.58rem;font-weight:600;letter-spacing:.14em;color:#7a8199}
+.bp-a b{font-size:2rem;font-weight:700;letter-spacing:.02em}
+.bp-m{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:6px;min-width:84px}
+.bp-m i{height:0;border-top:2px dashed #b9bfd0}
+.bp-m span{color:var(--red);font-size:1.1rem}
+.bp-m small{grid-column:1/-1;text-align:center;font-size:.7rem;font-weight:700;letter-spacing:.1em;color:#7a8199}
+.bp-f{grid-column:1/-1;direction:rtl;display:flex;align-items:flex-end;gap:16px;margin-top:10px;padding-top:10px;border-top:2px dashed #d8dbe6;font-weight:700;font-size:.95rem}
+.bp-f span{display:flex;flex-direction:column;text-align:right;line-height:1.2}
+.bp-f small{font-size:.6rem;font-weight:600;color:#7a8199}
+.bp-f .bar{flex:1;height:26px;background:repeating-linear-gradient(90deg,#16203f 0 2px,transparent 2px 4px,#16203f 4px 5px,transparent 5px 8px,#16203f 8px 11px,transparent 11px 13px);opacity:.8;border-radius:2px}
+.cd-go{width:100%;max-width:360px;min-height:58px;border:0;border-radius:var(--r2);background:var(--red);color:#fff;font-weight:700;font-size:1.08rem;box-shadow:0 10px 26px rgba(212,42,51,.45);transition:transform .15s var(--spring)}
+.cd-go:active{transform:scale(.96)}
+.cd-go.alt{background:rgba(255,255,255,.16);box-shadow:none;color:inherit;backdrop-filter:blur(8px)}
+.dy .cd-go.alt{background:rgba(22,32,63,.1)}
+/* ברוך הבא + מסך יומי */
+.wl-in,.dl-in{justify-content:center;padding-top:calc(var(--sat) + 30px);padding-bottom:calc(var(--sab) + 30vh)}
+.wl-flag{font-size:3.4rem;animation:pop .7s var(--spring) both}
+#splash.cd h1{margin:0;font-size:clamp(2.2rem,10.5vw,3rem);font-weight:700;letter-spacing:-.02em;line-height:1.05;animation:rise .7s var(--ease) both}
+.wl-s{margin:0;font-size:1.05rem;opacity:.85}
+.wl-l,.dl-l{list-style:none;margin:8px 0 6px;padding:0;width:100%;max-width:340px;display:flex;flex-direction:column;gap:8px;text-align:right}
+.wl-l li,.dl-l li{display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:var(--r1);background:rgba(255,255,255,.13);backdrop-filter:blur(8px);font-weight:500;font-size:.96rem;animation:rise .6s var(--ease) both}
+.dy .wl-l li,.dy .dl-l li{background:rgba(255,255,255,.6)}
+.wl-l li:nth-child(2),.dl-l li:nth-child(2){animation-delay:.08s}.wl-l li:nth-child(3),.dl-l li:nth-child(3){animation-delay:.16s}.wl-l li:nth-child(4){animation-delay:.24s}
+.wl-l b{flex:none;width:26px;height:26px;border-radius:50%;background:var(--gold);color:#1b1c20;display:grid;place-items:center;font-size:.8rem}
+.dl-l b{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
+.dl-l i{font-style:normal;opacity:.8;font-variant-numeric:tabular-nums;font-size:.86rem}
+.dl-l span{font-size:1.2rem}
+.dl-wx{margin:0;font-size:.92rem;padding:8px 14px;border-radius:var(--r1);background:rgba(255,255,255,.14)}
+.dy .dl-wx{background:rgba(255,255,255,.6)}
+.wl-in .row{width:100%;max-width:360px}
+.wl-in .cd-go{flex:1}
+@media (min-width:900px){.cd-in{padding-top:18vh}.sky{max-width:900px;left:50%;right:auto;transform:translateX(-50%)}}
+
+/* ============ ליטוש: גוונים חורפיים, זכוכית עדינה, אייקונים אחידים ============ */
+.ico{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;flex:none}
+#quick button{display:inline-flex;align-items:center;gap:7px}
+#quick .ico{width:19px;height:19px;color:var(--mut)}
+.fab .ico{width:23px;height:23px}
+#top{box-shadow:var(--sh2),inset 0 0 0 1px color-mix(in srgb,var(--gold) 26%,transparent)}
+:root[data-theme="dark"] #top,:root[data-theme="dark"] .day:not(.sel),:root[data-theme="dark"] #legend{background:rgba(18,24,48,.78)}
+:root[data-theme="dark"]{--card:#171c30;--card2:#212741;--line:#2c3352;--bg:#0d1226}
+#sheet{background:linear-gradient(180deg,color-mix(in srgb,var(--card) 100%,transparent),var(--card))}
+#sheet::before{content:"";position:absolute;inset:0 22% auto 22%;height:2px;border-radius:2px;background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--gold) 70%,transparent),transparent);opacity:.55;pointer-events:none}
+.fab.chat{background:linear-gradient(160deg,#1b2550,#0c1536);color:#fdf6e3}
+:root[data-theme="dark"] .fab.chat{background:linear-gradient(160deg,#fdf6e3,#e8dcc0);color:#0c1536}
+.fab.chat small{color:inherit!important}
+.tbtn.now{background:linear-gradient(160deg,#f1b43c,#e09a12)}
+.card.soft,.wcard,.copt,.upd-i{box-shadow:inset 0 1px 0 rgba(255,255,255,.04)}
+.mbox{box-shadow:0 -14px 44px rgba(8,12,30,.35)}
+#splash.cd ul{margin:8px 0 6px}
+#splash.cd li{border:0;padding:11px 14px}
+#splash.cd .wl-l li b{flex:none;width:26px;min-width:26px}
+#splash.cd .wl-l li{justify-content:flex-start}
+/* כניסות בלי שקיפות התחלתית: גם אם אנימציה נתקעת (חיסכון בסוללה, לשונית ברקע), התוכן תמיד נראה */
+@keyframes rise2{from{transform:translateY(18px)}}
+@keyframes pop2{from{transform:scale(.82)}}
+#splash.cd h1,.wl-l li,.dl-l li{animation-name:rise2}
+.wl-flag,.cd-ms{animation-name:pop2}

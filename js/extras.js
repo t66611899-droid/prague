@@ -213,7 +213,7 @@ function openSummary(di) {
     <div class="stats"><div><b>${S.km ? S.km.toFixed(1) : "—"}</b><small>ק"מ ברגל</small></div><div><b>${S.km ? S.steps.toLocaleString("en-US") : "—"}</b><small>צעדים בערך</small></div><div><b>${S.done}<i>/${S.day.stops.length}</i></b><small>תחנות</small></div></div>
     ${svg}<p class="sub">${S.km ? "הכחול זה מה שהלכת באמת, והקו הבהיר זאת התוכנית." : "אין עדיין מסלול מוקלט ליום הזה. הוא נרשם כשה-GPS פעיל והאפליקציה פתוחה."}${S.skip ? ` דילגת על ${S.skip}, וזה בסדר גמור.` : ""}${S.money ? ` הוצאת ${kc(S.money)}.` : ""}</p>
     <div class="row"><button class="btn pri wide" id="sumImg">📸 לשמור כתמונה</button><button class="btn" data-act="close">סגור</button></div>`);
-  $("#sumImg").onclick = () => summaryImage(di);
+  $("#sumImg").onclick = () => summaryImage(di); if (typeof rollStats === "function") rollStats(); // ספירה מתגלגלת
 }
 async function summaryImage(di) {
   const S = summaryData(di), dd = dayDate(S.day.date), W = 1080, H = 1350, cv = document.createElement("canvas"); cv.width = W; cv.height = H; const x = cv.getContext("2d"), c = DAYC[di];

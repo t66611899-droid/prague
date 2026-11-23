@@ -80,7 +80,7 @@ let plan = (LS.get("planV") === PLAN_V && LS.get("plan")) || freshPlan();
 let marks = LS.get("marks", {});     // id → "done" | "skip"
 let autoOff = LS.get("autoOff", {}); // תחנות שביטלתי ידנית — לא לסמן שוב אוטומטית
 let me = LS.get("me", {});           // "הפרטים שלי" — רק במכשיר
-let settings = Object.assign({ spont: false, eco: false, theme: "auto", remind: false, is3d: true, gps: false, ev: true }, LS.get("set", {}));
+let settings = Object.assign({ spont: false, eco: false, theme: "auto", remind: false, is3d: true, gps: false, evOn: false }, LS.get("set", {}));
 const savePlan = () => { LS.set("plan", plan); LS.set("planV", PLAN_V); };
 const saveSet = () => LS.set("set", settings);
 const planEdited = () => JSON.stringify(plan) !== JSON.stringify(freshPlan());

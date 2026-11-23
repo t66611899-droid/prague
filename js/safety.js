@@ -36,8 +36,9 @@ const PHRASES = [
   ["🙏", "תודה", "Thank you.", "Děkuji."]
 ];
 const nearestOf = (arr, ref) => arr.map(x => ({ ...x, dist: hav(ref, x) })).sort((a, b) => a.dist - b.dist);
-function lastKnown() { // GPS חי, או הנקודה האחרונה שנשמרה במסלול שהלכתי
-  if (gps) return { lat: gps.lat, lng: gps.lng, live: true, age: Date.now() - gps.t };
+function lastKnown() { // GPS חי, או המיקום האחרון הידוע (עם השעה שלו)
+  if (gps) return { lat: gps.lat, lng: gps.lng, live: true, t: gps.t };
+  const lp = LS.get("lastPos", null); if (lp && lp.lat) return { lat: lp.lat, lng: lp.lng, live: false, t: lp.t };
   const T = tripNow(), tr = LS.get(trackKey(T.date), []).filter(Boolean); if (tr.length) { const p = tr[tr.length - 1]; return { lat: p[1], lng: p[0], live: false }; }
   return null;
 }
@@ -49,7 +50,9 @@ function openSOS() {
   const tile = (href, ic, t, s, cls = "") => `<a class="sos-t ${cls}" href="${href}"${/^tel:/.test(href) ? "" : ' target="_blank" rel="noopener"'}><span>${ic}</span><b>${t}</b><small>${s}</small></a>`;
   openModal(`<div class="sos-head"><h2>חירום</h2><p>הכול כאן עובד גם בלי אינטרנט. חיוג עובד תמיד.</p></div>
     <a class="sos-112" href="tel:112"><b>112</b><span>חירום בכל אירופה · משטרה, אמבולנס, כיבוי · עונים באנגלית</span></a>
-    <button class="sos-wa" id="sosWa">💬 שלח מצב חירום בווטסאפ${c0 ? " ל" + esc(c0.n || "איש הקשר") : ""}</button>
+    <div class="sos-send"><button class="sos-sms" id="sosSms"><b>📩 שלח SOS ב-SMS</b><small>${sosContacts().length ? "לכל " + sosContacts().length + " אנשי הקשר · עובד בלי אינטרנט" : "עובד בלי אינטרנט · בוחרים נמען"}</small></button>
+    <button class="sos-wa" id="sosWa"><b>💬 שלח SOS בווטסאפ</b><small>${c0 ? (sosContacts().length > 1 ? "בוחרים את כולם בתפריט השיתוף" : "אל " + esc(c0.n || "איש הקשר")) : "בוחרים למי"}</small></button></div>
+    ${sosContacts().length ? "" : `<p class="fine">עוד אין אנשי קשר. מוסיפים עד שלושה ב"הפרטים שלי", ואז ה-SOS יוצא ישר אליהם.</p>`}
     <div class="sos-loc" id="sosLoc">${locHtml(p)}</div>
     <div class="sos-grid">
       ${tile("tel:" + EMG.embassy.emg, "🇮🇱", "שגרירות · חירום", `<bdi dir="ltr">${EMG.embassy.emgShow}</bdi> · ערבים וסופ"ש`)}
@@ -68,7 +71,7 @@ function openSOS() {
       ${nearestOf(PHARMACIES, ref).map(x => `<div class="ritem flat"><span><b>💊 ${bd(x.name)}</b><small class="sub2"><span class="cz1" dir="ltr">${esc(x.cz)}</span><span class="nt1">${fmtDist(x.dist * 1.3)}</span></small></span><a class="btn" href="tel:${x.tel}">📞</a><a class="btn" href="${navUrl(x)}" target="_blank" rel="noopener">נווט</a></div>`).join("")}
       <p class="fine">בכל מקרה דחוף מתקשרים קודם ל-112. מיקומים וטלפונים של בתי החולים ובתי המרקחת: OpenStreetMap. מספרי השגרירות מהאתר הרשמי שלה.</p></details>
     ${me.pol ? `<p class="sub">מספר פוליסה: <b dir="ltr">${esc(me.pol)}</b></p>` : ""}<button class="btn wide" id="sosMe">🔒 הפרטים שלי ואנשי קשר</button>`, "sos tall");
-  $("#sosWa").onclick = () => waSend(msgSOS(), 0);
+  $("#sosWa").onclick = sosWa; $("#sosSms").onclick = sosSms;
   const i = $("#sosIns"); if (i) i.onclick = openMe; $("#sosMe").onclick = openMe;
   $$("#mbody [data-ph]").forEach(b => b.onclick = () => showBig(PHRASES[b.dataset.ph]));
   bindLoc(); if (!gps) { userWantsFollow = false; startGPS(false); setTimeout(() => { const el = $("#sosLoc"); if (el) { el.innerHTML = locHtml(lastKnown()); bindLoc(); } }, 6000); }
@@ -76,7 +79,7 @@ function openSOS() {
 function locHtml(p) {
   if (!p) return `<b>📍 המיקום שלי</b><p class="sub">מחפש GPS… ליד חלון או בחוץ זה מהיר יותר.</p>`;
   const w = whereText(p);
-  return `<b>📍 המיקום שלי${p.live ? "" : " (האחרון שנשמר)"}</b><div class="coords" dir="ltr">${p.lat.toFixed(5)}, ${p.lng.toFixed(5)}</div>${w ? `<p class="where" dir="ltr">${esc(w.replace("ליד", "near"))}</p>` : ""}
+  return `<b>📍 המיקום שלי${p.live ? "" : p.t ? ` (אחרון ידוע, ${pragueTimeOf(p.t)})` : " (האחרון שנשמר)"}</b><div class="coords" dir="ltr">${p.lat.toFixed(5)}, ${p.lng.toFixed(5)}</div>${w ? `<p class="where" dir="ltr">${esc(w.replace("ליד", "near"))}</p>` : ""}
     <div class="row"><button class="btn" id="locBig">להציג גדול</button><button class="btn" id="locCopy">העתק</button><button class="btn" id="locWa">ווטסאפ</button></div>`;
 }
 function bindLoc() {
@@ -101,7 +104,31 @@ function msgWhere() {
   const p = lastKnown(), T = tripNow(), L = T.dayIdx >= 0 ? live(T.dayIdx) : null, w = p ? whereText(p) : "";
   return `היי, אני בפראג 🇨🇿 השעה כאן ${clockNow()}.${p ? `\nאני עכשיו ${w ? w.replace(/^([^ל])/, "ב-$1") : "כאן"}: ${mapsLink(p)}` : "\nאין לי GPS כרגע, אעדכן מיקום עוד מעט."}${L && L.next ? `\nעכשיו הולך ל${/^[A-Za-z]/.test(L.next.n) ? "-" : ""}${L.next.n}.` : ""}\nהכול טוב 🙂`;
 }
-function msgSOS() { const p = lastKnown(); return `🆘 אני צריך עזרה. אני בפראג, השעה כאן ${clockNow()}.${p ? `\nהמיקום שלי: ${mapsLink(p)}${whereText(p) ? "\n" + whereText(p) : ""}` : "\nאין לי GPS כרגע."}\nתתקשרו אליי בבקשה.`; }
+const pragueTimeOf = t => new Date(t).toLocaleTimeString("en-GB", { timeZone: "Europe/Prague", hour: "2-digit", minute: "2-digit" });
+function msgSOS() { // אנגלית קודם (כל אחד יבין), ועברית מתחת
+  const p = lastKnown(), b = window._batt ? Math.round(window._batt.level * 100) : null, where = p ? whereText(p).replace("ליד", "near") : "";
+  const locEn = p ? `Location${p.live ? "" : " (last known, " + pragueTimeOf(p.t) + ")"}: ${mapsLink(p)}${where ? " (" + where + ")" : ""}` : "Location: unknown (no GPS)";
+  const locHe = p ? `מיקום${p.live ? "" : " (אחרון ידוע, " + pragueTimeOf(p.t) + ")"}: ${mapsLink(p)}` : "אין לי מיקום כרגע";
+  return `SOS - Omer needs help in Prague.\n${locEn}\nTime in Prague: ${clockNow()}.${b != null ? ` Battery: ${b}%.` : ""}\nPlease call me. If no answer, call 112 (EU emergency).\n\n🆘 עומר צריך עזרה בפראג. ${locHe}. השעה בפראג ${clockNow()}. תתקשרו אליי, ואם אני לא עונה תתקשרו ל-112.`;
+}
+const sosContacts = () => (me.contacts || []).filter(c => c && c.p);
+function sosSms() { // SMS לכל אנשי הקשר ביחד. עובד גם בלי אינטרנט, רק עם קליטה סלולרית
+  const cs = sosContacts(), nums = cs.map(c => "+" + waNum(c.p)), body = encodeURIComponent(msgSOS()), ios = /iPhone|iPad|iPod/.test(navigator.userAgent);
+  sosSent(cs.length ? cs.map(c => c.n || c.p) : [], "SMS");
+  location.href = ios ? `sms:/open?addresses=${nums.join(",")}&body=${body}` : `sms:${nums.join(",")}?body=${body}`;
+}
+function sosWa() { // ווטסאפ: עם כמה אנשי קשר נפתח תפריט השיתוף של הטלפון (בוחרים את כולם), אחרת ישר לצ'אט
+  const cs = sosContacts(), text = msgSOS(); sosSent(cs.map(c => c.n || c.p), "ווטסאפ");
+  if (cs.length !== 1 && navigator.share) { navigator.share({ text }).catch(() => {}); return; }
+  waSend(text, 0);
+}
+function sosSent(names, via) {
+  openModal(`<div class="sos-head"><h2>ההודעה מוכנה</h2><p>${names.length ? `${via} אל: ${names.map(esc).join(", ")}` : `${via} · בוחרים למי לשלוח`}</p></div>
+    <p class="desc">עכשיו לוחצים <b>שלח</b> באפליקציית ההודעות. האפליקציה הזאת לא יכולה לשלוח במקומך, רק להכין את ההודעה.</p>
+    <a class="sos-112" href="tel:112"><b>112</b><span>אם זה דחוף, מתקשרים עכשיו. עונים באנגלית</span></a>
+    <div class="col" style="margin-top:10px"><button class="btn big" id="ssSms">📩 לשלוח גם ב-SMS</button><button class="btn big" id="ssWa">💬 לשלוח גם בווטסאפ</button><button class="btn big ghost" id="ssBack">חזרה למסך החירום</button></div>`, "sos tall");
+  $("#ssSms").onclick = sosSms; $("#ssWa").onclick = sosWa; $("#ssBack").onclick = () => openSOS();
+}
 function msgOnWay() { const p = lastKnown(), h = place("hotel"), eta = p ? fmtT(tripNow().min + walkEst(hav(p, h)) + 3) : null; return `אני בדרך למלון 🏨 השעה כאן ${clockNow()}.${eta ? ` אמור להגיע בסביבות ${eta}.` : ""}${p ? `\nאיפה אני עכשיו: ${mapsLink(p)}` : ""}\nאכתוב כשאגיע.`; }
 const msgHome = () => `הגעתי בשלום למלון ✓ (${clockNow()} בפראג). לילה טוב 🌙`;
 function waSend(text, idx) {
@@ -116,7 +143,7 @@ function openWa() {
   openModal(`<h2>💬 ווטסאפ</h2><p class="sub">הודעה מוכנה עם המיקום והשעה בפראג. המיקום נשלח רק כשלוחצים כאן.</p>
     <div class="col"><button class="btn big" id="waWhere">📍 איפה אני עכשיו</button><button class="btn big" id="waWay">🏨 אני בדרך למלון</button><button class="btn big" id="waHome">✓ הגעתי בשלום</button><button class="btn big sosb-lite" id="waSos">🆘 מצב חירום</button></div>
     <button class="btn wide ghost" id="waMe">אנשי קשר (עד 3)</button>`);
-  $("#waWhere").onclick = () => waSend(msgWhere()); $("#waWay").onclick = () => waSend(msgOnWay()); $("#waHome").onclick = () => waSend(msgHome()); $("#waSos").onclick = () => waSend(msgSOS(), 0); $("#waMe").onclick = openMe;
+  $("#waWhere").onclick = () => waSend(msgWhere()); $("#waWay").onclick = () => waSend(msgOnWay()); $("#waHome").onclick = () => waSend(msgHome()); $("#waSos").onclick = sosWa; $("#waMe").onclick = openMe;
 }
 
 /* ---------- הפרטים שלי (רק במכשיר), כולל אנשי קשר ---------- */

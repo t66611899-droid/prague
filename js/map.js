@@ -5,7 +5,7 @@ const BLUE = "#2f7de1", MUSTARD = "#e8a317";
 const DAYC = ["#d42a33", "#d42a33", "#7a4fe0", "#0e9a86", "#d42a33"]; // צבע המסלול של כל יום
 const TYC = { food: "#e8590c", cafe: "#a0623a", shop: "#c2255c", view: "#2a9558", party: "#7a4fe0", hotel: "#2f7de1", transit: "#5c6470", sight: "#d42a33" };
 let map, curDay = 0, mapDark = null, follow = false, heading = null, isRaster = false, saver = false;
-let stopMarkers = [], lmMarkers = [], extraMarkers = [], nearMarkers = [], clusterMarker = null, meMarker = null, playMarker = null;
+let stopMarkers = [], nearMarkers = [], meMarker = null, playMarker = null;
 const isDesktop = () => innerWidth >= 900;
 const dayColor = () => DAYC[curDay] || DAYC[0];
 
@@ -55,23 +55,31 @@ function layerPaint(l, P) {
     o["text-color"] = wtr ? P.waterLabel : /highway-name-(minor|path)|poi/.test(id) ? P.labelMinor : P.label;
     o["text-halo-color"] = wtr ? P.water : P.halo; o["text-halo-width"] = 1.5;
   } else if (id === "plan-case") o["line-color"] = P.routeCase;
+  else if (id === "road_area_pattern") o["fill-opacity"] = P === PAL.night ? 0.1 : 0.55; // בלי פסים לבנים בלילה
   return o;
 }
 const emptyFC = { type: "FeatureCollection", features: [] };
-function myLayers(dark, vector) { // השכבות שלי: דיוק GPS, המסלול שהלכתי, המסלול המתוכנן
+function myLayers(dark, vector) { // השכבות שלי: נקודות רקע, דיוק GPS, המסלול שהלכתי, המסלול המתוכנן, הקטע הבא
   const round = { "line-cap": "round", "line-join": "round" }, P = PAL[dark ? "night" : "day"];
+  const kindColor = ["match", ["get", "kind"], "ev", "#ff8a2a", "lm", dark ? "#aab6e8" : "#55628f", dark ? "#8d93a6" : "#7c8394"];
   return [
+    { id: "poi-dot", type: "circle", source: "poi", paint: { "circle-color": kindColor, "circle-radius": ["interpolate", ["linear"], ["zoom"], 10, 2, 13, 3.5, 15, 6, 17, 8], "circle-opacity": ["interpolate", ["linear"], ["zoom"], 10, 0.3, 13, 0.5, 15.5, 0.85], "circle-stroke-color": P.routeCase, "circle-stroke-width": ["interpolate", ["linear"], ["zoom"], 12, 0.5, 15, 1.5], "circle-stroke-opacity": 0.7 } },
+    ...(vector ? [{ id: "poi-label", type: "symbol", source: "poi", minzoom: 14.4, layout: { "text-field": ["get", "name"], "text-font": ["Noto Sans Regular"], "text-size": 11.5, "text-anchor": "top", "text-offset": [0, 0.7], "text-optional": true, "text-max-width": 8 }, paint: { "text-color": P.labelMinor, "text-halo-color": P.halo, "text-halo-width": 1.4, "text-opacity": ["interpolate", ["linear"], ["zoom"], 14.4, 0, 15.1, 1] } }] : []),
     { id: "acc", type: "fill", source: "acc", paint: { "fill-color": BLUE, "fill-opacity": 0.14 } },
-    { id: "plan-case", type: "line", source: "plan", layout: round, paint: { "line-color": P.routeCase, "line-width": 9, "line-opacity": 0.7 } },
-    { id: "plan", type: "line", source: "plan", layout: round, paint: { "line-color": ["get", "c"], "line-width": 5, "line-opacity": ["case", ["get", "real"], 0.62, 0.4] } },
-    { id: "nextleg", type: "line", source: "nextleg", layout: round, paint: { "line-color": ["get", "c"], "line-width": 7.5 } },
-    { id: "plan-flow", type: "line", source: "plan", filter: ["==", ["get", "real"], true], paint: { "line-color": "#ffffff", "line-width": 2.2, "line-opacity": 0.75, "line-dasharray": [0, 4, 3] } },
-    { id: "plan-arrows", type: "symbol", source: "plan", minzoom: 13.5, layout: { "symbol-placement": "line", "symbol-spacing": 110, "icon-image": "arrow", "icon-size": 0.55, "icon-allow-overlap": true, "icon-ignore-placement": true } },
-    { id: "walked-glow", type: "line", source: "walked", layout: round, paint: { "line-color": "#5aa7ff", "line-width": 13, "line-blur": 7, "line-opacity": 0.5 } },
-    { id: "walked", type: "line", source: "walked", layout: round, paint: { "line-color": BLUE, "line-width": 4.5 } }
+    { id: "walked-glow", type: "line", source: "walked", layout: round, paint: { "line-color": "#5aa7ff", "line-width": 11, "line-blur": 6, "line-opacity": 0.4 } },
+    { id: "walked", type: "line", source: "walked", layout: round, paint: { "line-color": BLUE, "line-width": 4 } },
+    { id: "plan-case", type: "line", source: "plan", layout: round, paint: { "line-color": P.routeCase, "line-width": 9, "line-opacity": 0.8 } },
+    { id: "plan", type: "line", source: "plan", filter: ["==", ["get", "real"], true], layout: round, paint: { "line-color": ["get", "c"], "line-width": 5, "line-opacity": 0.9 } },
+    { id: "plan-far", type: "line", source: "plan", filter: ["==", ["get", "real"], false], paint: { "line-color": ["get", "c"], "line-width": 4.5, "line-opacity": 0.9, "line-dasharray": [1.6, 1.3] } },
+    { id: "plan-flow", type: "line", source: "plan", filter: ["==", ["get", "real"], true], paint: { "line-color": "#ffffff", "line-width": 2, "line-opacity": 0.6, "line-dasharray": [0, 4, 3] } },
+    { id: "plan-arrows", type: "symbol", source: "plan", minzoom: 12.5, layout: { "symbol-placement": "line", "symbol-spacing": 90, "icon-image": "arrow", "icon-size": 0.5, "icon-allow-overlap": true, "icon-ignore-placement": true } },
+    { id: "meline", type: "line", source: "meline", layout: round, paint: { "line-color": BLUE, "line-width": 4, "line-dasharray": [0.2, 1.8] } },
+    { id: "nextleg-case", type: "line", source: "nextleg", layout: round, paint: { "line-color": dark ? "#ffffff" : "#1b1c20", "line-width": 12, "line-opacity": 0.9 } },
+    { id: "nextleg", type: "line", source: "nextleg", layout: round, paint: { "line-color": MUSTARD, "line-width": 7.5 } },
+    { id: "nextleg-arrows", type: "symbol", source: "nextleg", layout: { "symbol-placement": "line", "symbol-spacing": 55, "icon-image": "arrow-dark", "icon-size": 0.62, "icon-allow-overlap": true, "icon-ignore-placement": true } }
   ];
 }
-const mySources = () => ({ plan: { type: "geojson", data: emptyFC }, nextleg: { type: "geojson", data: emptyFC }, walked: { type: "geojson", data: emptyFC }, acc: { type: "geojson", data: emptyFC } });
+const mySources = () => ({ poi: { type: "geojson", data: emptyFC }, plan: { type: "geojson", data: emptyFC }, nextleg: { type: "geojson", data: emptyFC }, meline: { type: "geojson", data: emptyFC }, walked: { type: "geojson", data: emptyFC }, acc: { type: "geojson", data: emptyFC } });
 
 function buildVectorStyle(base, dark) {
   const P = PAL[dark ? "night" : "day"], st = JSON.parse(JSON.stringify(base)), out = [];
@@ -85,7 +93,8 @@ function buildVectorStyle(base, dark) {
   }
   for (const l of out) { const p = layerPaint(l, P); l.paint = Object.assign(l.paint || {}, p); }
   delete st.sources.ne2_shaded;
-  st.layers = [...out, ...myLayers(dark, true)]; Object.assign(st.sources, mySources());
+  const mine = myLayers(dark, true), dot = mine.shift(), fs = out.findIndex(l => l.type === "symbol"); out.splice(fs < 0 ? out.length : fs, 0, dot); // הנקודות הקטנות מתחת לשמות המקומות
+  st.layers = [...out, ...mine]; Object.assign(st.sources, mySources());
   st.transition = { duration: 1400, delay: 0 }; st.light = { anchor: "viewport", color: dark ? "#b9c7ff" : "#fff5e0", intensity: dark ? 0.25 : 0.45, position: [1.3, 210, 35] };
   return st;
 }
@@ -118,10 +127,9 @@ async function initMap() {
   // אם אריחי המפה הווקטורית נכשלים (ולא רק איטיים), עוברים לאריחים רגילים של CARTO
   let tileErr = 0; map.on("error", e => { if (isRaster || map._gotData || !e.sourceId) return; if (++tileErr >= 4) { isRaster = true; map.setStyle(rasterStyle(mapDark), { diff: false }); setAttr(); toast("עברתי למפה פשוטה, המפה המפורטת לא נטענת כרגע"); } });
   map.on("data", e => { if (e.dataType === "source" && e.sourceId === "openmaptiles" && e.tile) map._gotData = true; });
-  map.on("styleimagemissing", e => { if (e.id === "arrow") addArrow(); });
-  map.on("style.load", () => { addArrow(); drawRoute(); drawWalked(); drawAcc(); });
+  map.on("styleimagemissing", e => { if (/^arrow/.test(e.id)) addArrow(); });
+  map.on("style.load", () => { addArrow(); drawRoute(); drawWalked(); drawAcc(); drawPoi(); });
   map.on("dragstart", () => { if (follow) { follow = false; updateFab(); } });
-  map.on("move", () => { if (!_layRaf) _layRaf = requestAnimationFrame(layoutMarkers); });
   map.on("zoom", zoomClass); zoomClass();
   // "תוסיף משהו שראיתי": לחיצה ארוכה (או קליק ימני במחשב)
   let lp = null, lpAt = 0;
@@ -130,14 +138,16 @@ async function initMap() {
   map.on("touchstart", e => { clr(); if (e.originalEvent.touches.length === 1) lp = setTimeout(() => fire(e.lngLat), 650); });
   ["touchend", "touchcancel", "dragstart", "zoomstart", "rotatestart", "pitchstart"].forEach(ev => map.on(ev, clr));
   map.on("contextmenu", e => fire(e.lngLat));
-  map.on("click", e => { if (pickCb) { const cb = pickCb; pickCb = null; cb(e.lngLat); } });
+  map.on("click", e => { if (pickCb) { const cb = pickCb; pickCb = null; cb(e.lngLat); return; } poiTap(e); });
   startFlow();
 }
 function setAttr() { const a = $("#attr"); if (a) a.innerHTML = isRaster ? '© <a href="https://carto.com/attributions" target="_blank" rel="noopener">CARTO</a> · <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>' : '© <a href="https://openfreemap.org" target="_blank" rel="noopener">OpenFreeMap</a> · <a href="https://www.openmaptiles.org/" target="_blank" rel="noopener">OpenMapTiles</a> · <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>'; }
 function addArrow() {
-  if (map.hasImage("arrow")) return; const c = document.createElement("canvas"); c.width = c.height = 32; const x = c.getContext("2d");
-  x.strokeStyle = "#fff"; x.lineWidth = 5; x.lineCap = "round"; x.lineJoin = "round"; x.beginPath(); x.moveTo(11, 7); x.lineTo(21, 16); x.lineTo(11, 25); x.stroke();
-  map.addImage("arrow", x.getImageData(0, 0, 32, 32));
+  for (const [id, col] of [["arrow", "#fff"], ["arrow-dark", "#1b1c20"]]) {
+    if (map.hasImage(id)) continue; const c = document.createElement("canvas"); c.width = c.height = 32; const x = c.getContext("2d");
+    x.strokeStyle = col; x.lineWidth = 5; x.lineCap = "round"; x.lineJoin = "round"; x.beginPath(); x.moveTo(11, 7); x.lineTo(21, 16); x.lineTo(11, 25); x.stroke();
+    map.addImage(id, x.getImageData(0, 0, 32, 32));
+  }
 }
 function zoomClass() { const z = map.getZoom(), m = $("#map"); m.classList.toggle("vfar", z < 9.3); m.classList.toggle("far", z < 13.4); m.classList.toggle("mid", z < 14.8); }
 const buzz = p => { try { if (navigator.vibrate) navigator.vibrate(p); } catch (e) {} };
@@ -157,11 +167,16 @@ function applyTheme() {
 /* ---------- המסלול ---------- */
 function drawRoute() {
   if (!map || !map.getSource("plan")) return;
-  const L = dayLine(curDay), c = dayColor();
-  map.getSource("plan").setData({ type: "FeatureCollection", features: L.legs.filter(l => l.coords.length > 1).map(l => ({ type: "Feature", properties: { real: l.real, c }, geometry: { type: "LineString", coordinates: l.coords } })) });
-  const lv = live(curDay); let nl = emptyFC; // הקטע הבא בולט יותר
-  if (lv.today && lv.next) { const i = L.pts.findIndex(p => p.s.id === lv.next.id); if (i > 0 && L.legs[i - 1].coords.length > 1) nl = { type: "Feature", properties: { c }, geometry: { type: "LineString", coordinates: L.legs[i - 1].coords } }; }
-  map.getSource("nextleg").setData(nl);
+  const L = dayLine(curDay), c = dayColor(), free = typeof freeFrom === "function" && freeFrom(curDay) === -1;
+  map.getSource("plan").setData({ type: "FeatureCollection", features: free ? [] : L.legs.filter(l => l.coords.length > 1).map(l => ({ type: "Feature", properties: { real: l.real, c }, geometry: { type: "LineString", coordinates: l.coords } })) });
+  // הקטע הבא: הכי בולט על המסך, עם חצים. ואם יש GPS, קו מנוקד ממני אל התחנה הבאה
+  const lv = live(curDay); let nl = emptyFC, ml = emptyFC;
+  if (lv.today && lv.next && !navT) {
+    const i = L.pts.findIndex(p => p.s.id === lv.next.id), l = loc(lv.next);
+    if (i > 0 && L.legs[i - 1].coords.length > 1 && L.legs[i - 1].real) nl = { type: "Feature", properties: {}, geometry: { type: "LineString", coordinates: L.legs[i - 1].coords } };
+    if (gps && l && hav(gps, l) < 4000 && hav(gps, l) > 40) ml = { type: "Feature", properties: {}, geometry: { type: "LineString", coordinates: [[gps.lng, gps.lat], [l.lng, l.lat]] } };
+  }
+  if (!navT) map.getSource("nextleg").setData(nl); if (map.getSource("meline")) map.getSource("meline").setData(ml);
 }
 function onRoutesChanged() { drawRoute(); if (typeof renderAll === "function") renderAll(); }
 const DASH = [[0, 4, 3], [0.5, 4, 2.5], [1, 4, 2], [1.5, 4, 1.5], [2, 4, 1], [2.5, 4, 0.5], [3, 4, 0], [0, 0.5, 3, 3.5], [0, 1, 3, 3], [0, 1.5, 3, 2.5], [0, 2, 3, 2], [0, 2.5, 3, 1.5], [0, 3, 3, 1], [0, 3.5, 3, 0.5]];
@@ -173,7 +188,56 @@ function startFlow() { // אנימציית "זרימה" איטית לאורך ה
   }, 130);
 }
 
-/* ---------- סימנים ---------- */
+/* ---------- סימנים ----------
+   רק התחנות של היום הנבחר הן סימנים ממוספרים. הם יושבים בדיוק על הנקודה שלהם ולא זזים בזום.
+   כל השאר (ציוני דרך, "שווה בסביבה", שווקים) הם נקודות קטנות בתוך המפה עצמה, מתחת לשמות המקומות,
+   ומקבלות שם רק בזום קרוב (ההתנגשויות וה-fade מטופלים על ידי MapLibre). */
+function mkNode(o) { // סימן זמני (תוצאות חיפוש / Claude)
+  const c = document.createElement("div"); c.className = "mkc " + (o.kind || "");
+  c.innerHTML = `<button type="button" class="mk ${o.cls || ""}" style="--r:${o.r}px"><span class="mk-b">${o.inner}</span>${o.he ? `<span class="mk-l"><b>${bd(o.he)}</b></span>` : ""}</button>`;
+  c.style.zIndex = o.z || 1; const b = c.querySelector(".mk"); b.setAttribute("aria-label", o.he || "");
+  b.addEventListener("click", e => { e.stopPropagation(); o.onClick(); });
+  return { m: new maplibregl.Marker({ element: c }).setLngLat([o.lng, o.lat]).addTo(map), el: c };
+}
+function drawMarkers() {
+  if (!map) return;
+  stopMarkers.forEach(x => x.m.remove()); stopMarkers = [];
+  const L = live(curDay), groups = new Map();
+  plan[curDay].stops.forEach((s, i) => { const l = loc(s); if (!l) return; const k = l.lat.toFixed(4) + "," + l.lng.toFixed(4); if (!groups.has(k)) groups.set(k, { l, items: [] }); groups.get(k).items.push({ s, n: i + 1 }); });
+  for (const g of groups.values()) {
+    const sts = g.items.map(x => stopStatus(x.s, L)), gone = x => ["done", "skip", "past", "later"].includes(x);
+    const lead = g.items[sts.indexOf("next")] || g.items[sts.indexOf("now")] || g.items.find((x, i) => !gone(sts[i])) || g.items[g.items.length - 1];
+    const st = sts.includes("next") ? "next" : sts.includes("now") ? "now" : sts.every(x => x === "done") ? "done" : sts.every(gone) ? "past" : "";
+    const inf = sinfo(lead.s), pl = lead.s.at ? place(lead.s.at) : null, name = pl ? pl.name : lead.s.n;
+    const c = document.createElement("div"); c.className = "mkc stop"; c.style.zIndex = st === "next" ? 9 : st === "now" ? 8 : st === "past" || st === "done" ? 2 : 5;
+    c.innerHTML = `<button type="button" class="pin ${st}${isFixed(lead.s) ? " fx" : ""}" aria-label="${esc(lead.n + ". " + name)}"><span class="pin-n">${st === "done" ? "✓" : lead.n}</span><span class="pin-l">${inf.ic} ${bd(name)}</span></button>`;
+    c.firstChild.addEventListener("click", e => { e.stopPropagation(); openPlace({ stopId: lead.s.id }); });
+    stopMarkers.push({ m: new maplibregl.Marker({ element: c }).setLngLat([g.l.lng, g.l.lat]).addTo(map), el: c });
+  }
+  $("#map").classList.toggle("few", stopMarkers.length <= 4); // ביום עם מעט תחנות (טיסה) מראים שמות גם בזום רחוק
+  drawPoi();
+}
+/* כל מה שלא בתוכנית של היום: נקודות קטנות ושקופות חלקית בתוך המפה */
+function poiFeatures() {
+  const used = new Set(plan[curDay].stops.map(s => s.at).filter(Boolean)), near = plan[curDay].stops.map(loc).filter(Boolean), f = [];
+  const far = p => !near.some(l => hav(l, p) < 70), add = (p, kind, ref, name) => f.push({ type: "Feature", properties: { kind, ref, name: name || p.cz || p.name, he: p.name }, geometry: { type: "Point", coordinates: [p.lng, p.lat] } });
+  for (const [k, inf] of Object.entries(TRIP.info)) if (inf.lm && !used.has(k)) add(TRIP.places[k], "lm", "p:" + k);
+  for (const x of TRIP.extras) if (far(x)) add(x, x.lm ? "lm" : "x", "x:" + x.id);
+  if (settings.evOn && typeof eventsFor === "function") for (const e of eventsFor(plan[curDay].date)) if (e.lat && far(e)) add(e, "ev", "e:" + e.id, e.cz || e.name);
+  return f;
+}
+function drawPoi() { if (map && map.getSource("poi")) map.getSource("poi").setData({ type: "FeatureCollection", features: poiFeatures() }); }
+function poiTap(e) { // נגיעה ליד נקודה קטנה פותחת את הכרטיס שלה
+  if (!map.getLayer("poi-dot")) return false; const p = e.point, fs = map.queryRenderedFeatures([[p.x - 16, p.y - 16], [p.x + 16, p.y + 16]], { layers: ["poi-dot"] }); if (!fs.length) return false;
+  const [t, id] = fs[0].properties.ref.split(":"); buzz(6);
+  if (t === "p") openPlace({ placeKey: id }); else if (t === "x") openPlace({ extraId: id }); else { const ev = eventsFor(plan[curDay].date).find(x => x.id === id); if (ev) openPlace({ near: ev }); }
+  return true;
+}
+function showNearMarkers(items) {
+  nearMarkers.forEach(x => x.m.remove()); nearMarkers = [];
+  items.slice(0, 30).forEach(it => nearMarkers.push(mkNode({ kind: "near", cls: "mk-near" + (it.veg ? " veg" : ""), r: 15, z: 4, inner: `<span class="mk-i">${it.ic}</span>`, he: it.name, lat: it.lat, lng: it.lng, onClick: () => openPlace({ near: it }) })));
+}
+const glyphSvg = g => `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="${GLYPH[g] || GLYPH.star}"/></svg>`;
 const GLYPH = {
   castle: "M3 21V10l2-1V6l1-3 1 3v3l2 1v3h2V8l1-5 1 5v5h2v-3l2-1V6l1-3 1 3v3l2 1v11h-7v-4a2 2 0 0 0-4 0v4z",
   bridge: "M2 8h20v3h-1v8h-3v-4a2 2 0 0 0-4 0v4h-4v-4a2 2 0 0 0-4 0v4H3v-8H2zM5 4h2v4H5zm12 0h2v4h-2z",
@@ -187,66 +251,6 @@ const GLYPH = {
   star: "M12 2l2.9 6.3 6.9.8-5.1 4.7 1.4 6.8L12 17.3 5.9 20.6l1.4-6.8L2.2 9.1l6.9-.8z",
   square: "M4 20h16v-2H4zm2-3h2V10H6zm5 0h2V10h-2zm5 0h2V10h-2zM3 9h18L12 3z"
 };
-const glyphSvg = g => `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="${GLYPH[g] || GLYPH.star}"/></svg>`;
-function mkNode(o) { // o: cls, inner, he, cz, r, z, aria, onClick
-  const c = document.createElement("div"); c.className = "mkc " + (o.kind || "");
-  c.innerHTML = `<i class="mk-ln"></i><button type="button" class="mk ${o.cls || ""}" style="--r:${o.r}px${o.color ? ";--c:" + o.color : ""}${o.p != null ? ";--p:" + o.p : ""}"><span class="mk-b">${o.inner}</span>${o.he ? `<span class="mk-l"><b>${bd(o.he)}</b>${o.cz ? `<small dir="ltr">${esc(o.cz)}</small>` : ""}</span>` : ""}</button>`;
-  c.style.zIndex = o.z || 1; const b = c.querySelector(".mk"); b.setAttribute("aria-label", o.aria || o.he || "");
-  b.addEventListener("click", e => { e.stopPropagation(); o.onClick(); });
-  const m = new maplibregl.Marker({ element: c }).setLngLat([o.lng, o.lat]).addTo(map);
-  return { m, el: c, ln: c.firstChild, r: o.r, lay: o.lay !== false, p: { lat: o.lat, lng: o.lng } };
-}
-function drawMarkers() {
-  if (!map) return;
-  [...stopMarkers, ...lmMarkers].forEach(x => x.m.remove()); stopMarkers = []; lmMarkers = [];
-  if (clusterMarker) { clusterMarker.m.remove(); clusterMarker = null; }
-  const L = live(curDay), groups = new Map(), used = new Set();
-  plan[curDay].stops.forEach((s, i) => { const l = loc(s); if (!l) return; const k = l.lat.toFixed(4) + "," + l.lng.toFixed(4); if (!groups.has(k)) groups.set(k, { l, items: [] }); groups.get(k).items.push({ s, n: i + 1 }); if (s.at) used.add(s.at); });
-  for (const g of groups.values()) {
-    const sts = g.items.map(x => stopStatus(x.s, L));
-    const lead = g.items[sts.indexOf("next")] || g.items[sts.indexOf("now")] || g.items.find((x, i) => !["done", "skip", "past"].includes(sts[i])) || g.items[g.items.length - 1];
-    const inf = sinfo(lead.s), isBig = !!(inf.big || inf.lm || g.items.some(x => x.s.big));
-    const st = sts.includes("next") ? "next" : sts.includes("now") ? "now" : sts.every(x => ["done", "skip", "past"].includes(x)) ? "past" : "";
-    const r = st === "next" ? 28 : st === "past" ? 15 : isBig ? 25 : 20;
-    let p = null; if (st === "now" && L.next && L.cur) p = Math.round(Math.min(1, Math.max(0, (L.now - pm(L.cur)) / Math.max(1, pm(L.next) - pm(L.cur)))) * 100);
-    const nums = st === "past" ? "✓" : g.items.filter((x, i) => !["done", "skip", "past"].includes(sts[i]) || st === "").map(x => x.n).join("·") || "✓";
-    const pl = lead.s.at ? place(lead.s.at) : null;
-    stopMarkers.push(mkNode({
-      kind: "stop", cls: (isBig ? "big " : "") + st + (inf.lm ? " lmk" : ""), r, z: st === "next" ? 6 : st === "now" ? 5 : st === "past" ? 1 : isBig ? 4 : 3, color: TYC[inf.ty || lead.s.ty] || TYC.sight, p,
-      inner: `${inf.lm ? glyphSvg(inf.g) : `<span class="mk-i">${inf.ic}</span>`}<span class="mk-n">${nums}</span>`,
-      he: pl ? pl.name : lead.s.n, cz: pl ? pl.cz : "", lat: g.l.lat, lng: g.l.lng, onClick: () => openPlace({ stopId: lead.s.id })
-    }));
-  }
-  // ציוני דרך: תמיד על המפה, גם בזום רחוק
-  for (const [k, inf] of Object.entries(TRIP.info)) if (inf.lm && !used.has(k)) { const p = TRIP.places[k]; lmMarkers.push(mkNode({ kind: "lm", cls: "lmk free", r: 19, z: 2, inner: glyphSvg(inf.g), he: p.name, cz: p.cz, lat: p.lat, lng: p.lng, onClick: () => openPlace({ placeKey: k }) })); }
-  for (const x of TRIP.extras) if (x.lm) lmMarkers.push(mkNode({ kind: "lm", cls: "lmk free", r: 19, z: 2, inner: glyphSvg(x.g), he: x.name, cz: x.cz, lat: x.lat, lng: x.lng, onClick: () => openPlace({ extraId: x.id }) }));
-  if (!extraMarkers.length) for (const x of TRIP.extras) if (!x.lm) extraMarkers.push(mkNode({ kind: "x", cls: "mk-x", r: 14, lay: false, inner: `<span class="mk-i">${x.ic}</span>`, he: x.name, cz: "", lat: x.lat, lng: x.lng, onClick: () => openPlace({ extraId: x.id }) }));
-  // cluster רק בזום רחוק מאוד
-  const city = stopMarkers.filter(x => x.p.lng > 14.33);
-  if (city.length > 1) { const la = city.reduce((a, x) => a + x.p.lat, 0) / city.length, ln = city.reduce((a, x) => a + x.p.lng, 0) / city.length; clusterMarker = mkNode({ kind: "cl", cls: "big", r: 24, z: 7, color: dayColor(), lay: false, inner: `<span class="mk-c">${plan[curDay].stops.length}</span>`, he: "תחנות היום", lat: la, lng: ln, onClick: () => flyDay(curDay) }); }
-  layoutMarkers();
-}
-/* פיזור חכם: סימנים קרובים נדחפים הצידה, וקו דק מחבר אותם לנקודה האמיתית */
-let _layRaf = null;
-function layoutMarkers() {
-  _layRaf = null; if (!map) return;
-  const it = [...stopMarkers, ...lmMarkers, ...(typeof evMarkers !== "undefined" ? evMarkers : []), ...nearMarkers].filter(x => x.lay).map(x => { const p = map.project([x.p.lng, x.p.lat]); return { x, px: p.x, py: p.y, ox: 0, oy: 0, r: x.r + (x.r > 22 ? 4 : 2) }; });
-  for (let k = 0; k < 14; k++) for (let i = 0; i < it.length; i++) for (let j = i + 1; j < it.length; j++) {
-    const a = it[i], b = it[j]; let dx = (b.px + b.ox) - (a.px + a.ox), dy = (b.py + b.oy) - (a.py + a.oy), d = Math.hypot(dx, dy), min = a.r + b.r + 3;
-    if (d >= min) continue; if (d < 0.5) { const an = (i * 2.4 + j) % 6.28; dx = Math.cos(an); dy = Math.sin(an); d = 1; }
-    const push = (min - d) / 2, ux = dx / d, uy = dy / d, wa = a.x.r > b.x.r ? 0.3 : a.x.r < b.x.r ? 0.7 : 0.5; // הגדול זז פחות
-    a.ox -= ux * push * 2 * wa; a.oy -= uy * push * 2 * wa; b.ox += ux * push * 2 * (1 - wa); b.oy += uy * push * 2 * (1 - wa);
-  }
-  for (const a of it) {
-    const len = Math.hypot(a.ox, a.oy), k = len > 78 ? 78 / len : 1, ox = a.ox * k, oy = a.oy * k, L = Math.hypot(ox, oy);
-    a.x.el.style.setProperty("--dx", ox.toFixed(1) + "px"); a.x.el.style.setProperty("--dy", oy.toFixed(1) + "px");
-    if (L > 7) { a.x.ln.style.display = "block"; a.x.ln.style.width = L.toFixed(1) + "px"; a.x.ln.style.transform = `rotate(${Math.atan2(oy, ox)}rad)`; } else a.x.ln.style.display = "none";
-  }
-}
-function showNearMarkers(items) {
-  nearMarkers.forEach(x => x.m.remove()); nearMarkers = [];
-  items.slice(0, 40).forEach(it => nearMarkers.push(mkNode({ kind: "near", cls: "mk-near" + (it.veg ? " veg" : ""), r: 15, z: 4, inner: `<span class="mk-i">${it.ic}</span>`, he: it.name, cz: "", lat: it.lat, lng: it.lng, onClick: () => openPlace({ near: it }) })));
-}
 
 /* ---------- מצלמה ---------- */
 const tilt = () => settings.is3d && !saver;
@@ -319,6 +323,7 @@ function onPos(pos) {
   if ((settings.eco || saver || lowPower) && now - lastProc < 12000) return; lastProc = now;
   const first = !gps;
   gps = { lat: c.latitude, lng: c.longitude, acc: c.accuracy || 30, t: now };
+  if (!onPos._saved || now - onPos._saved > 20000) { onPos._saved = now; LS.set("lastPos", { lat: +gps.lat.toFixed(5), lng: +gps.lng.toFixed(5), t: now }); } // המיקום האחרון הידוע, בשביל SOS
   // עומד במקום שתי דקות → מורידים תדירות ודיוק. זז שוב → חוזרים למעקב מלא
   if (!lastMove.p || hav(gps, lastMove.p) > 25) { lastMove = { t: now, p: { lat: gps.lat, lng: gps.lng } }; if (lowPower) { lowPower = false; restartGPS(); } }
   else if (!lowPower && now - lastMove.t > 120000 && !QS.get("gps")) { lowPower = true; restartGPS(); }
@@ -443,7 +448,7 @@ function cycleSpeed() { playSpeed = playSpeed === 1 ? 2 : playSpeed === 2 ? 4 : 
 function initBattery() {
   if (!navigator.getBattery) return;
   navigator.getBattery().then(b => {
-    const chk = () => { const low = b.level < 0.2 && !b.charging; if (low === saver) return; saver = low; if (map && map.getLayer("b3d")) map.setLayoutProperty("b3d", "visibility", tilt() ? "visible" : "none"); if (low) { map.easeTo({ pitch: 0, bearing: 0, duration: 400 }); restartGPS(); toast("סוללה נמוכה: כיביתי תלת-ממד ואנימציות", 3800); } updateFab(); };
+    window._batt = b; const chk = () => { const low = b.level < 0.2 && !b.charging; if (low === saver) return; saver = low; if (map && map.getLayer("b3d")) map.setLayoutProperty("b3d", "visibility", tilt() ? "visible" : "none"); if (low) { map.easeTo({ pitch: 0, bearing: 0, duration: 400 }); restartGPS(); toast("סוללה נמוכה: כיביתי תלת-ממד ואנימציות", 3800); } updateFab(); };
     b.addEventListener("levelchange", chk); b.addEventListener("chargingchange", chk); chk();
   }).catch(() => {});
 }

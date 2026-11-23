@@ -272,9 +272,9 @@ function openMe_v1() {
 
 /* ---------- "עוד" + הגדרות ---------- */
 function openMore() {
-  const items = [["upd", "🔔", "עדכונים"], ["wa", "💬", "ווטסאפ"], ["cal", "📅", "תזכורות ליומן"], ["tips", "💡", "כדאי לדעת"], ["phr", "🗣️", "משפטים"], ["free", "🧭", "יום חופשי"], ["today", "☀️", "היום שלי"], ["wx", "🌡️", "מזג אוויר"], ["pack", "🎒", "מה לקחת"], ["exp", "💰", "הוצאות"], ["sum", "📊", "סיכום היום"], ["off", "📥", "בלי אינטרנט"], ["me", "🔒", "הפרטים שלי"], ["sos", "🆘", "חירום"], ...(CONFIG.server ? [["chat", "💬", "חיבור Claude"]] : []), ["set", "⚙️", "הגדרות"], ["inst", "📲", "מסך הבית"], ["add", "➕", "להוסיף תחנה"]];
+  const items = [["upd", "🔔", "עדכונים"], ["wa", "💬", "ווטסאפ"], ["cal", "📅", "תזכורות ליומן"], ["tips", "💡", "כדאי לדעת"], ["lg", "🗺️", "מקרא המפה"], ["phr", "🗣️", "משפטים"], ["free", "🧭", "יום חופשי"], ["today", "☀️", "היום שלי"], ["wx", "🌡️", "מזג אוויר"], ["pack", "🎒", "מה לקחת"], ["exp", "💰", "הוצאות"], ["sum", "📊", "סיכום היום"], ["off", "📥", "בלי אינטרנט"], ["me", "🔒", "הפרטים שלי"], ["sos", "🆘", "חירום"], ...(CONFIG.server ? [["chat", "💬", "חיבור Claude"]] : []), ["set", "⚙️", "הגדרות"], ["inst", "📲", "מסך הבית"], ["add", "➕", "להוסיף תחנה"]];
   openModal(`<h2>עוד</h2><div class="menu">${items.map(i => `<button data-m="${i[0]}"><span>${i[1]}</span>${i[2]}</button>`).join("")}</div>`);
-  const fn = { upd: openUpdates, wa: openWa, cal: openCalendar, tips: openTips, phr: openPhrases, free: openFree, today: () => openToday(curDay), wx: openWeather, pack: openPack, exp: openExp, sum: () => openSummary(curDay), off: openOffline, me: openMe, sos: openSOS, set: openSettings, chat: openChatSetup, inst: openInstall, add: () => addStopFlow() };
+  const fn = { lg: () => { closeModal(); showLegend(true); }, upd: openUpdates, wa: openWa, cal: openCalendar, tips: openTips, phr: openPhrases, free: openFree, today: () => openToday(curDay), wx: openWeather, pack: openPack, exp: openExp, sum: () => openSummary(curDay), off: openOffline, me: openMe, sos: openSOS, set: openSettings, chat: openChatSetup, inst: openInstall, add: () => addStopFlow() };
   $$("#mbody [data-m]").forEach(b => b.onclick = fn[b.dataset.m]);
 }
 function openSettings() {
@@ -376,18 +376,13 @@ function openOffline() {
 }
 
 /* ---------- 🔥 אירועים: קבועים (שווקים ומסיבות) + מה שהשרת מצא ---------- */
-let evMarkers = [];
 function eventsFor(date) {
   const srv = (CONFIG.server ? LS.get("events", { items: [] }).items || [] : []).filter(e => e.date === date && e.lat && e.name).map((e, i) => ({ id: "se" + i, name: String(e.name).slice(0, 80), cz: String(e.place || "").slice(0, 60), lat: +e.lat, lng: +e.lng, ic: "🔥", ty: "party", when: String(e.time || "").slice(0, 20), price: String(e.price || "").slice(0, 30), url: /^https:\/\//.test(e.url || "") ? e.url : "", sub: String(e.why || "").slice(0, 160), score: +e.score || 3, m: /^\d\d?:\d\d/.test(e.time || "") ? parseT(e.time.slice(0, 5)) : null, srv: true, q: (e.place || e.name) + ", Praha" }));
   const fixed = TRIP.events.filter(e => !e.date || e.date === date).map(e => ({ ...e, ic: e.ic || "🎄", sub: e.d || "", score: e.score || 4, m: e.t ? parseT(e.t) : null, when: e.when || "" }));
   return [...fixed, ...srv];
 }
-function drawEvents() {
-  evMarkers.forEach(x => x.m.remove()); evMarkers = []; $("#fabEv").classList.toggle("on", !!settings.ev); if (!settings.ev || !map) return;
-  const inPlan = plan[curDay].stops.map(s => loc(s)).filter(Boolean);
-  for (const e of eventsFor(plan[curDay].date)) { if (!e.lat || inPlan.some(l => hav(l, e) < 60)) continue; evMarkers.push(mkNode({ kind: "ev", cls: "mk-ev" + (e.score >= 5 ? " hot" : ""), r: 15, z: 2, inner: `<span class="mk-i">${e.ic}</span>`, he: e.name, cz: e.when || "", lat: e.lat, lng: e.lng, onClick: () => openPlace({ near: e }) })); }
-}
-function toggleEvents() { settings.ev = !settings.ev; saveSet(); drawEvents(); buzz(8); toast(settings.ev ? "🔥 השווקים והמסיבות שלך על המפה" : "שכבת האירועים כבויה"); }
+function drawEvents() { drawPoi(); const b = $("#lgEv"); if (b) b.checked = !!settings.evOn; }
+function toggleEvents(on) { settings.evOn = on == null ? !settings.evOn : !!on; saveSet(); drawEvents(); buzz(8); toast(settings.evOn ? "🎄 השווקים והמסיבות שלך על המפה (נקודות כתומות)" : "שכבת האירועים כבויה"); }
 function eventCard() { // "חדש היום": אירוע שהשרת מצא, עם ציון 4–5, קרוב לאזור של היום
   const T = tripNow(); if (T.dayIdx !== curDay) return ""; const pts = plan[curDay].stops.map(s => loc(s)).filter(Boolean), seen = LS.get("evSeen", {});
   const e = eventsFor(plan[curDay].date).find(e => e.srv && e.score >= 4 && !seen[e.name] && pts.some(l => hav(l, e) < 1500) && (e.m == null || e.m > T.min - 30)); if (!e) return "";
@@ -415,7 +410,7 @@ async function init() {
   $("#mback").onclick = closeModal; $("#mclose").onclick = closeModal;
   addEventListener("keydown", e => { if (e.key === "Escape") closeModal(); });
   $("#nowBtn").onclick = goNow; $("#sos").onclick = () => openSOS(); $("#wx").onclick = openWeather;
-  $("#fabLoc").onclick = locateTap; $("#fab3d").onclick = toggle3D; $("#fabHere").onclick = () => openNearby(); $("#fabEv").onclick = toggleEvents;
+  $("#fabLoc").onclick = locateTap; $("#fab3d").onclick = toggle3D; $("#fabHere").onclick = () => openNearby(); initLegend();
   $("#playBtn").onclick = playDay; $("#speedBtn").onclick = cycleSpeed;
   $("#scrub").addEventListener("input", e => { stopPlay(); playState = null; hidePlayCard(); setPlay(+e.target.value); renderPlayer(); });
   $("#spont").onchange = e => { settings.spont = e.target.checked; saveSet(); renderAll(); toast(settings.spont ? "מצב ספונטני: בלי שעות, הולכים למה שקרוב" : "חזרנו לשעות"); };

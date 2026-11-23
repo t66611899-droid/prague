@@ -508,6 +508,44 @@ button.ritem{flex-direction:column;align-items:stretch;justify-content:center;ga
 .cal .ritem{min-height:52px}
 @media (max-width:374px){.sos-112 b{font-size:2.4rem}.coords{font-size:1.45rem}.phr{grid-template-columns:1fr}}
 
+
+/* ---------- מפה נקייה: רק היום הנבחר בולט ---------- */
+.pin{position:absolute;left:0;top:0;transform:translate(-50%,-50%);background:none;border:0;padding:0;font-family:inherit;cursor:pointer;display:block;width:0;height:0}
+.pin-n{position:absolute;left:0;top:0;transform:translate(-50%,-50%);width:34px;height:34px;border-radius:50%;background:var(--day);color:#fff;border:3px solid #fff;display:grid;place-items:center;font-size:15px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1;box-shadow:0 3px 10px rgba(0,0,0,.4);transition:width .25s var(--ease),height .25s var(--ease),font-size .25s var(--ease),opacity .25s}
+:root[data-theme="dark"] .pin-n{border-color:#12141a;box-shadow:0 0 0 1.5px rgba(255,255,255,.55),0 3px 12px rgba(0,0,0,.6)}
+.pin-l{position:absolute;left:0;top:22px;transform:translateX(-50%);white-space:nowrap;direction:rtl;font-size:12.5px;font-weight:700;color:var(--ink);padding:2px 8px;border-radius:9px;background:color-mix(in srgb,var(--card) 88%,transparent);box-shadow:var(--sh1);max-width:170px;overflow:hidden;text-overflow:ellipsis;transition:opacity .3s,transform .3s var(--ease);pointer-events:none}
+.pin.fx .pin-n{box-shadow:0 0 0 3px var(--must),0 3px 10px rgba(0,0,0,.4)}
+.pin.next .pin-n{width:44px;height:44px;font-size:19px;background:var(--must);color:#1b1c20}
+.pin.next .pin-n::after{content:"";position:absolute;inset:-9px;border-radius:50%;border:3px solid var(--must);animation:pulse 1.8s ease-out infinite}
+.pin.next .pin-l{top:28px;font-size:13.5px;background:var(--must);color:#1b1c20}
+.pin.now .pin-n{box-shadow:0 0 0 3px var(--blue),0 3px 10px rgba(0,0,0,.4)}
+.pin.done .pin-n,.pin.past .pin-n{width:22px;height:22px;font-size:11px;background:var(--mut);border-width:2px;opacity:.8}
+.pin.done .pin-n{background:var(--ok)}
+.pin.done .pin-l,.pin.past .pin-l{opacity:0}
+/* זום רחוק: מספרים קטנים, ושם רק לתחנה הבאה. המעבר הדרגתי */
+#map.far .pin:not(.next) .pin-n{width:26px;height:26px;font-size:12.5px}
+#map.far .pin.done .pin-n,#map.far .pin.past .pin-n{width:16px;height:16px;font-size:9px}
+#map.far .pin:not(.next) .pin-l{opacity:0;transform:translateX(-50%) translateY(-4px)}
+#map.far .pin.next .pin-n{width:38px;height:38px;font-size:17px}
+#map.far .pin-l{top:20px}
+#map.far .pin.next .pin-l{top:25px}
+.mk-ln,.mkc::before{display:none!important}
+.mk{transition:none}
+#legend{align-self:flex-start;position:relative;background:var(--glass);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-radius:var(--r2);box-shadow:var(--sh2);padding:12px 14px 6px;max-width:290px;animation:drop .4s var(--spring)}
+#legend b{display:block;font-size:.9rem;margin-bottom:6px;padding-inline-end:40px}
+#legend p{margin:0;display:flex;align-items:center;gap:10px;font-size:.82rem;min-height:30px}
+#legend i{flex:none;font-style:normal}
+#lgX{position:absolute;top:4px;inset-inline-end:4px;width:44px;height:44px;border:0;background:none;color:var(--mut);font-size:.9rem}
+.lg-pin{width:24px;height:24px;border-radius:50%;background:var(--day);color:#fff;display:grid;place-items:center;font-size:11px;font-weight:700;border:2px solid #fff}
+.lg-pin.nx{background:var(--must);color:#1b1c20}
+.lg-pin.dn{background:var(--ok)}
+.lg-ln{width:24px;height:5px;border-radius:3px;background:var(--day)}
+.lg-ln.nx{height:7px;background:var(--must);box-shadow:0 0 0 2px var(--ink)}
+.lg-dot{width:10px;height:10px;margin:0 7px;border-radius:50%;background:#7c8394;opacity:.8}
+.lg-me{width:14px;height:14px;margin:0 5px;border-radius:50%;background:var(--blue);border:2px solid #fff;box-shadow:0 0 0 2px rgba(47,125,225,.35)}
+#legend .sw.mini{display:flex!important;border-top:1px solid var(--line);margin-top:4px;color:var(--ink)}
+#legend .sw.mini span{flex:1}
+
 /* ---------- desktop ---------- */
 @media (min-width:900px){
   #sheet{inset-inline:auto;inset-inline-start:0;top:0;bottom:0;height:auto!important;width:420px;border-radius:0;box-shadow:0 0 34px rgba(24,22,18,.2)}
@@ -545,3 +583,11 @@ button.ritem{flex-direction:column;align-items:stretch;justify-content:center;ga
 #listHead .sw.mini{display:none}
 #listHead h2{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
 .evc.upd{margin:10px 0 0}
+
+.sos-send{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.sos-sms,.sos-send .sos-wa{min-height:84px;margin:0;border:0;border-radius:var(--r2);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:10px 8px;text-align:center}
+.sos-sms{background:var(--ink);color:var(--card)}
+.sos-send b{font-size:1rem;font-weight:700}
+.sos-send small{font-size:.74rem;opacity:.9;line-height:1.3}
+
+#map.far.few .pin:not(.next) .pin-l{opacity:1;transform:translateX(-50%)}

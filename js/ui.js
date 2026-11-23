@@ -358,3 +358,14 @@ async function fetchJson(url, ms = 8000, opt = {}) { // כל בקשה עם timeo
 }
 const isOffline = () => navigator.onLine === false || QS.get("offline") === "1";
 function renderNet() { const off = isOffline(), n = $("#net"); n.hidden = !off; document.documentElement.classList.toggle("offline", off); $("#fabChat").classList.toggle("off", off); }
+
+/* ---------- מקרא קטן למפה (אפשר לסגור) ---------- */
+function showLegend(on) { const l = $("#legend"); l.hidden = !on; if (!on) LS.set("lgSeen", 1); if (on) { $("#lgEv").checked = !!settings.evOn; l.style.setProperty("--day", DAYC[curDay]); } }
+function initLegend() {
+  $("#legend").innerHTML = `<button id="lgX" aria-label="סגור מקרא">✕</button><b>מה רואים על המפה</b>
+    <p><i class="lg-pin">3</i> התחנות של היום, לפי הסדר</p><p><i class="lg-pin nx">4</i> לאן הולכים עכשיו</p><p><i class="lg-pin dn">✓</i> כבר הייתי</p>
+    <p><i class="lg-ln"></i> המסלול של היום</p><p><i class="lg-ln nx"></i> הקטע הבא</p><p><i class="lg-dot"></i> שווה אם אתה בסביבה (נוגעים לפרטים)</p><p><i class="lg-me"></i> אתה</p>
+    <label class="sw mini"><span>🎄 להראות שווקים ומסיבות</span><input type="checkbox" id="lgEv"><i></i></label>`;
+  $("#lgX").onclick = () => showLegend(false); $("#lgEv").onchange = e => toggleEvents(e.target.checked);
+  if (!LS.get("lgSeen")) showLegend(true);
+}

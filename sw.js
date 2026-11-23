@@ -1,11 +1,11 @@
 /* service worker: האפליקציה, הנתונים והמפה של מרכז פראג עובדים גם בלי קליטה */
-const V = "prg-v9";
+const V = "prg-v10";
 const SHELL = ["./", "index.html", "styles.css", "data.js", "routes.js", "manifest.webmanifest",
   "js/config.js", "js/core.js", "js/map.js", "js/ui.js", "js/chat.js", "js/flow.js", "js/safety.js", "js/updates.js", "js/extras.js", "prague.ics",
   "vendor/maplibre-gl.js", "vendor/maplibre-gl.css", "icons/icon.svg", "icons/icon-192.png", "icons/icon-512.png", "icons/icon-180.png"];
 const MAP = "prg-map", MEDIA = "prg-media";
 
-self.addEventListener("install", e => { e.waitUntil(caches.open(V).then(c => c.addAll(SHELL)).then(() => self.skipWaiting())); });
+self.addEventListener("install", e => { e.waitUntil(caches.open(V).then(c => c.addAll(SHELL.map(u => new Request(u, { cache: "reload" }))))  /* תמיד מהשרת, לא ממטמון הדפדפן */.then(() => self.skipWaiting())); });
 self.addEventListener("activate", e => {
   e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k.startsWith("prg-v") && k !== V).map(k => caches.delete(k)))).then(() => self.clients.claim()));
 });

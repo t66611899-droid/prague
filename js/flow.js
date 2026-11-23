@@ -113,14 +113,14 @@ function openWhat() {
   const acts = [];
   if ((h >= 11 && h < 15) || (h >= 18 && h < 21)) acts.push(["food", "🍕 לאכול משהו בלי בשר"]);
   if (wet || cold) acts.push(["cold", "☕ להתחמם במקום קרוב"]);
-  acts.push(["here", "📍 מה עוד יש פה?"], ["ask", "💬 לשאול את Claude"]);
+  acts.push(["here", "📍 מה עוד יש פה?"], ["wc", "🚻 שירותים"], ["atm", "🏧 כספומט"], ["ask", "💬 לשאול את Claude"]);
   const why = [ref.me ? "לפי איפה שאתה" : "לפי מרכז המפה (אין GPS כרגע)", `השעה ${fmtT(T.min)}`, wd ? `${wd.max}° בחוץ${wet ? " ויורד" : ""}` : ""].filter(Boolean).join(" · ");
   window._whatOpts = opts;
   openModal(`<h2>✨ מה עכשיו?</h2><p class="sub">${why}. לא חייבים לבחור, אפשר גם סתם להמשיך ללכת.</p>
     <div class="what-list">${opts.map((o, i) => `<div class="wcard"><button class="w-main" data-w="${i}"><span class="w-ic">${o.ic}</span><span class="w-tx"><small class="w-tag">${o.tag}</small><b>${bd(o.name)}</b><small class="sub2">${o.cz ? `<span class="cz1" dir="ltr">${esc(o.cz)}</span>` : ""}<span class="nt1">🚶 ${fmtDur(walkEst(hav(ref, o.l)))} · ${fmtDist(hav(ref, o.l) * 1.3)}</span></small></span></button><a class="btn pri" href="${navUrl(o.l)}" target="_blank" rel="noopener">נווט</a></div>`).join("") || emptyState("🧭", "אין משהו ממש קרוב", "אפשר לחפש מה יש בסביבה או לשאול את Claude.")}</div>
     <div class="chips wrapc">${acts.map(a => `<button class="chip" data-wa="${a[0]}">${a[1]}</button>`).join("")}</div>`, "tall");
   $$("#mbody [data-w]").forEach(b => b.onclick = () => { const o = window._whatOpts[b.dataset.w]; closeModal(); if (!isDesktop()) setSheet("low"); flyTo(o.l, 16.4); setTimeout(() => openPlace(o.open), 900); });
-  const A = { food: () => openNearby("food"), cold: openCold, here: () => openNearby(), ask: openChat };
+  const A = { wc: () => openNearby("wc"), atm: () => openNearby("atm"), food: () => openNearby("food"), cold: openCold, here: () => openNearby(), ask: openChat };
   $$("#mbody [data-wa]").forEach(b => b.onclick = () => A[b.dataset.wa]());
 }
 

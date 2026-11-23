@@ -591,3 +591,41 @@ button.ritem{flex-direction:column;align-items:stretch;justify-content:center;ga
 .sos-send small{font-size:.74rem;opacity:.9;line-height:1.3}
 
 #map.far.few .pin:not(.next) .pin-l{opacity:1;transform:translateX(-50%)}
+
+/* ---------- חירום: חיוג להורים, מדרגות לפי רשת ---------- */
+.sos-calls{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.sos-calls:has(.sos-call:only-child){grid-template-columns:1fr}
+.sos-call{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:112px;border-radius:var(--r2);border:0;background:#1fa855;color:#fff;text-decoration:none;padding:12px 8px;text-align:center;box-shadow:0 8px 20px rgba(31,168,85,.35)}
+.sos-call span{font-size:1.7rem;line-height:1}
+.sos-call b{font-size:1.12rem;font-weight:700}
+.sos-call small{font-size:.8rem;opacity:.92;font-variant-numeric:tabular-nums}
+.sos-call.empty{background:var(--card2);color:var(--ink);box-shadow:none;grid-column:1/-1}
+.sos-send{margin-top:0;margin-bottom:10px}
+.sos-send.solo{grid-template-columns:1fr}
+.sos-head.test{background:var(--blue)}
+:root[data-theme="dark"] .sos-head.test{background:#2c66c2}
+#big .cz,#big .en{white-space:pre-line}
+#sosBanner{align-self:stretch;display:flex;align-items:center;gap:8px;background:var(--red);color:#fff;border-radius:var(--r2);padding:6px 6px 6px 14px;padding-inline:14px 6px;box-shadow:var(--sh2);font-weight:600;font-size:.9rem;animation:drop .4s var(--spring)}
+#sosBanner span{flex:1}
+#sosBanner button{min-height:44px;min-width:44px;border:0;border-radius:12px;background:rgba(255,255,255,.22);color:#fff;font-weight:700;padding:0 12px}
+.cta2{display:grid;grid-template-columns:1fr 1.3fr;gap:8px;margin-top:8px}
+.cta2 small{grid-column:1/-1;font-size:.76rem;color:var(--ok);min-height:1em;text-align:right}
+/* ---------- רוצה עוד? / לילה טוב ---------- */
+.copt{display:flex;align-items:center;gap:14px;min-height:76px;width:100%;border:0;border-radius:var(--r2);background:var(--card2);padding:12px 14px;text-align:start;transition:transform .15s var(--spring)}
+.copt:active{transform:scale(.97)}
+.copt > span:first-child{flex:none;width:48px;height:48px;border-radius:50%;background:var(--card);display:grid;place-items:center;font-size:1.45rem;box-shadow:var(--sh1)}
+.copt > span:last-child{min-width:0;display:flex;flex-direction:column;gap:2px}
+.copt b{font-size:1.02rem}
+.copt small{font-size:.8rem;color:var(--mut);line-height:1.4}
+.gn{text-align:center;padding-top:6px}
+.gn > span{font-size:3rem;display:block}
+.gn h2{padding:0;font-size:1.6rem}
+.fine.note{background:color-mix(in srgb,var(--must) 12%,transparent);border-radius:var(--r1);padding:10px 12px;margin:0 0 6px;color:var(--ink);font-size:.8rem}
+.diary{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.diary .empty{grid-column:1/-1}
+.diary figure{margin:0;position:relative;border-radius:var(--r2);overflow:hidden;background:var(--card2)}
+.diary img{display:block;width:100%;aspect-ratio:1;object-fit:cover}
+.diary figcaption{padding:8px 10px;display:flex;flex-direction:column}
+.diary figcaption b{font-size:.84rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.diary figcaption small{font-size:.72rem;color:var(--mut)}
+.diary figure button{position:absolute;top:6px;inset-inline-end:6px;width:36px;height:36px;border-radius:50%;border:0;background:rgba(0,0,0,.5);color:#fff}

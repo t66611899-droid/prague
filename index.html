@@ -17,8 +17,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="vendor/maplibre-gl.css?v=10">
-<link rel="stylesheet" href="styles.css?v=10">
+<link rel="stylesheet" href="vendor/maplibre-gl.css?v=13">
+<link rel="stylesheet" href="styles.css?v=13">
 </head>
 <body>
 <div id="map" aria-label="מפת פראג"></div>
@@ -75,7 +75,8 @@
     </div>
     <ol id="list"></ol>
     <div id="listFoot">
-      <button id="addBtn" class="btn">➕ להוסיף תחנה</button>
+      <button id="addBtn" class="btn">➕ הוסף עוד</button>
+      <button id="enoughBtn" class="btn ghost">😴 מספיק להיום</button>
       <button id="resetBtn" class="btn ghost" hidden>↩︎ התוכנית המקורית</button>
     </div>
     <p class="fine attr">לחיצה ארוכה על המפה מוסיפה משהו שראית בדרך.<br><span id="attr"></span></p>
@@ -104,17 +105,18 @@ window.__boot = function (why) {
 window.addEventListener("error", function (e) { if (!window.__booted) window.__boot(e.message); });
 window.addEventListener("unhandledrejection", function (e) { if (!window.__booted) window.__boot(String(e.reason)); });
 </script>
-<script src="vendor/maplibre-gl.js?v=10"></script>
-<script src="data.js?v=10"></script>
-<script src="routes.js?v=10"></script>
-<script src="js/config.js?v=10"></script>
-<script src="js/core.js?v=10"></script>
-<script src="js/map.js?v=10"></script>
-<script src="js/ui.js?v=10"></script>
-<script src="js/chat.js?v=10"></script>
-<script src="js/flow.js?v=10"></script>
-<script src="js/safety.js?v=10"></script>
-<script src="js/updates.js?v=10"></script>
-<script src="js/extras.js?v=10"></script>
+<script src="vendor/maplibre-gl.js?v=13"></script>
+<script src="data.js?v=13"></script>
+<script src="routes.js?v=13"></script>
+<script src="js/config.js?v=13"></script>
+<script src="js/core.js?v=13"></script>
+<script src="js/map.js?v=13"></script>
+<script src="js/ui.js?v=13"></script>
+<script src="js/chat.js?v=13"></script>
+<script src="js/flow.js?v=13"></script>
+<script src="js/safety.js?v=13"></script>
+<script src="js/updates.js?v=13"></script>
+<script src="js/more.js?v=13"></script>
+<script src="js/extras.js?v=13"></script>
 </body>
 </html>

@@ -50,8 +50,8 @@ const CATS = [
   { k: "view", n: "🌄 תצפיות", q: a => `nwr${a}[tourism=viewpoint];` },
   { k: "xmas", n: "🎄 שווקי כריסמס", q: null },
   { k: "super", n: "🛒 סופר", q: a => `nwr${a}[shop~"^(supermarket|convenience)$"];` },
-  { k: "atm", n: "🏧 כספומט", q: a => `nwr${a}[amenity=atm];nwr${a}[amenity=bank][atm=yes];` },
-  { k: "wc", n: "🚻 שירותים", q: a => `nwr${a}[amenity=toilets];` }
+  { k: "atm", n: "🏧 כספומט", note: "בכספומט בוחרים תמיד חיוב ב-CZK ומסרבים ל\"המרה\". כספומט של בנק (ČSOB, KB, Česká spořitelna) עדיף על עצמאי. לא מחליפים כסף ברחוב, ונזהרים מצ'יינג'ים עם \"0% עמלה\".", q: a => `nwr${a}[amenity=atm];nwr${a}[amenity=bank][atm=yes];` },
+  { k: "wc", n: "🚻 שירותים", note: "שירותים ציבוריים בפראג הם לרוב בתשלום (מטבעות או כרטיס). בקניונים ובבתי קפה זה בחינם או זול.", q: a => `nwr${a}[amenity=toilets];` }
 ];
 const OVERPASS = ["https://overpass.kumi.systems/api/interpreter", "https://overpass-api.de/api/interpreter"];
 async function overpass(q) { // שני שרתים, כל אחד עם timeout
@@ -102,7 +102,7 @@ async function runNearby(cat) {
     if (cat !== "food" && cat !== "super") items.sort((a, b) => a.dist - b.dist);
     if ($("#nearR") !== box || _nearCat !== cat) return;
     _nearItems = [...bi, ...items]; showNearMarkers(items);
-    box.innerHTML = biHtml + (items.length ? `<h3>${C.n} · ${items.length} מקומות עד 800 מ'</h3>` + items.slice(0, 30).map(nearRow).join("") + `<button class="btn wide" id="nearMap">🗺️ להראות על המפה</button>` : emptyState("🤷", "לא מצאתי כאן", "אפשר לנסות קטגוריה אחרת, או לשאול את Claude."));
+    box.innerHTML = (C.note ? `<p class="fine note">${C.note}</p>` : "") + biHtml + (items.length ? `<h3>${C.n} · ${items.length} מקומות עד 800 מ'</h3>` + items.slice(0, 30).map(nearRow).join("") + `<button class="btn wide" id="nearMap">🗺️ להראות על המפה</button>` : emptyState("🤷", "לא מצאתי כאן", "אפשר לנסות קטגוריה אחרת, או לשאול את Claude."));
     bindNear();
   } catch (e) { box.innerHTML = biHtml + emptyState("📡", "החיפוש לא עונה כרגע", "המקומות המובנים למעלה עובדים תמיד. אפשר לנסות שוב עוד רגע."); bindNear(); }
 }
@@ -272,9 +272,9 @@ function openMe_v1() {
 
 /* ---------- "עוד" + הגדרות ---------- */
 function openMore() {
-  const items = [["upd", "🔔", "עדכונים"], ["wa", "💬", "ווטסאפ"], ["cal", "📅", "תזכורות ליומן"], ["tips", "💡", "כדאי לדעת"], ["lg", "🗺️", "מקרא המפה"], ["phr", "🗣️", "משפטים"], ["free", "🧭", "יום חופשי"], ["today", "☀️", "היום שלי"], ["wx", "🌡️", "מזג אוויר"], ["pack", "🎒", "מה לקחת"], ["exp", "💰", "הוצאות"], ["sum", "📊", "סיכום היום"], ["off", "📥", "בלי אינטרנט"], ["me", "🔒", "הפרטים שלי"], ["sos", "🆘", "חירום"], ...(CONFIG.server ? [["chat", "💬", "חיבור Claude"]] : []), ["set", "⚙️", "הגדרות"], ["inst", "📲", "מסך הבית"], ["add", "➕", "להוסיף תחנה"]];
+  const items = [["upd", "🔔", "עדכונים"], ["wa", "💬", "ווטסאפ"], ["cal", "📅", "תזכורות ליומן"], ["tips", "💡", "כדאי לדעת"], ["diary", "📔", "יומן הטיול"], ["test", "🧪", "בדיקת חירום"], ["lg", "🗺️", "מקרא המפה"], ["phr", "🗣️", "משפטים"], ["free", "🧭", "יום חופשי"], ["today", "☀️", "היום שלי"], ["wx", "🌡️", "מזג אוויר"], ["pack", "🎒", "מה לקחת"], ["exp", "💰", "הוצאות"], ["sum", "📊", "סיכום היום"], ["off", "📥", "בלי אינטרנט"], ["me", "🔒", "הפרטים שלי"], ["sos", "🆘", "חירום"], ...(CONFIG.server ? [["chat", "💬", "חיבור Claude"]] : []), ["set", "⚙️", "הגדרות"], ["inst", "📲", "מסך הבית"], ["add", "➕", "להוסיף תחנה"]];
   openModal(`<h2>עוד</h2><div class="menu">${items.map(i => `<button data-m="${i[0]}"><span>${i[1]}</span>${i[2]}</button>`).join("")}</div>`);
-  const fn = { lg: () => { closeModal(); showLegend(true); }, upd: openUpdates, wa: openWa, cal: openCalendar, tips: openTips, phr: openPhrases, free: openFree, today: () => openToday(curDay), wx: openWeather, pack: openPack, exp: openExp, sum: () => openSummary(curDay), off: openOffline, me: openMe, sos: openSOS, set: openSettings, chat: openChatSetup, inst: openInstall, add: () => addStopFlow() };
+  const fn = { diary: openDiary, test: () => openSOS(true), lg: () => { closeModal(); showLegend(true); }, upd: openUpdates, wa: openWa, cal: openCalendar, tips: openTips, phr: openPhrases, free: openFree, today: () => openToday(curDay), wx: openWeather, pack: openPack, exp: openExp, sum: () => openSummary(curDay), off: openOffline, me: openMe, sos: openSOS, set: openSettings, chat: openChatSetup, inst: openInstall, add: () => addStopFlow() };
   $$("#mbody [data-m]").forEach(b => b.onclick = fn[b.dataset.m]);
 }
 function openSettings() {
@@ -415,10 +415,10 @@ async function init() {
   $("#scrub").addEventListener("input", e => { stopPlay(); playState = null; hidePlayCard(); setPlay(+e.target.value); renderPlayer(); });
   $("#spont").onchange = e => { settings.spont = e.target.checked; saveSet(); renderAll(); toast(settings.spont ? "מצב ספונטני: בלי שעות, הולכים למה שקרוב" : "חזרנו לשעות"); };
   $("#editBtn").onclick = () => { editMode = !editMode; if (editMode && !isDesktop()) setSheet("full"); renderList(); };
-  $("#addBtn").onclick = () => addStopFlow(); $("#resetBtn").onclick = () => { if (confirm("להחזיר את כל הימים לתוכנית המקורית?")) resetPlan(); };
+  $("#addBtn").onclick = () => openContinue(true); $("#enoughBtn").onclick = doEnough; sosBanner(); $("#resetBtn").onclick = () => { if (confirm("להחזיר את כל הימים לתוכנית המקורית?")) resetPlan(); };
   const Q = { what: openWhat, upd: openUpdates, wa: openWa, here: () => openNearby(), claude: openChat, cold: openCold, delay: openDelay, today: () => openToday(curDay), exp: openExp, pack: openPack, more: openMore };
   $("#quick").addEventListener("click", e => { const b = e.target.closest("[data-q]"); if (b) Q[b.dataset.q](); });
-  addEventListener("online", () => { renderNet(); toast("הרשת חזרה ✓"); loadWeather(); loadPid(); loadFx(); loadEvents(); flushChatQueue(); });
+  addEventListener("online", () => { renderNet(); toast("הרשת חזרה ✓"); sosBanner(); loadWeather(); loadPid(); loadFx(); loadEvents(); flushChatQueue(); });
   addEventListener("offline", renderNet);
   matchMedia("(prefers-color-scheme: dark)").addEventListener("change", applyTheme);
   setInterval(() => { applyTheme(); renderLive(); checkReminders(); leaveReminder(); }, 20000);

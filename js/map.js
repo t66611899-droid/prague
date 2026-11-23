@@ -394,7 +394,7 @@ function autoArrive() {
     const isNext = L.next && L.next.id === s.id, soon = Math.abs(pm(s) - T.min) <= 45;
     if ((isNext || soon) && hav(gps, l) - Math.min(gps.acc, 20) < 40) {
       setMark(s.id, "done"); buzz([25, 50, 25]); if (typeof showArrive === "function") showArrive(s);
-      if (typeof renderAll === "function") renderAll(); break;
+      if (typeof renderAll === "function") renderAll(); if (typeof afterDone === "function") afterDone(s.id); break;
     }
   }
 }

@@ -77,3 +77,5 @@ if (!LS.get("planFix1")) { const fix = { "מפעילים eSIM · Bolt למלון
 
 if (!LS.get("planFix2")) { const fix = { "הרציף לפי המייל של Duplex": "דלתות 19:00 · הרציף ושעת העלייה בכרטיס שב-Wallet", "כניסה כלולה בכרטיס": "כניסה כלולה בכרטיס הסירה", "לשקול 8 ק\"ג": "לבדוק משקל ומידות התיק · מנוחה לפני Duplex", "חזרה עד 3:00": "להגיע 00:00–01:00, לפני זה ריק" }; let ch = false;
   plan.forEach(d => d.stops.forEach(s => { if (fix[s.w]) { s.w = fix[s.w]; ch = true; } if (d.date === "2026-12-04" && s.m === 600 && /^מס עירוני/.test(s.n)) { s.m = 585; ch = true; } })); if (ch && LS.get("plan")) savePlan(); LS.set("planFix2", 1); }
+
+if (!LS.get("planFix3")) { let ch = false; plan.forEach(d => d.stops.forEach(s => { if (s.w === "לבדוק משקל ומידות התיק · מנוחה לפני Duplex" || s.w === "לשקול 8 ק\"ג") { s.w = "לשקול את התיק: מעל 8 ק\"ג? מזוודה אונליין (€40), לא בשער (€60) · לנוח"; ch = true; } })); if (ch && LS.get("plan")) savePlan(); LS.set("planFix3", 1); }

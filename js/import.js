@@ -32,11 +32,12 @@ function impApply(d) { /* רק שדות מוכרים, ובמיזוג בטוח: �
 function openImport(payload) {
   let data = null;
   openModal(`<h2>📥 לייבא את הפרטים?</h2><p class="sub">הפרטים מוצפנים בתוך הקישור. הם מפוענחים ונשמרים רק בטלפון הזה, ולא נשלחים לשום מקום.</p>
-    ${payload ? "" : `<label class="fld">הקישור מהסריקה<textarea id="impL" rows="3" dir="ltr" placeholder="מדביקים כאן את הקישור המלא" autocomplete="off"></textarea></label>`}
+    ${payload ? "" : `<label class="fld">הקישור מהסריקה (לוחצים לחיצה ארוכה על ה-QR במצלמה ← "העתק קישור")<textarea id="impL" rows="3" dir="ltr" placeholder="מדביקים כאן את הקישור המלא" autocomplete="off"></textarea></label>`}
     <label class="fld">הקוד (4 עד 6 ספרות)<input id="impP" type="tel" inputmode="numeric" maxlength="8" dir="ltr" autocomplete="off" placeholder="••••••"></label>
     <button class="btn pri wide" id="impGo">לפתוח</button><p class="sub" id="impSt"></p><div id="impOut"></div>`, "tall");
   const st = $("#impSt");
   $("#impGo").onclick = async () => {
+    const dm = !payload && /docs=([a-f0-9]{32})/.exec(($("#impL") || {}).value || ""); if (dm) { closeModal(); setTimeout(() => openDocsImport(dm[1]), 250); return; } /* קישור של חבילה מלאה (פרטים + כרטיסים): עוברים למסך שלה */
     let p = payload; if (!p) { const m = /import=([A-Za-z0-9_-]{40,})/.exec($("#impL").value) || /^\s*([A-Za-z0-9_-]{40,})\s*$/.exec($("#impL").value); if (!m) { st.textContent = "לא מצאתי קישור ייבוא בטקסט שהודבק."; return; } p = m[1]; }
     const pin = $("#impP").value.replace(/\D/g, ""); if (pin.length < 4) { st.textContent = "מקלידים את הקוד שמופיע ליד ה-QR."; return; }
     if (!(window.crypto && crypto.subtle)) { st.textContent = "הדפדפן הזה לא תומך בפענוח. פותחים את הקישור ב-Safari."; return; }

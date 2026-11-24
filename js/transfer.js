@@ -3,7 +3,7 @@
    ומעלה לשרת לזמן קצר. "📥 לקבל לכאן": מדביקים את הקישור, מקלידים את הקוד, והכול נכנס. החבילה נמחקת מהשרת אחרי הקבלה (או אחרי 24 שעות).
    מה שלא עובר: מסלול ה-GPS ומיקום אחרון (נשארים במכשיר), וזיכרונות זמניים (מזג אוויר, תחבורה וכו'). */
 "use strict";
-const MOVE_KEYS = ["me", "tix", "prep", "arr", "arrA1", "arrA2", "plan", "planV", "planFix1", "planFix2", "planFix3", "marks", "set", "exp", "jr", "jrShare", "jrRe", "jrMig", "jrVis", "jrDel", "free", "rem", "leave", "askQ", "welcomed", "lgSeen", "waHint", "diary", "tixSeen", "updSeen"];
+const MOVE_KEYS = ["talkFav", "me", "tix", "prep", "arr", "arrA1", "arrA2", "plan", "planV", "planFix1", "planFix2", "planFix3", "marks", "set", "exp", "jr", "jrShare", "jrRe", "jrMig", "jrVis", "jrDel", "free", "rem", "leave", "askQ", "welcomed", "lgSeen", "waHint", "diary", "tixSeen", "updSeen"];
 const moveKeyOk = k => MOVE_KEYS.includes(k) || /^pack\./.test(k);
 let movePending = null;
 

@@ -53,7 +53,7 @@ const CATS = [
   { k: "atm", n: "🏧 כספומט", note: "בכספומט בוחרים תמיד חיוב ב-CZK ומסרבים ל\"המרה\". כספומט של בנק (ČSOB, KB, Česká spořitelna) עדיף על עצמאי. לא מחליפים כסף ברחוב, ונזהרים מצ'יינג'ים עם \"0% עמלה\".", q: a => `nwr${a}[amenity=atm];nwr${a}[amenity=bank][atm=yes];` },
   { k: "wc", n: "🚻 שירותים", note: "שירותים ציבוריים בפראג הם לרוב בתשלום (מטבעות או כרטיס). בקניונים ובבתי קפה זה בחינם או זול.", q: a => `nwr${a}[amenity=toilets];` }
 ];
-const OVERPASS = ["https://overpass.kumi.systems/api/interpreter", "https://overpass-api.de/api/interpreter"];
+const OVERPASS = ["https://overpass-api.de/api/interpreter", "https://overpass.private.coffee/api/interpreter", "https://overpass.kumi.systems/api/interpreter"];
 async function overpass(q) { // שני שרתים, כל אחד עם timeout
   let err; for (const u of OVERPASS) { try { return await fetchJson(u, 11000, { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: "data=" + encodeURIComponent(q) }); } catch (e) { err = e; } } throw err;
 }

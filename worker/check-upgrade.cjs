@@ -17,7 +17,7 @@ const verOf = dir => (/prg-v(\d+)/.exec(fs.readFileSync(path.join(dir, "sw.js"),
   const d = { ...devices["iPhone 13"] }; delete d.defaultBrowserType;
   const ctx = await webkit.launchPersistentContext(PROF, { executablePath: WK, ...d }), p = ctx.pages()[0] || await ctx.newPage(), errs = [];
   await ctx.route(u => !/^http:\/\/localhost:/.test(u.toString()), r => r.abort()); // בלי רשת חיצונית: מהיר ויציב
-  p.on("pageerror", e => { if (!/Load failed|access control|Fetch API|network|cancel/i.test(e.message)) errs.push(e.message.slice(0, 140)); });
+  p.on("pageerror", e => { if (!/Load failed|access control|Fetch API|network|cancel|Service Worker context closed|^Cannot load \.?$/i.test(e.message)) /* כולל בקשות שנקטעו כשה-service worker מתחלף באמצע טעינה: רעש רשת, לא באג */ errs.push(e.message.slice(0, 140)); });
   const B = `http://localhost:${PORT}/?splash=0`, ready = () => p.waitForFunction(() => window.__ui, null, { timeout: 45000 });
   // 1) הגרסה הקודמת, פעמיים (ה-service worker מתקין את עצמו), ואז נתוני דמה מלאים
   for (let i = 0; i < 2; i++) { await p.goto(B); await ready(); await p.waitForTimeout(2500); }

@@ -272,10 +272,18 @@ function openMe_v1() {
 
 /* ---------- "עוד" + הגדרות ---------- */
 function openMore() {
-  const items = [["have", "✅", "מה יש אצלי"], ["bug", "🐞", "דווח על באג"], ["bk", "☁️", "גיבוי ושחזור"], ...(typeof window.openCineMenu === "function" ? [["cine", "🎬", "פתיחים ותקצירים"]] : []), ...(tripNow().phase !== "during" ? [["prep", "✅", "לפני הטיסה"]] : []), ["moment", "📸", "רגע חדש"], ["tix", "🎟️", "הכרטיסים שלי"], ["arr", "🏨", "מגיעים למלון"], ["upd", "🔔", "עדכונים"], ["wa", "💬", "ווטסאפ"], ["cal", "📅", "תזכורות ליומן"], ["tips", "💡", "כדאי לדעת"], ["diary", "📔", "יומן הטיול"], ["test", "🧪", "בדיקת חירום"], ["lg", "🗺️", "מקרא המפה"], ["phr", "🗣️", "לדבר עם אנשים"], ["free", "🧭", "יום חופשי"], ["today", "☀️", "היום שלי"], ["wx", "🌡️", "מזג אוויר"], ["pack", "🎒", "מה לקחת"], ["exp", "💰", "הוצאות"], ["sum", "📊", "סיכום היום"], ["off", "📥", "בלי אינטרנט"], ["me", "🔒", "הפרטים שלי"], ["sos", "🆘", "חירום"], ...(CONFIG.server ? [["chat", "💬", "חיבור Claude"]] : []), ["set", "⚙️", "הגדרות"], ["inst", "📲", "מסך הבית"], ["add", "➕", "להוסיף תחנה"]];
-  openModal(`<h2>תפריט</h2><div class="menu-top"><button class="big" data-m="moment"><span>📸</span>רגע חדש ליומן</button><button data-m="diary"><span>📔</span>יומן הטיול</button><button data-m="tix"><span>🎟️</span>הכרטיסים שלי</button><button data-m="me"><span>🔒</span>הפרטים שלי</button><button data-m="sos"><span>🆘</span>חירום</button><button class="mv" data-m="move"><span>📲</span><div>העברה בין דפדפנים<small>מ-Chrome או Safari לאייקון במסך הבית, ולהפך</small></div></button></div><h3>עוד</h3><div class="menu">${items.map(i => `<button data-m="${i[0]}"><span>${i[1]}</span>${i[2]}</button>`).join("")}</div>`);
-  const fn = { bug: () => window.openBug ? openBug() : toast("לא נטען. לרענן"), have: () => window.openHave ? openHave() : toast("הבדיקה לא נטענה. לרענן"), bk: () => window.openBackup ? openBackup() : toast("הגיבוי לא נטען. לרענן"), cine: () => window.openCineMenu && window.openCineMenu(), move: () => openMove(), prep: openPrep, moment: newMoment, tix: () => openTickets(), arr: () => openArrive(), diary: openDiary, test: () => openSOS(true), lg: () => { closeModal(); showLegend(true); }, upd: openUpdates, wa: openWa, cal: openCalendar, tips: openTips, phr: openPhrases, free: openFree, today: () => openToday(curDay), wx: openWeather, pack: openPack, exp: openExp, sum: () => openSummary(curDay), off: openOffline, me: openMe, sos: openSOS, set: openSettings, chat: openChatSetup, inst: openInstall, add: () => addStopFlow() };
+  /* למעלה שישה אריחים גדולים; כל השאר בשלוש קבוצות מתקפלות. כל דבר מופיע פעם אחת. */
+  const top = [["go", "🔍", "לאן?"], ["tix", "🎟️", "כרטיסים"], ["talk", "🗣️", "לדבר"], ["diary", "📸", "יומן"], ["arr", "🏨", "המלון"], ["sos", "🆘", "חירום"]];
+  const groups = [
+    ["trip", "🧳", "הטיול", [["today", "☀️", "היום שלי"], ...(tripNow().phase !== "during" ? [["prep", "✅", "לפני הטיסה"]] : []), ["upd", "🔔", "עדכונים"], ["free", "🧭", "יום חופשי"], ["add", "➕", "להוסיף תחנה"], ...(typeof window.openCineMenu === "function" ? [["cine", "🎬", "פתיחים"]] : []), ["cal", "📅", "תזכורות"], ["tips", "💡", "כדאי לדעת"], ["pack", "🎒", "מה לקחת"], ["exp", "💰", "הוצאות"], ["sum", "📊", "סיכום היום"]]],
+    ["mine", "🔒", "הפרטים שלי", [["me", "🔒", "הפרטים שלי"], ["have", "✅", "מה יש אצלי"], ["bk", "☁️", "גיבוי ושחזור"], ["move", "📲", "העברה בין דפדפנים"]]],
+    ["set", "⚙️", "הגדרות", [["set", "⚙️", "הגדרות ותצוגה"], ["d3", "🏙️", "תלת-ממד"], ["lg", "🗺️", "מקרא המפה"], ["off", "📥", "בלי אינטרנט"], ["inst", "📲", "מסך הבית"], ...(CONFIG.server ? [["chat", "💬", "חיבור Claude"]] : []), ["test", "🧪", "בדיקת חירום"], ["bug", "🐞", "דווח על באג"]]]];
+  const openG = LS.get("menuOpen", "trip"); let diag = ""; try { diag = modDiag(); } catch (e) {}
+  openModal(`<h2>תפריט</h2><div class="m6">${top.map(i => `<button data-m="${i[0]}"><span>${i[1]}</span>${i[2]}</button>`).join("")}</div>
+    ${groups.map(g => `<details class="mgrp" data-g="${g[0]}"${g[0] === openG ? " open" : ""}><summary><span>${g[1]}</span><b>${g[2]}</b><small>${g[3].length}</small><i></i></summary><div class="menu">${g[3].map(i => `<button data-m="${i[0]}"><span>${i[1]}</span>${i[2]}</button>`).join("")}</div>${g[0] === "set" && diag ? `<p class="fine diag" dir="rtl" style="margin:12px 2px 0;user-select:text;-webkit-user-select:text">🔧 ${esc(diag)}</p>` : ""}</details>`).join("")}`);
+  const fn = { go: () => window.openGo ? openGo() : addStopFlow(), talk: () => openPhrases(), d3: () => { closeModal(); toggle3D(); }, bug: () => window.openBug ? openBug() : toast("לא נטען. לרענן"), have: () => window.openHave ? openHave() : toast("הבדיקה לא נטענה. לרענן"), bk: () => window.openBackup ? openBackup() : toast("הגיבוי לא נטען. לרענן"), cine: () => window.openCineMenu && window.openCineMenu(), move: () => openMove(), prep: openPrep, tix: () => openTickets(), arr: () => openArrive(), diary: openDiary, test: () => openSOS(true), lg: () => { closeModal(); showLegend(true); }, upd: openUpdates, cal: openCalendar, tips: openTips, free: openFree, today: () => openToday(curDay), pack: openPack, exp: openExp, sum: () => openSummary(curDay), off: openOffline, me: openMe, sos: openSOS, set: openSettings, chat: openChatSetup, inst: openInstall, add: () => addStopFlow() };
   $$("#mbody [data-m]").forEach(b => b.onclick = fn[b.dataset.m]);
+  $$("#mbody .mgrp").forEach(d => d.addEventListener("toggle", () => { if (d.open) { $$("#mbody .mgrp").forEach(o => { if (o !== d) o.open = false; }); LS.set("menuOpen", d.dataset.g); } }));
 }
 function openSettings() {
   const sw = (k, label, sub) => `<label class="sw"><span><b>${label}</b><small>${sub}</small></span><input type="checkbox" data-s="${k}" ${settings[k] ? "checked" : ""}><i></i></label>`;
@@ -284,9 +292,10 @@ function openSettings() {
     ${sw("eco", "חיסכון בסוללה", "מיקום כל ~12 שניות בדיוק נמוך, בלי תלת-ממד ובלי אנימציות. נדלק לבד מתחת ל-20%")}
     ${CONFIG.server ? sw("push", "התראות על אירועים חמים", "רק אירועים עם ציון 5, עד 2 ביום. מגיע גם כשהאפליקציה סגורה") : ""}
     ${sw("remind", "תזכורות", "20 דק' לפני טיסה, מסיבה או יציאה לשדה. עובד כשהאפליקציה פתוחה")}
+    ${sw("cineSound", "סאונד בפתיחים", "כבוי כברירת מחדל")}
     <label class="fld">מראה<select id="thSel"><option value="auto">אוטומטי (לפי הטלפון, וכהה אחרי השקיעה)</option><option value="light">בהיר</option><option value="dark">כהה</option></select></label>
     <div class="row wrap"><button class="btn" id="rsPlan">↩︎ התוכנית המקורית</button><button class="btn" id="rsMarks">לנקות סימוני "בוצע"</button></div>
-    <p class="fine">המיקום שלך נשאר במכשיר. הוא יוצא ממנו רק כשלוחצים "נווט", פותחים שאלה ב-Claude או מחפשים "מה יש פה?".<br>מסלולים: OSRM / FOSSGIS · תמונות: Wikipedia · מזג אוויר: Open-Meteo.</p>`, "tall");
+    <p class="fine">המיקום שלך נשאר במכשיר. הוא יוצא ממנו רק כשלוחצים "נווט", פותחים שאלה ב-Claude מחפשים "מה יש פה?" או בוחרים יעד ב"לאן?" (אז נשלח מיקום מעוגל לחישוב קו ההליכה).<br>מסלולים: OSRM / FOSSGIS · תמונות: Wikipedia · מזג אוויר: Open-Meteo.</p>`, "tall");
   $("#thSel").value = settings.theme; $("#thSel").onchange = e => { settings.theme = e.target.value; saveSet(); applyTheme(); };
   $$("#mbody [data-s]").forEach(c => c.onchange = async () => {
     settings[c.dataset.s] = c.checked; saveSet(); buzz(8);
@@ -445,7 +454,7 @@ function modDiag() {
   let ver = ""; try { ver = new URL($('script[src*="extras.js"]').src).searchParams.get("v"); } catch (e) {}
   return [one("פתיחי הספירה", "intro.js", "intro"), one("פתיחי הטיול", "cine.js", "cine"), M.introErr ? "פתיח אחרון: " + M.introErr : "", `גרסה ${ver}`].filter(Boolean).join(" · ");
 }
-window.openMore = (old => function () { old.apply(this, arguments); try { $("#mbody").insertAdjacentHTML("beforeend", `<p class="fine diag" dir="rtl" style="margin-top:14px;user-select:text;-webkit-user-select:text">🔧 ${esc(modDiag())}</p>`); } catch (e) {} })(window.openMore);
+/* שורת האבחון עברה לתוך קבוצת "הגדרות" בתפריט */
 
 (function startWhenStyled() {
   let started = false; const go = () => { if (started) return; started = true; init(); };

@@ -35,7 +35,7 @@ function tickFlaps(target) { const ms = Math.max(0, target - wall().getTime()), 
 
 /* ---------- המשפט שמתחלף ---------- */
 function cdLines() {
-  const now = wall().getTime(), days = t => Math.max(0, Math.ceil((t - now) / 864e5)), n = d => d === 1 ? "מחר" : d === 0 ? "היום" : `עוד ${d} ימים`;
+  const now = wall().getTime(), days = t => Math.max(0, Math.floor((t - now) / 864e5)) /* ימים מלאים, כמו בכל שאר האפליקציה */, n = d => d === 1 ? "מחר" : d === 0 ? "היום" : `עוד ${d} ימים`;
   return [[Date.UTC(2026, 11, 1, 10, 20), "לשווקי חג המולד 🎄"], [Date.UTC(2026, 11, 1, 13, 0), "לגשר קרל 🌉"], [Date.UTC(2026, 11, 1, 19, 0), "למסיבת הסירה 🚢"], [Date.UTC(2026, 11, 1, 15, 0), "לטירה מעל העיר 🏰"], [Date.UTC(2026, 11, 2, 22, 30), "ל-EPIC 🎧"], [Date.UTC(2026, 11, 3, 13, 0), "ליום הקניות 🛍️"]]
     .filter(x => x[0] > now).map(x => `${n(days(x[0]))} ${x[1]}`);
 }

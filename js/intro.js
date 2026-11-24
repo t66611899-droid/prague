@@ -12,7 +12,9 @@ const FLY_AT = typeof T_FLY !== "undefined" ? T_FLY : Date.UTC(2026, 10, 30, 17,
 const nowMs = () => wall().getTime();
 const pragueDate = () => new Date(nowMs()).toISOString().slice(0, 10);
 const daysLeft = () => { const d = pragueDate().split("-").map(Number); return Math.round((Date.UTC(2026, 10, 30) - Date.UTC(d[0], d[1] - 1, d[2])) / 864e5); };
-const sceneFor = () => { const dl = daysLeft(), w = nowMs(); if (dl >= 7) return 7; if (dl >= 1) return dl; if (dl === 0 && w < FLY_AT) return 0; return null; };
+/* המספר בפתיח = ימים מלאים עד ההמראה, בדיוק כמו בסרגל העליון ובטיימר ("5 ימים ו-18 שע'" ← הפתיח של "עוד 5 ימים").
+   ביום הטיסה עצמו: סצנת יום הטיסה. ערב לפני (פחות מיום מלא, אבל עוד לא התאריך): "מחר". */
+const sceneFor = () => { const dl = daysLeft(), w = nowMs(); if (dl < 0 || (dl === 0 && w >= FLY_AT)) return null; if (dl === 0) return 0; const full = Math.floor((FLY_AT - w) / 864e5); return Math.min(7, Math.max(1, full)); };
 const introLight = () => REDUCED || saver || (navigator.deviceMemory && navigator.deviceMemory < 3) || (navigator.hardwareConcurrency && navigator.hardwareConcurrency < 4) || (window._batt && window._batt.level < 0.2 && !window._batt.charging) || QS.get("intro") === "light";
 const seen = () => LS.get("introSeen", {});
 

@@ -22,7 +22,7 @@ const DOOR = "hotelDoor", EXPECT = { fl1: 1, fl2: 1, hot: 1, boat: 2, dup1: 2, e
    המפתח (אקראי, 256 ביט) מגיע פעם אחת מהקישור האישי: …/prague/#k=<מפתח>. מה שאחרי ה-# לא נשלח לשום שרת.
    בשרת יושב רק עותק מוצפן (אותו מנגנון של הגיבוי), ובלי המפתח אי אפשר לפענח אותו. בכל פתיחה: אם משהו חסר כאן, מורידים ומשלימים בשקט.
    באייפון: כשמוסיפים למסך הבית מהקישור הזה, הכתובת עם המפתח נשמרת באייקון, אז גם אייקון חדש מתמלא לבד. */
-const VK = (() => { let k = ""; try { const m = /[#&]k=([A-Za-z0-9_-]{40,64})/.exec(location.hash || ""); if (m) { k = m[1]; LS.set("vk", k); } else k = LS.get("vk", "") || ""; } catch (e) {} return k; })();
+let VK = (() => { let k = ""; try { const m = /[#&]k=([A-Za-z0-9_-]{40,64})/.exec(location.hash || ""); if (m) { k = m[1]; LS.set("vk", k); } else k = LS.get("vk", "") || ""; } catch (e) {} return k; })();
 const isStandalone = () => !!(matchMedia("(display-mode: standalone)").matches || navigator.standalone);
 if (VK) { try { const has = /[#&]k=/.test(location.hash || ""), clean = () => history.replaceState(null, "", location.pathname + location.search);
   if (isStandalone()) { if (has) clean(); }
@@ -31,23 +31,65 @@ if (VK) { try { const has = /[#&]k=/.test(location.hash || ""), clean = () => hi
 let syncing = false;
 const haveCount = async () => { let n = Object.values(me || {}).filter(x => x && (typeof x !== "object" || Object.keys(x).length)).length; for (const l of Object.values(tix || {})) for (const it of l) if (await imgGet("tk:" + it.id).catch(() => null)) n++; if (await imgGet(DOOR).catch(() => null)) n++; return n; };
 const looksMissing = async () => { const m = me || {}; if (!m.rc || !m.ec || !m.h1 || !m.pol || !apiTok() || !(m.contactsAll || []).some(c => c && c.p)) return true; let f = 0; for (const [k, need] of Object.entries(EXPECT)) f += Math.min((tix[k] || []).length, need); return f < 12 || !(await imgGet(DOOR).catch(() => null)); };
-async function autoSync(force) {
-  if (!VK || syncing || isOffline() || !(window.crypto && crypto.subtle)) return; syncing = true;
+/* ---------- מסך "להחזיר הכול": אף פעם לא מסך ריק בלי הסבר ----------
+   nokey  = הדפדפן הזה לא מחובר (אין מפתח שמור) וחסרים פרטים או כרטיסים: מבקשים להדביק את הקישור האישי.
+   stale  = יש מפתח שמור אבל אין מאחוריו עותק בשרת (קישור ישן): מבקשים את הקישור העדכני.
+   fail   = יש מפתח והשחזור נכשל (רשת, עומס): אומרים למה, עם "לנסות שוב".
+   work   = שחזור רץ עכשיו. */
+const WHY = { net: "אין חיבור לשרת כרגע", slow: "יותר מדי ניסיונות בשעה האחרונה. לנסות שוב בעוד כמה דקות", code: "הקישור לא פותח את העותק המוצפן (אולי הועתק חלקית)", offline: "אין אינטרנט כרגע", none: "הקישור הזה ישן, אין מאחוריו עותק", crypto: "הדפדפן הזה לא תומך בהצפנה (צריך https)", err: "משהו נכשל בשחזור" };
+const keyOf = t => { const m = /[#&?]k=([A-Za-z0-9_-]{40,64})/.exec(t || "") || /^\s*([A-Za-z0-9_-]{40,64})\s*$/.exec(t || ""); return m ? m[1] : ""; };
+function guard(kind, why) {
+  let g = document.getElementById("vkGuard"); if (kind === "off") { if (g) g.remove(); return; }
+  if (!g) { g = document.createElement("div"); g.id = "vkGuard"; g.setAttribute("role", "dialog"); g.setAttribute("style", "position:fixed;inset:0;z-index:99980;background:#14161b;color:#fff;font:16px/1.5 Rubik,-apple-system,system-ui,sans-serif;direction:rtl;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:28px 22px;text-align:center;overflow:auto"); document.body.appendChild(g); }
+  g.dataset.kind = kind; const btn = "min-height:54px;border:0;border-radius:16px;font:700 1.05rem Rubik,system-ui,sans-serif;padding:0 18px;width:100%;max-width:340px;margin-top:10px";
+  if (kind === "work") { g.innerHTML = `<div style="font-size:3rem">⏳</div><h1 style="margin:10px 0 6px;font-size:1.45rem">מחזיר את הפרטים והכרטיסים שלך…</h1><p style="margin:0;color:#aab">כמה שניות. לא לסגור.</p>`; return; }
+  const ask = kind !== "fail";
+  g.innerHTML = `<div style="font-size:3rem">${kind === "fail" ? "⚠️" : "📲"}</div>
+    <h1 style="margin:10px 0 8px;font-size:1.45rem;line-height:1.3;max-width:340px">${kind === "fail" ? "לא הצלחתי להחזיר את הפרטים והכרטיסים" : "תדביק את הקישור האישי שלך כדי להחזיר הכול"}</h1>
+    <p style="margin:0 0 14px;color:#aab;max-width:340px">${kind === "fail" ? esc(WHY[why] || WHY.err) + ". שום דבר לא נמחק: העותק המוצפן שלך שמור." : kind === "stale" ? "הקישור ששמור בדפדפן הזה ישן, ולכן הכרטיסים והפרטים לא חוזרים. הדבקה אחת של הקישור העדכני והכול כאן." : "הדפדפן הזה עוד לא מחובר לעותק המוצפן שלך, ולכן הכרטיסים והפרטים לא כאן. הדבקה אחת של הקישור והכול חוזר לבד."}</p>
+    ${ask ? `<textarea id="vkIn" rows="3" dir="ltr" autocapitalize="off" autocomplete="off" spellcheck="false" placeholder="…/prague/#k=…" style="width:100%;max-width:340px;border-radius:14px;border:2px solid #3a4160;background:#1d2233;color:#fff;padding:12px;font:15px/1.4 ui-monospace,Menlo,monospace;resize:none"></textarea>
+    <button id="vkPaste" style="${btn};background:#2a3150;color:#fff">📋 להדביק מהלוח</button>` : ""}
+    <button id="vkGo" style="${btn};background:#d42a33;color:#fff">${ask ? "להחזיר הכול" : "לנסות שוב"}</button>
+    <p id="vkMsg" role="status" style="min-height:1.5em;margin:10px 0 0;color:#ffd27a;max-width:340px">${ask && why ? esc(WHY[why] || "") : ""}</p>
+    ${kind === "fail" ? `<button id="vkOther" style="${btn};background:none;color:#aab;font-weight:500;min-height:44px">להדביק קישור אחר</button>` : ""}
+    <button id="vkSkip" style="${btn};background:none;color:#aab;font-weight:500;min-height:44px">לא עכשיו</button>`;
+  const msg = g.querySelector("#vkMsg"), inp = g.querySelector("#vkIn");
+  g.querySelector("#vkSkip").onclick = () => { try { sessionStorage.setItem("vkSkip", "1"); } catch (e) {} guard("off"); };
+  if (g.querySelector("#vkOther")) g.querySelector("#vkOther").onclick = () => guard("nokey");
+  if (g.querySelector("#vkPaste")) g.querySelector("#vkPaste").onclick = async () => { try { const t = await navigator.clipboard.readText(); if (t) { inp.value = t.trim(); g.querySelector("#vkGo").click(); } else msg.textContent = "הלוח ריק. להעתיק את הקישור ולנסות שוב"; } catch (e) { msg.textContent = "הדפדפן לא נתן לקרוא את הלוח. נגיעה ארוכה בתיבה ← הדבק"; inp.focus(); } };
+  g.querySelector("#vkGo").onclick = async () => {
+    if (ask) { const k = keyOf(inp.value); if (!k) { msg.textContent = "זה לא נראה כמו הקישור האישי. הוא מתחיל ב-…/prague/#k="; return; } VK = k; LS.set("vk", k); try { if (/iPhone|iPad|iPod/.test(navigator.userAgent) && !isStandalone()) history.replaceState(null, "", location.pathname + location.search + "#k=" + k); } catch (e) {} }
+    try { sessionStorage.removeItem("vkSkip"); } catch (e) {} await autoSync(true, true);
+  };
+}
+const skipped = () => { try { return sessionStorage.getItem("vkSkip") === "1"; } catch (e) { return false; } };
+/* ui=true: המשתמש לחץ בעצמו, אז תמיד מראים תוצאה. אחרת מראים מסך רק כשבאמת חסר משהו. */
+async function autoSync(force, ui) {
+  if (syncing) return "busy";
+  const miss = await looksMissing().catch(() => true), show = (ui || miss) && !(skipped() && !ui);
+  if (!VK) { if (show) guard("nokey"); return "nokey"; }
+  if (!(window.crypto && crypto.subtle)) { if (show) guard("fail", "crypto"); return "crypto"; }
+  if (isOffline()) { if (show) guard("fail", "offline"); return "offline"; }
+  syncing = true; let out = "ok";
   try {
     let bk = bkGet(); const due = !bk || !bk.syncT || Date.now() - bk.syncT > 12 * 36e5;
     const k8 = VK.slice(0, 8), newKey = !!(bk && bk.k8 !== k8); /* קישור אישי חדש: מסתנכרנים מול הכספת שלו */
-    if (!(force || !bk || !bk.vk || !bk.synced || newKey || due || await looksMissing())) return;
-    let R = null; try { R = await restoreFetch(VK); } catch (e) { if (e.message !== "none") return; } /* בעיית רשת: ננסה בפתיחה הבאה, ובינתיים לא מעלים כלום */
+    if (!(force || !bk || !bk.vk || !bk.synced || newKey || due || miss)) return "fresh";
+    if (show) guard("work");
+    let R = null; try { R = await restoreFetch(VK); } catch (e) { if (e.message !== "none") { out = WHY[e.message] ? e.message : "err"; if (show) guard(out === "code" ? "nokey" : "fail", out); return out; } } /* בעיית רשת: ננסה שוב, ובינתיים לא מעלים כלום */
     if (R) { const before = await haveCount(); await restoreApply(R); bk = bkGet(); Object.assign(bk, { vk: 1, synced: 1, syncT: Date.now(), k8 }); bkSet(bk); const after = await haveCount();
-      if (after > before) { try { renderAll(); } catch (e) {} toast("הכול כאן ✓ הפרטים והכרטיסים הושלמו לבד", 3600); try { const t = (($("#mbody h2") || {}).textContent || ""); if (!$("#modal").hidden) { if (/הכרטיסים/.test(t)) openTickets(); else if (/מה יש אצלי/.test(t)) openHave(); } } catch (e) {} } }
-    else { const salt = crypto.getRandomValues(new Uint8Array(16)), raw = await pbkdf2(VK, salt, 600000), id = await bkIdOf(VK); bkSet({ id, salt: b64(salt), key: b64(raw), on: 1, vk: 1, synced: 1, syncT: Date.now(), k8 }); } /* עוד אין עותק בשרת: הטלפון הזה יוצר אותו */
-    await backupNow(false);
-  } catch (e) {} finally { syncing = false; }
+      guard("off");
+      if (after > before || ui) { try { renderAll(); } catch (e) {} toast("הכול כאן ✓ הפרטים והכרטיסים חזרו", 3600); try { const t = (($("#mbody h2") || {}).textContent || ""); if (!$("#modal").hidden) { if (/הכרטיסים/.test(t)) openTickets(); else if (/מה יש אצלי/.test(t)) openHave(); } } catch (e) {} } }
+    else if (miss) { if (show) guard("stale", "none"); return "none"; } /* אין עותק מאחורי המפתח הזה וגם כאן חסר: לא יוצרים עותק ריק, מבקשים את הקישור העדכני */
+    else { guard("off"); const salt = crypto.getRandomValues(new Uint8Array(16)), raw = await pbkdf2(VK, salt, 600000), id = await bkIdOf(VK); bkSet({ id, salt: b64(salt), key: b64(raw), on: 1, vk: 1, synced: 1, syncT: Date.now(), k8 }); } /* עוד אין עותק בשרת והכול כאן: הטלפון הזה יוצר אותו */
+    backupNow(false);
+    return out;
+  } catch (e) { try { LS.set("vkErr", String(e && e.message || e).slice(0, 120)); } catch (x) {} if (show) guard("fail", "err"); return "err"; } finally { syncing = false; }
 }
-setTimeout(() => autoSync(false), 1800);
+const firstSync = () => { if (window.__ui) autoSync(false); else setTimeout(firstSync, 150); }; firstSync(); /* מיד כשהאפליקציה עלתה, לא אחרי המתנה */
 document.addEventListener("visibilitychange", () => { if (!document.hidden) setTimeout(() => autoSync(false), 800); });
-addEventListener("online", () => setTimeout(() => autoSync(false), 2500));
-window.__setVaultKey = k => { if (/^[A-Za-z0-9_-]{40,64}$/.test(k)) { LS.set("vk", k); location.reload(); return true; } return false; };
+addEventListener("online", () => setTimeout(() => autoSync(false), 1200));
+window.__setVaultKey = k => { if (/^[A-Za-z0-9_-]{40,64}$/.test(k)) { VK = k; LS.set("vk", k); autoSync(true, true); return true; } return false; };
 
 /* ---------- אחסון קבוע ---------- */
 async function askPersist() { try { if (navigator.storage && navigator.storage.persist) { if (await navigator.storage.persisted()) return true; return await navigator.storage.persist(); } } catch (e) {} return false; }
@@ -88,7 +130,7 @@ addEventListener("online", () => setTimeout(() => backupNow(false), 3000));
 async function setupBackup(code) { const salt = crypto.getRandomValues(new Uint8Array(16)), raw = await pbkdf2(code, salt, 600000), id = await bkIdOf(code); bkSet({ id, salt: b64(salt), key: b64(raw), on: 1 }); return backupNow(true); }
 
 /* ---------- שחזור ---------- */
-async function fetchPart(id, p) { const r = await fetch(apiUrl() + `/backup/${id}/${p}`, { cache: "no-store" }); if (r.status === 404) return null; if (r.status === 429) throw new Error("slow"); if (!r.ok) throw new Error("net"); return { buf: await r.arrayBuffer(), ts: +r.headers.get("x-backup-ts") || 0 }; }
+async function fetchPart(id, p) { let r; try { r = await fetch(apiUrl() + `/backup/${id}/${p}`, { cache: "no-store" }); } catch (e) { throw new Error("net"); } if (r.status === 404) return null; if (r.status === 429) throw new Error("slow"); if (!r.ok) throw new Error("net"); return { buf: await r.arrayBuffer(), ts: +r.headers.get("x-backup-ts") || 0 }; }
 async function restoreFetch(code) {
   const id = await bkIdOf(code), d = await fetchPart(id, "d"); if (!d) throw new Error("none");
   let od; try { od = await open_(d.buf, code); } catch (e) { throw new Error("code"); }
@@ -120,7 +162,7 @@ function openBackup() {
   if ($("#bkNow")) $("#bkNow").onclick = async () => { st.textContent = "מגבה…"; const r = await backupNow(true); st.textContent = r.err ? "⚠️ לא הצליח: " + (r.err === "auth" ? "סיסמת היומן חסרה או ישנה" : "אין רשת") : r.skipped ? "אין רשת או סיסמת יומן כרגע." : "✓ גובה"; setTimeout(openBackup, 900); };
   if ($("#bkOn")) $("#bkOn").onclick = async () => { const a = $("#bkC1").value, b = $("#bkC2").value; if (a.trim().length < 8) { st.textContent = "לפחות 8 תווים."; return; } if (a !== b) { st.textContent = "שני הקודים לא זהים."; return; } $("#bkOn").disabled = true; st.textContent = "מצפין ומעלה… (כמה שניות)"; const r = await setupBackup(a); st.textContent = r.err ? "⚠️ " + (r.err === "auth" ? "סיסמת היומן לא מתקבלת" : "אין רשת, ינסה שוב לבד") : "✓ הגיבוי פעיל. תשמור את הקוד במקום בטוח."; buzz([12, 40, 12]); setTimeout(openBackup, 1600); };
   $("#bkRe").onclick = () => openRestore();
-  if ($("#bkSync")) $("#bkSync").onclick = async () => { st.textContent = "מסנכרן…"; await autoSync(true); st.textContent = "✓ מסונכרן"; setTimeout(openBackup, 900); };
+  if ($("#bkSync")) $("#bkSync").onclick = async () => { st.textContent = "מסנכרן…"; const r = await autoSync(true, true); st.textContent = r === "ok" ? "✓ מסונכרן" : "לא הסתנכרן"; setTimeout(openBackup, 900); };
 }
 function openRestore() {
   openModal(`<h2>♻️ שחזור מגיבוי</h2><p class="sub">מקלידים את קוד הגיבוי. ההורדה והפענוח בטלפון בלבד. מה שכבר יש כאן נשאר: רק מוסיפים את מה שחסר.</p>

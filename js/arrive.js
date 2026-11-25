@@ -6,14 +6,19 @@ const arrSt = () => LS.get("arr", {});
 const bigCode = (v, what) => v ? `<div class="arr-code" dir="ltr">${esc(v).split("").join("<i></i>")}</div>` : `<button class="arr-miss" data-arr="me">🔑 ${what} עוד לא הוקלד. להכניס ב"הפרטים שלי"</button>`;
 const hotelCalls = () => [me.h1, me.h2].filter(v => String(v || "").replace(/\D/g, "").length >= 8).map((v, i) => `<a class="btn" href="${telHref(v)}">📞 חירום מלון ${i + 1}</a>`).join("");
 const ARR_STEPS = [
-  { k: "air", ic: "🚌", t: "מהשדה לעיר", b: () => `<ul class="tips">
-      <li><b>כרטיס 90 דק'</b>: 46 Kč באפליקציית PID Lítačka (בלי להחתים), או 50 Kč כרטיס נייר מהמכונה, ואז <b>חובה להחתים</b> במכונה הצהובה כשעולים.</li>
-      <li><b>טרוליבוס 59</b> מהטרמינל עד <b>Nádraží Veleslavín</b> (הסוף).</li>
-      <li>שם <b>מטרו A (הירוק)</b> עד <b>Muzeum</b>, ומחליפים ל<b>מטרו C (האדום)</b> תחנה אחת עד <b>I.P. Pavlova</b>. בערך 50 דקות בסך הכול, הכרטיס מספיק לכל הדרך.</li>
-      <li>אחרי 00:15: אוטובוס לילה <b>910</b> (עובר ב-I.P. Pavlova). או פשוט Bolt.</li>
-      <li class="fine">נחתת מוקדם? AirportExpress (AE) פועל רק עד 22:00 ובכרטיס נפרד משלו (לא PID), וכרטיסי 30/90 דק' לא תקפים בו. אופציה משנית בלבד.</li></ul>
-      <div class="row wrap"><button class="btn" data-act="bolt">🚕 Bolt</button><button class="btn" data-arr="taxi">להראות כתובת לנהג</button></div>` },
-  { k: "metro", ic: "🚇", t: "יוצאים ב-I.P. Pavlova", b: () => `<p>עולים <b>במעלית</b> מהרציף. כשיוצאים לרחוב, המלון כמעט ממול.</p>${me.hotel && me.hotel.q ? `<p class="fine">${bd(me.hotel.q)}</p>` : ""}<div class="row wrap"><a class="btn" href="${navUrl(place("hotel"))}" target="_blank" rel="noopener">🧭 נווט למלון</a></div>` },
+  { k: "esim", ic: "📶", t: "להדליק את ה-eSIM", b: () => `<p>מדליקים את הקו <b dir="ltr">Travel - Holafly</b>, ונתונים סלולריים דרכו. כל הצעדים עם ✓ במסך ה-eSIM.</p><div class="row wrap"><button class="btn" data-arr="esim">📶 מסך ה-eSIM</button></div>` },
+  { k: "cash", ic: "💵", t: "לפרוט שטר של 1,000 Kč", b: () => `<p>קונים משהו קטן בשדה (מים, שוקולד) ומשלמים בשטר של <b>1,000 Kč</b>, כדי שיהיו שטרות קטנים לנהג.</p>` },
+  { k: "air", ic: "🚕", t: "Bolt למלון, במזומן", b: () => `<ol class="tips">
+      <li>פותחים את <b>Bolt</b>. ביעד בוחרים <b>"מלון"</b> מהשמורים, או מדביקים את הכתובת (הכפתור למטה מעתיק אותה).</li>
+      <li><b>לפני ההזמנה</b>: אמצעי תשלום ← <b>Cash</b>.</li>
+      <li>הולכים ל<b>נקודת האיסוף שמופיעה באפליקציה</b>. לא עולים עם מי שניגש אליך, גם אם הוא אומר "Bolt".</li>
+      <li>בודקים שהלוחית תואמת לאפליקציה. מחיר צפוי <b>550–700 Kč</b>.</li></ol>
+      <div class="row wrap"><button class="btn pri" data-act="bolt">🚕 Bolt</button><button class="btn" data-arr="taxi">להראות כתובת לנהג</button></div>
+      <details class="arr-alt"><summary>אם Bolt יקר או לא זמין</summary><ul class="tips">
+      <li><b>טרוליבוס 59</b> מהטרמינל עד <b>Nádraží Veleslavín</b>, שם <b>מטרו A</b> עד <b>Muzeum</b>, ומחליפים ל<b>מטרו C</b> תחנה אחת עד <b>I.P. Pavlova</b>. יוצאים במעלית, המלון כמעט ממול.</li>
+      <li>כרטיס <b>90 דק'</b>: 46 Kč באפליקציית PID Lítačka, או 50 Kč נייר מהמכונה (חובה להחתים כשעולים).</li>
+      <li><b>ה-59 האחרון יוצא מהשדה ב-23:32.</b> אחרי זה רק אוטובוס לילה <b>910</b>, ישר ל-I.P. Pavlova, כל 30 דק'.</li>
+      <li>גיבוי אחרון: מונית <b>AAA</b>, בטלפון.</li></ul><div class="row wrap"><a class="btn" href="tel:+420222333222">📞 מונית AAA</a></div></details>` },
   { k: "rec", ic: "🚪", t: "דלת הקבלה", b: () => `<p>הדלת <b>החומה מעץ, בצד ימין</b> של הבניין, מתחת לשלט HOTEL של המלון. לוח המקשים השחור מימין לדלת.</p><div id="arrPic"></div><small class="arr-l">קוד דלת הקבלה</small>${bigCode(me.rc, "קוד דלת הקבלה")}` },
   { k: "env", ic: "✉️", t: "המעטפה עם השם שלך", b: () => `<p>בפנים, על הארון הכחול, יש מעטפה עם השם שלך. בתוכה <b>כרטיסי החדר ומספר החדר</b>.</p><label class="fld">מספר החדר (מהמעטפה)<input id="arrRoom" inputmode="numeric" dir="ltr" autocomplete="off" value="${esc(me.room || "")}" placeholder="למשל 12"></label>` },
   { k: "out", ic: "↩️", t: "יוצאים חזרה לרחוב", b: () => `<p>יוצאים מהקבלה חזרה לרחוב ו<b>סוגרים את הדלת בזהירות</b>, עד שהיא ננעלת.</p>` },
@@ -36,6 +41,7 @@ function openArrive(openK) {
     else if (a === "me") openMe();
     else if (a === "sos") openSOS();
     else if (a === "taxi") showTaxi();
+    else if (a === "esim") { if (window.openEsim) openEsim(); }
     else if (a === "home") waSend("הגעתי למלון, הכול בסדר 🏨"); });
 }
 /* נפתח לבד: בערב הראשון אחרי הנחיתה, ושוב כשמתקרבים למלון */
@@ -43,7 +49,7 @@ function arriveAuto() {
   const T = tripNow(); if (T.phase !== "during" || T.dayIdx !== 0 || T.min < 21 * 60 + 35) return; const st = arrSt(); if (st.room) return;
   if (!$("#modal").hidden || !$("#splash").hidden) return;
   const near = gps && hav(gps, place("hotel")) < 300;
-  if (near && !LS.get("arrA2")) { LS.set("arrA2", 1); LS.set("arrA1", 1); ["air", "metro"].forEach(k => st[k] = 1); LS.set("arr", st); buzz([20, 60, 20]); openArrive(); }
+  if (near && !LS.get("arrA2")) { LS.set("arrA2", 1); LS.set("arrA1", 1); ["esim", "cash", "air"].forEach(k => st[k] = 1); LS.set("arr", st); buzz([20, 60, 20]); openArrive(); }
   else if (!LS.get("arrA1")) { LS.set("arrA1", 1); openArrive(); }
 }
 setInterval(arriveAuto, 15000); setTimeout(arriveAuto, 6000);
@@ -83,3 +89,8 @@ if (!LS.get("planFix2")) { const fix = { "הרציף לפי המייל של Dupl
   plan.forEach(d => d.stops.forEach(s => { if (fix[s.w]) { s.w = fix[s.w]; ch = true; } if (d.date === "2026-12-04" && s.m === 600 && /^מס עירוני/.test(s.n)) { s.m = 585; ch = true; } })); if (ch && LS.get("plan")) savePlan(); LS.set("planFix2", 1); }
 
 if (!LS.get("planFix3")) { let ch = false; plan.forEach(d => d.stops.forEach(s => { if (s.w === "לבדוק משקל ומידות התיק · מנוחה לפני Duplex" || s.w === "לשקול 8 ק\"ג") { s.w = "לשקול את התיק: מעל 8 ק\"ג? מזוודה אונליין (€40), לא בשער (€60) · לנוח"; ch = true; } })); if (ch && LS.get("plan")) savePlan(); LS.set("planFix3", 1); }
+
+if (!LS.get("planFix4")) { let ch = false; plan.forEach(d => d.stops.forEach(s => {
+    if (s.n === "נחיתה בפראג" && /59|Bolt/.test(s.w || "")) { s.w = "21:35 שעון פראג · eSIM · Bolt במזומן (550–700 Kč) · גיבוי: 59 + מטרו"; ch = true; }
+    if (s.n === "המראה QS1285" && s.w === "הדלפק נסגר 17:25") { s.w = "הדלפק נסגר 17:25 (שעון ישראל)"; ch = true; } }));
+  if (ch && LS.get("plan")) savePlan(); LS.set("planFix4", 1); }

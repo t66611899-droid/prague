@@ -40,7 +40,7 @@ function cdLines() {
     .filter(x => x[0] > now).map(x => `${n(days(x[0]))} ${x[1]}`);
 }
 function milestone(ms) { // שבוע / 3 ימים / יום / 3 שעות לפני הטיסה: הודעה מיוחדת, פעם אחת
-  const seen = LS.get("ms", {}), M = [[3 * 36e5, "h3", "עוד מעט ממריאים! 🛫", "הדלפק נסגר ב-17:25. דרכון, טלפון, מטען."], [864e5, "d1", "מחר טסים! ✈️", "סגרת תיק? עד 8 ק\"ג. מעיל ונעליים כבדות עליך."], [3 * 864e5, "d3", "שלושה ימים! ❄️", "זמן להוריד את המפה לאופליין ולהוסיף את התזכורות ליומן."], [7 * 864e5, "w1", "פחות משבוע! 🎒", "שווה לבדוק דרכון, ביטוח, eSIM ולהוסיף את אמא ואבא לאנשי הקשר."]];
+  const seen = LS.get("ms", {}), M = [[3 * 36e5, "h3", "עוד מעט ממריאים! 🛫", "הדלפק נסגר ב-17:25 (שעון ישראל). דרכון, טלפון, מטען."], [864e5, "d1", "מחר טסים! ✈️", "סגרת תיק? עד 8 ק\"ג. מעיל ונעליים כבדות עליך."], [3 * 864e5, "d3", "שלושה ימים! ❄️", "זמן להוריד את המפה לאופליין ולהוסיף את התזכורות ליומן."], [7 * 864e5, "w1", "פחות משבוע! 🎒", "שווה לבדוק דרכון, ביטוח, eSIM ולהוסיף את אמא ואבא לאנשי הקשר."]];
   const m = M.find(x => ms <= x[0]); if (!m || seen[m[1]]) return ""; seen[m[1]] = 1; M.forEach(x => { if (x[0] >= m[0]) seen[x[1]] = 1; }); LS.set("ms", seen); setTimeout(snowBurst, 500);
   return `<div class="cd-ms"><b>${m[2]}</b><span>${m[3]}</span></div>`;
 }
@@ -57,7 +57,7 @@ function countdownSplash(done, mode) { // mode: out (לפני הטיסה) | air 
       ${back && w < T_LEAVE ? `<p class="cd-sub">ההמראה ב-12:45 · הדלפק נסגר ב-12:05 · 200 Kč במזומן למס העירוני</p>` : `<p class="cd-line" id="cdLine"></p>`}
       ${mode === "out" ? milestone(ms0) : ""}
       <div class="bp"><div class="bp-a"><small>${back ? "PRAGUE" : "TEL AVIV"}</small><b>${back ? "PRG" : "TLV"}</b></div><div class="bp-m"><i></i><span>✈</span><i></i><small>${back ? "QS1284" : "QS1285"}</small></div><div class="bp-a"><small>${back ? "TEL AVIV" : "PRAGUE"}</small><b>${back ? "TLV" : "PRG"}</b></div>
-        <div class="bp-f"><span><small>תאריך</small>${back ? "4.12" : "30.11"}</span><span><small>המראה</small>${back ? "12:45" : "18:25"}</span><span><small>נוסע</small>עומר</span><i class="bar"></i></div></div>
+        <div class="bp-f"><span><small>תאריך</small>${back ? "4.12" : "30.11"}</span><span><small>${back ? "המראה" : "המראה · ישראל"}</small>${back ? "12:45" : "18:25"}</span><span><small>נוסע</small>עומר</span><i class="bar"></i></div></div>
       <button class="cd-go">${mode === "air" ? "לראות מה מחכה ←" : back ? "למפה ←" : "בוא נראה את הטיול ←"}</button></div>`;
   tickFlaps(target); clearInterval(_cdTimer); clearInterval(_cdRot);
   _cdTimer = setInterval(() => { if (sp.hidden) return clearInterval(_cdTimer); if (tickFlaps(target) <= 0) { clearInterval(_cdTimer); leave(); } }, 1000);
@@ -71,7 +71,7 @@ function countdownSplash(done, mode) { // mode: out (לפני הטיסה) | air 
 function welcomeSplash(done) {
   const sp = $("#splash"); LS.set("welcomed", 1); sp.className = "cd wl " + (wantDark() ? "nt" : "dy"); sp.hidden = false;
   sp.innerHTML = `${skylineSvg()}${snowHtml(30)}<div class="cd-in wl-in"><span class="wl-flag">🇨🇿</span><h1>ברוך הבא לפראג</h1><p class="wl-s">Vítejte v Praze · עשית את זה. עכשיו מתחיל החלק הכיף</p>
-    <ul class="wl-l"><li><b>1</b>מפעילים את ה-eSIM</li><li><b>2</b>טרוליבוס 59 + מטרו (כרטיס 90 דק'), או Bolt</li><li><b>3</b>כניסה עצמית למלון: יש מדריך צעד-אחר-צעד</li><li><b>4</b>הודעה קצרה הביתה שנחתת</li></ul>
+    <ul class="wl-l"><li><b>1</b>מפעילים את ה-eSIM</li><li><b>2</b>לפרוט 1,000 Kč, ואז Bolt במזומן (גיבוי: 59 + מטרו)</li><li><b>3</b>כניסה עצמית למלון: יש מדריך צעד-אחר-צעד</li><li><b>4</b>הודעה קצרה הביתה שנחתת</li></ul>
     <div class="row"><button class="cd-go">למפה ←</button><button class="cd-go alt" id="wlWa">💬 נחתתי</button></div></div>`;
   setTimeout(snowBurst, 400); buzz([20, 60, 20, 60, 40]);
   let gone = false; const leave = () => { if (gone) return; gone = true; sp.classList.add("out"); setTimeout(() => { sp.hidden = true; sp.className = ""; sp.innerHTML = ""; }, 720); done(); };

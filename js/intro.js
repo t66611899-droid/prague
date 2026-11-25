@@ -164,12 +164,12 @@ function tickTimer(root, animate) {
 const barcode = (n, seed, h = 30) => { const r = rnd(seed); let x = 0, s = ""; for (let i = 0; i < n; i++) { const w = r() > 0.7 ? 2.4 : r() > 0.4 ? 1.4 : 0.8; s += `<rect x="${x.toFixed(1)}" width="${w}" height="${h}" style="--i:${i}"/>`; x += w + (r() > 0.6 ? 1.6 : 1); } return `<svg class="bc" viewBox="0 0 ${x.toFixed(0)} ${h}" preserveAspectRatio="none" aria-hidden="true">${s}</svg>`; };
 const passHtml = () => `<div class="in-pass" aria-label="כרטיס עלייה: תל אביב לפראג, QS1285, 30.11, 18:25">
   <div class="pa"><div class="rt"><div><small>TEL AVIV</small><b>TLV</b></div><div class="mid"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.500V19l-2 1.500V22l3.500-1 3.500 1v-1.500L13 19v-5.500z" fill="currentColor"/></svg><i></i><small>QS1285</small></div><div><small>PRAGUE</small><b>PRG</b></div></div>
-    <div class="ff"><span><small>תאריך</small>30.11</span><span><small>המראה</small>18:25</span><span><small>נוסע</small>עומר</span></div></div>
+    <div class="ff"><span><small>תאריך</small>30.11</span><span><small>המראה · ישראל</small>18:25</span><span><small>נוסע</small>עומר</span></div></div>
   <div class="pb">${barcode(26, 1285, 40)}<small>QS1285</small></div></div>`;
 const bigPassHtml = () => `<div class="in-bp"><div class="slot"><i></i></div><div class="clip"><div class="paper">
   <div class="hd"><b>BOARDING PASS</b><span>כרטיס עלייה</span></div>
   <div class="rt"><div><b>TLV</b><small>Tel Aviv</small></div><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 16v-2l-8-5V3.500a1.500 1.500 0 0 0-3 0V9l-8 5v2l8-2.500V19l-2 1.500V22l3.500-1 3.500 1v-1.500L13 19v-5.500z" fill="currentColor"/></svg><div><b>PRG</b><small>Prague</small></div></div>
-  <div class="gr"><span><small>טיסה</small><b>QS1285</b></span><span><small>תאריך</small><b>30.11</b></span><span><small>המראה</small><b>18:25</b></span><span><small>נוסע</small><b>עומר</b></span></div>
+  <div class="gr"><span><small>טיסה</small><b>QS1285</b></span><span><small>תאריך</small><b>30.11</b></span><span><small>המראה · ישראל</small><b>18:25</b></span><span><small>נוסע</small><b>עומר</b></span></div>
   <div class="perf"></div>${barcode(54, 2026, 46)}<div class="stamp">צ'ק-אין<br>נפתח</div></div></div></div>`;
 const BOARD = [["17:55", "LO 152", "WARSAW", "DEPARTED"], ["18:10", "A3 929", "ATHENS", "GATE CLOSED"], ["18:25", "QS 1285", "PRAGUE", null], ["18:40", "FR 2416", "BUDAPEST", "ON TIME"]];
 const boardStatus = () => { const left = FLY_AT - nowMs(); return left <= 60 * 6e4 ? "BOARDING" : left <= 3 * 36e5 ? "CHECK-IN" : "ON TIME"; };

@@ -43,14 +43,14 @@ document.addEventListener("click", e => { const b = e.target.closest("#quick [da
 function cardBefore() {
   const ms = Math.max(0, FLIGHT_OUT - tripNow().w.getTime()), d = Math.floor(ms / 864e5), h = Math.floor(ms % 864e5 / 36e5), mi = Math.floor(ms % 36e5 / 6e4), n = (() => { try { return prepLeft(); } catch (e) { return 0; } })();
   const big = d > 0 ? `${d === 1 ? "יום" : d + " ימים"} ו-${h} שע'` : h > 0 ? `${h} שע' ו-${mi} דק'` : `${mi} דק'`;
-  return `<div class="nx-top"><span class="nx-k">✈️ הטיסה לפראג</span><span class="nx-when">QS1285 · 30.11 · 18:25</span></div>
+  return `<div class="nx-top"><span class="nx-k">✈️ הטיסה לפראג</span><span class="nx-when">QS1285 · 30.11 · 18:25 שעון ישראל</span></div>
     <div class="nx-row"><div class="nx-main static"><span class="nx-ic">✈️</span><span class="nx-tx"><b>${big}</b><small>עד ההמראה · ${n ? `נשארו ${n} דברים להכין` : "הכול מוכן"}</small></span></div>
     <button class="btn pri nx-go" data-h="prep">${n ? "להכין" : "✓ הכנות"}</button></div>`;
 }
 function cardFlight() {
   const ms = Math.max(0, FLIGHT_OUT - tripNow().w.getTime()), h = Math.floor(ms / 36e5), mi = Math.floor(ms % 36e5 / 6e4), has = flightTicket("fl1");
-  return `<div class="nx-top"><span class="nx-k">✈️ היום טסים</span><span class="nx-when fx">המראה 18:25 · עוד ${h ? h + " שע' ו-" : ""}${mi} דק'</span></div>
-    <div class="nx-row"><div class="nx-main static"><span class="nx-ic">🛫</span><span class="nx-tx"><b>QS1285 · נתב"ג טרמינל 3</b><small>להגיע עד 15:25 · הדלפק נסגר 17:25</small></span></div>
+  return `<div class="nx-top"><span class="nx-k">✈️ היום טסים</span><span class="nx-when fx">המראה 18:25 (ישראל) · עוד ${h ? h + " שע' ו-" : ""}${mi} דק'</span></div>
+    <div class="nx-row"><div class="nx-main static"><span class="nx-ic">🛫</span><span class="nx-tx"><b>QS1285 · נתב"ג טרמינל 3</b><small>שעון ישראל: להגיע עד 15:25 · הדלפק נסגר 17:25 · נחיתה 21:35 שעון פראג</small></span></div>
     <button class="btn pri nx-go" data-h="fl1">${has ? "כרטיס עלייה" : "הכרטיסים"}</button></div>`;
 }
 /* בפראג וביום החזרה: הכרטיס הקיים (הבא במסלול), רק שהפעולה הראשית היא ניווט חי בתוך האפליקציה */

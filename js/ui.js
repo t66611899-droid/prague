@@ -347,9 +347,21 @@ function openPlace(o) {
   const pn = $("#pcNav"); if (pn) pn.onclick = () => { closeModal(); startNav(l, name); };
   if (inf.wiki) wikiImg(inf.wiki).then(src => { const h = $("#hero"); if (!src || !h) return; const im = new Image(); im.alt = ""; im.decoding = "async"; im.onload = () => { h.classList.add("has"); h.appendChild(im); }; im.onerror = () => { if (im.src !== src) im.src = src; }; im.src = src.replace(/\/\d+px-/, "/640px-"); });
 }
+/* Bolt: אין קישור עומק רשמי ומתועד עם יעד, ו-bolt.eu לא פותח את האפליקציה. לכן: מעתיקים את כתובת המלון (מהפרטים השמורים בטלפון)
+   ופותחים את הדף הרשמי של Bolt ב-App Store (id675033630, נבדק), שם כתוב "פתח" אם האפליקציה מותקנת. */
+const BOLT_STORE = "https://apps.apple.com/app/id675033630";
+async function boltGo() {
+  const q = (me.hotel && me.hotel.q) || ""; let ok = false;
+  if (q) { try { await navigator.clipboard.writeText(q); ok = true; } catch (e) { try { const t = document.createElement("textarea"); t.value = q; t.setAttribute("readonly", ""); t.style.cssText = "position:fixed;opacity:0"; document.body.appendChild(t); t.select(); ok = document.execCommand("copy"); t.remove(); } catch (x) {} } }
+  toast(ok ? "הכתובת הועתקה: הדבק ביעד או בחר 'מלון' מהשמורים" : q ? "לא הצלחתי להעתיק. בחר 'מלון' מהשמורים ב-Bolt" : "אין כתובת מלון ב'הפרטים שלי'. בחר 'מלון' מהשמורים ב-Bolt", 5200);
+  window.open(BOLT_STORE, "_blank", "noopener");
+}
 function openBolt() {
-  openModal(`<h2>🚕 Bolt</h2><p class="desc">מזמינים רק דרך האפליקציה. לא עולים על מונית שעוצרת ברחוב ולא על מי שמציע נסיעה ליד המועדון. באפליקציה רואים מחיר מראש, את שם הנהג ואת מספר הרכב. בודקים שהלוחית תואמת לפני שנכנסים.</p>
-    <div class="row wrap"><a class="btn pri" href="https://bolt.eu" target="_blank" rel="noopener">לפתוח את Bolt</a><a class="btn" href="${navUrl(place("hotel"))}" target="_blank" rel="noopener">🏠 הביתה ברגל</a></div>`);
+  openModal(`<h2>🚕 Bolt</h2><p class="desc">מזמינים רק דרך האפליקציה. לא עולים על מונית שעוצרת ברחוב ולא עם מי שניגש אליך. באפליקציה רואים מחיר מראש, שם נהג ומספר רכב: בודקים שהלוחית תואמת.</p>
+    <p class="fine">💵 משלמים במזומן? בוחרים <b>Cash</b> באמצעי התשלום <b>לפני</b> ההזמנה.</p>
+    <div class="row wrap"><button class="btn pri" id="boltGo">📋 להעתיק את כתובת המלון ולפתוח את Bolt</button><a class="btn" href="${navUrl(place("hotel"))}" target="_blank" rel="noopener">🏠 הביתה ברגל</a></div>
+    <p class="fine">נפתח הדף של Bolt ב-App Store: לוחצים שם "פתח".</p>`);
+  $("#boltGo").onclick = boltGo;
 }
 
 /* ---------- מסך פתיחה ---------- */

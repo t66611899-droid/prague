@@ -96,9 +96,9 @@ async function cineDay(di, opts = {}) {
 async function cineFlight(opts = {}) {
   const r = cineOpen("cn-fly"), lite = cineLight(); r.onEnd = opts.onEnd; if (!opts.replay) cineMark("flight");
   r.stage.innerHTML = `<div class="cn-sky"><i class="cl a"></i><i class="cl b"></i><i class="cl c"></i></div>
-    <div class="cn-pass"><div class="pa"><small>BOARDING PASS · כרטיס עלייה</small><b>TLV <em>✈</em> PRG</b><span>30.11 · 18:25 · QS1285</span></div><div class="pb"><small>שער</small><b>B</b></div></div>
+    <div class="cn-pass"><div class="pa"><small>BOARDING PASS · כרטיס עלייה</small><b>TLV <em>✈</em> PRG</b><span>30.11 · 18:25 (ישראל) · QS1285</span></div><div class="pb"><small>שער</small><b>B</b></div></div>
     <svg class="cn-plane" viewBox="0 0 64 64" aria-hidden="true"><path d="M30 4c2 0 3 2 3 5v14l22 12v5l-22-6v12l7 5v4l-10-3-10 3v-4l7-5V34L5 40v-5l22-12V9c0-3 1-5 3-5z" fill="#fff"/></svg>
-    <div class="cn-land"><small>21:35 · Václav Havel Airport</small><h1>ברוך הבא לפראג 🇨🇿</h1><p class="cn-lvl"><i>🔓</i> הרמה הראשונה נפתחה</p></div>
+    <div class="cn-land"><small>21:35 שעון פראג · Václav Havel Airport</small><h1>ברוך הבא לפראג 🇨🇿</h1><p class="cn-lvl"><i>🔓</i> הרמה הראשונה נפתחה</p></div>
     <div class="cn-lights"></div><button class="cn-go" hidden>▶ למדריך המלון</button>`;
   r.stage.querySelector(".cn-lights").innerHTML = Array.from({ length: 36 }, (_, i) => `<i style="left:${(i * 53) % 100}%;top:${48 + ((i * 29) % 40)}%;--d:${(i % 7) * 0.12}s"></i>`).join("");
   r.stage.querySelector(".cn-go").onclick = () => { buzz(10); cineClose(); setTimeout(() => typeof openArrive === "function" && openArrive(), 350); };

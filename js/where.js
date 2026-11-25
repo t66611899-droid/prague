@@ -42,7 +42,7 @@ const patchRef = () => { if (!window.__ui || typeof window.refPoint !== "functio
 /* בלי מעקב חי להורים: המיקום מגיע אליהם רק עם רגע שמעלים (ראו journal) */
 if (typeof window.liveTick === "function") window.liveTick = function () {};
 Object.assign(window, { myPos, locDiag, openLocHelp });
-(() => { const s = document.createElement("style"); s.textContent = `.lh-steps{margin:10px 0 12px;padding-inline-start:22px;display:flex;flex-direction:column;gap:8px;font-size:1.02rem;line-height:1.4}.lh-steps b{font-weight:700}`; document.head.appendChild(s); })();
+(() => { const s = document.createElement("style"); s.textContent = `.lh-steps{margin:10px 0 12px;padding-inline-start:22px;display:flex;flex-direction:column;gap:8px;font-size:1.02rem;line-height:1.4}.lh-steps b{font-weight:700}label.sw:has(#shLive){display:none}`; document.head.appendChild(s); })();
 (window.__mods = window.__mods || {}).where = "ok";
 } catch (err) { try { (window.__mods = window.__mods || {}).where = "fail: " + (err && err.message || err); } catch (e) {} }
 })();

@@ -7,7 +7,7 @@
 (function () {
 try {
 /* אייקונים באותו סגנון קווי של שורת הקיצורים */
-try { Object.assign(IC, { check: "M5 12.5l4.5 4.5L19 7.5", ticket: "M4 7.500h16v3a1.500 1.500 0 0 0 0 3v3H4v-3a1.500 1.500 0 0 0 0-3zM14 7.500v9", bed: "M3 18V7m0 6h18v5M3 13l0-2a2 2 0 0 1 2-2h4v4m0-4h8a4 4 0 0 1 4 4", talk: "M5 18l1.500-3.500A7 7 0 1 1 9 17.300zM9 11h.010M12 11h.010M15 11h.010", plane: "M3 13.500l7-1.500 4-7 2 .500-1.500 6.500 4.500-1 1.500-2 1.500.500-1 3.500 1 3.500-1.500.500-1.500-2-4.500-1 1.500 6.500-2 .500-4-7-7-1.500z", car: "M5 16.500h14M6.500 16.500v2M17.500 16.500v2M5 16.500l1.500-6h11l1.500 6M8 13.500h.010M16 13.500h.010", map: "M9 4L3 6v14l6-2 6 2 6-2V4l-6 2zM9 4v14M15 6v14" }); } catch (e) {}
+try { Object.assign(IC, { check: "M5 12.5l4.5 4.5L19 7.5", ticket: "M4 7.500h16v3a1.500 1.500 0 0 0 0 3v3H4v-3a1.500 1.500 0 0 0 0-3zM14 7.500v9", bed: "M3 18V7m0 6h18v5M3 13l0-2a2 2 0 0 1 2-2h4v4m0-4h8a4 4 0 0 1 4 4", talk: "M5 18l1.500-3.500A7 7 0 1 1 9 17.300zM9 11h.010M12 11h.010M15 11h.010", plane: "M3 13.500l7-1.500 4-7 2 .500-1.500 6.500 4.500-1 1.500-2 1.500.500-1 3.500 1 3.500-1.500.500-1.500-2-4.500-1 1.500 6.500-2 .500-4-7-7-1.500z", car: "M5 16.500h14M6.500 16.500v2M17.500 16.500v2M5 16.500l1.500-6h11l1.500 6M8 13.500h.010M16 13.500h.010", map: "M9 4L3 6v14l6-2 6 2 6-2V4l-6 2zM9 4v14M15 6v14", camera: "M4 8.500h3l1.500-2h7l1.500 2h3v10H4zM12 16a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" }); } catch (e) {}
 const ico = k => { try { return icon(k); } catch (e) { return ""; } };
 const FLIGHT_OUT = Date.UTC(2026, 10, 30, 17, 25), TLV = { lat: 32.0004, lng: 34.8706, name: "נתב\"ג טרמינל 3", q: "Ben Gurion Airport Terminal 3" };
 function phase() {
@@ -22,7 +22,7 @@ const hotel = () => { const p = TRIP.places.hotel; return me && me.hotel && me.h
 const flightTicket = k => { try { return ((LS.get("tix", {})[k]) || []).length; } catch (e) { return 0; } };
 
 /* ---------- שורת הקיצורים לפי ההקשר ---------- */
-const H = { prep: () => openPrep(), tix: () => openTickets(), fl1: () => openTickets("fl1"), fl2: () => openTickets("fl2"), talk: () => openPhrases(),
+const H = { prep: () => openPrep(), tix: () => openTickets(), fl1: () => openTickets("fl1"), fl2: () => openTickets("fl2"), talk: () => openPhrases(), moment: () => newMoment(),
   hotel: () => typeof goChoose === "function" ? goChoose({ ...hotel(), ic: "🏨" }) : openArrive(), arr: () => openArrive(),
   tlv: () => window.open(navUrl(TLV, "driving"), "_blank", "noopener"), air: () => window.open(navUrl(TRIP.places.airport, "transit"), "_blank", "noopener") };
 const QB = (k, ic, t, attr) => `<button ${attr || `data-h="${k}"`}>${ico(ic)}<span>${t}</span></button>`;
@@ -32,7 +32,7 @@ function quickHtml(ph) {
   if (ph === "before") return QB("prep", "check", n ? `הכנות · ${n}` : "הכנות ✓") + QB("tix", "ticket", "כרטיסים") + QB("talk", "talk", "לדבר") + cl + more + `<span hidden>${badge}</span>`;
   if (ph === "flight") return QB("fl1", "ticket", "כרטיס עלייה") + QB("tlv", "car", "לנתב\"ג") + QB("prep", "check", n ? `הכנות · ${n}` : "הכנות ✓") + cl + more + `<span hidden>${badge}</span>`;
   if (ph === "return") return QB("fl2", "ticket", "טיסה חזור") + QB("arr", "bed", "המלון") + QB("air", "plane", "לשדה") + upd + cl + more;
-  return QB("hotel", "bed", "המלון") + QB("talk", "talk", "לדבר") + cl + upd + QB("", "send", "ווטסאפ", 'data-q="wa"') + more;
+  return QB("hotel", "bed", "המלון") + QB("moment", "camera", "רגע להורים") + cl + upd + QB("", "send", "ווטסאפ", 'data-q="wa"') + more;
 }
 let lastPh = "";
 function renderQuick() { const q = $("#quick"), ph = phase(); if (!q || ph === lastPh) return; lastPh = ph; q.innerHTML = quickHtml(ph); try { refreshUpdates(); } catch (e) {} }

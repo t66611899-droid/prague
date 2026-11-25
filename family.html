@@ -86,6 +86,35 @@ article.nw.rv.in{animation:nwIn .9s cubic-bezier(.2,.8,.2,1)}
 body.replay .mapw{position:fixed;inset:0;height:100dvh;z-index:9000;border-radius:0}
 body.replay .hd,body.replay .pill,body.replay .play{display:none}
 @media (min-width:900px){body{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);direction:rtl}.mapw{grid-column:2;grid-row:1;height:100vh;border-radius:0}.wrap{grid-column:1;grid-row:1;width:100%;padding-top:14px}}
+
+/* v49: הורים: טקסט גדול, ניגודיות גבוהה, כפתורים גדולים, רשת תמונות לפי יום */
+body{font-size:18px}
+:root{--mut:#4d5260}
+@media (prefers-color-scheme:dark){:root{--mut:#c3c6d0}}
+.hd h1{font-size:1.75rem}.hd p{font-size:1.05rem}.chips span{font-size:.92rem;padding:6px 12px}
+.dh{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin:28px 2px 10px}
+.dh b{font-size:1.45rem;font-weight:700}.dh small{color:var(--mut);font-size:.95rem;font-weight:500}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;border-radius:18px;overflow:hidden}
+.gt{position:relative;aspect-ratio:1;border:0;padding:0;background:var(--card2) center/cover;cursor:pointer}
+.gt img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .5s}.gt img.ld{opacity:1}
+.gt i{position:absolute;bottom:6px;inset-inline-start:6px;font-style:normal;background:rgba(0,0,0,.6);color:#fff;border-radius:10px;padding:2px 7px;font-size:.8rem;font-weight:600}
+.gt.nw::after{content:"חדש";position:absolute;top:6px;inset-inline-end:6px;background:var(--red);color:#fff;font-size:.72rem;font-weight:700;padding:3px 7px;border-radius:9px}
+.mo{background:var(--card);border-radius:20px;padding:14px 16px;margin:10px 0;box-shadow:0 3px 14px rgba(10,14,34,.07)}
+.mo.act{box-shadow:0 0 0 2.5px var(--red),0 8px 24px rgba(10,14,34,.14)}
+.mo p{margin:0 0 6px;font-size:1.12rem;line-height:1.5}.mo .when{color:var(--mut);font-size:.95rem}
+.rx{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.rb{min-height:52px;min-width:66px;border:0;border-radius:26px;background:var(--card2);font-size:1.25rem;font-weight:600;padding:0 14px;cursor:pointer;transition:transform .2s cubic-bezier(.3,1.5,.5,1)}
+.rb:active{transform:scale(.86)}.rb.on{background:#ffe1e3;color:#b3141d}.rb small{font-size:.95rem;margin-inline-start:4px}
+@media (prefers-color-scheme:dark){.rb.on{background:#4a1f2a;color:#ff9aa0}}
+.rm{min-height:52px;border:0;border-radius:26px;background:var(--red);color:#fff;font-size:1.02rem;font-weight:700;padding:0 18px;cursor:pointer}
+.msgs{margin:10px 0 0;display:flex;flex-direction:column;gap:6px}
+.msgs p{margin:0;background:var(--card2);border-radius:16px;padding:8px 12px;font-size:1rem}.msgs b{font-weight:700}
+.cf2{display:flex;gap:8px;margin-top:10px}.cf2 input{flex:1;min-width:0;min-height:52px;border-radius:26px;border:2px solid var(--line);background:var(--card);padding:0 16px;font-size:1.05rem}
+.cf2 button{min-height:52px;border:0;border-radius:26px;background:var(--red);color:#fff;font-weight:700;font-size:1.05rem;padding:0 18px}
+.pulse{width:22px;height:22px;border-radius:50%;background:var(--red);border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.4);position:relative}
+.pulse::before,.pulse::after{content:"";position:absolute;inset:-3px;border-radius:50%;border:3px solid var(--red);animation:pls 2.2s ease-out infinite}
+.pulse::after{animation-delay:1.1s}
+@keyframes pls{0%{transform:scale(1);opacity:.9}100%{transform:scale(3.4);opacity:0}}
 </style>
 </head>
 <body>
@@ -118,7 +147,7 @@ let seen = new Set(JSON.parse(localStorage.getItem("fam.seen") || "[]")), firstR
 function header() {
   const [d, t] = pragueNow().split(", "), i = DAYS.indexOf(d), st = i >= 0 ? `יום ${i + 1} מתוך 5` : d < DAYS[0] ? "הטיול עוד לא התחיל" : "הטיול הסתיים";
   $("#sub").textContent = st; const c = [`<span>🕐 ${t} בפראג</span>`]; if (wx) c.push(`<span>${wx}</span>`);
-  if (data && data.loc) c.push(`<span class="live"><i></i>${esc(data.loc.where)} · ${ago(data.loc.t)}</span>`);
+  const lm = data && data.moments.length ? data.moments[data.moments.length - 1] : null; if (lm) c.push(`<span class="live"><i></i>${esc(lm.where || "פראג")} · עודכן ${ago(lm.t)}</span>`);
   $("#chips").innerHTML = c.join("");
 }
 async function weather() { try { const j = await (await fetch("https://api.open-meteo.com/v1/forecast?latitude=50.0875&longitude=14.4213&current=temperature_2m,weather_code&timezone=Europe%2FPrague")).json(), c = j.current.weather_code; wx = `${c === 0 ? "☀️" : c <= 3 ? "⛅" : c >= 71 && c <= 77 ? "❄️" : c >= 51 ? "🌧️" : "🌫️"} ${Math.round(j.current.temperature_2m)}°`; header(); } catch (e) {} }
@@ -133,29 +162,31 @@ function intro() {
   setTimeout(() => el.classList.add("out"), 1900); setTimeout(() => el.remove(), 2700);
 }
 function initMap() {
-  map = new maplibregl.Map({ container: "map", style: "https://tiles.openfreemap.org/styles/liberty", center: firstVisit ? [16, 49.6] : [14.4213, 50.0845], zoom: firstVisit ? 4.2 : 12.4, attributionControl: { compact: true }, cooperativeGestures: true, pitchWithRotate: false, dragRotate: false });
+  map = new maplibregl.Map({ container: "map", style: "https://tiles.openfreemap.org/styles/liberty", center: [22, 42], zoom: 1.4, renderWorldCopies: false, attributionControl: { compact: true }, cooperativeGestures: true, pitchWithRotate: false, dragRotate: false });
   map.on("load", () => { map.addSource("line", { type: "geojson", data: { type: "FeatureCollection", features: [] } }); map.addSource("ghost", { type: "geojson", data: { type: "FeatureCollection", features: [] } }); map.addSource("area", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
     map.addLayer({ id: "area", type: "circle", source: "area", paint: { "circle-radius": ["interpolate", ["exponential", 2], ["zoom"], 10, 14, 15, 220], "circle-color": "#2f7de1", "circle-opacity": 0.16, "circle-stroke-color": "#2f7de1", "circle-stroke-width": 1.5, "circle-stroke-opacity": 0.5 } });
     map.addLayer({ id: "ghost", type: "line", source: "ghost", layout: { "line-cap": "round", "line-join": "round" }, paint: { "line-color": "#d42a33", "line-width": 3, "line-opacity": 0.28, "line-dasharray": [0.5, 2] } });
     map.addLayer({ id: "line-c", type: "line", source: "line", layout: { "line-cap": "round", "line-join": "round" }, paint: { "line-color": "#fff", "line-width": 8, "line-opacity": 0.9 } });
     map.addLayer({ id: "line", type: "line", source: "line", layout: { "line-cap": "round", "line-join": "round" }, paint: { "line-color": "#d42a33", "line-width": 4.5 } });
-    const ac = document.querySelector(".maplibregl-ctrl-attrib"); if (ac) ac.classList.remove("maplibregl-compact-show"); if (data) { if (firstVisit) { drawMap(false); setTimeout(() => fitAll(3600), 1500); setTimeout(() => drawLine(pts().length - 1), 4800); } else drawMap(true); } });
+    const ac = document.querySelector(".maplibregl-ctrl-attrib"); if (ac) ac.classList.remove("maplibregl-compact-show"); if (data) { drawMap(false); setTimeout(() => fitAll(firstVisit ? 4200 : 3000), 900); setTimeout(() => drawLine(pts().length - 1), firstVisit ? 5200 : 4000); } }); /* כל פתיחה: מפת עולם שמתקרבת לפראג */
   map.on("dragstart", () => { userMoved = Date.now(); });
 }
-function fitAll(ms) { const all = [...pts().map(m => [m.lng, m.lat]), ...(data.loc ? [[data.loc.lng, data.loc.lat]] : [])]; if (all.length > 1) { const b = all.reduce((b, p) => b.extend(p), new maplibregl.LngLatBounds(all[0], all[0])); map.fitBounds(b, { padding: { top: 120, bottom: 80, left: 50, right: 50 }, maxZoom: 15, duration: ms == null ? 900 : ms, pitch: 0, bearing: 0 }); } else if (all.length === 1) map.easeTo({ center: all[0], zoom: 14.5, pitch: 0, bearing: 0 }); }
+let pulse = null;
+function drawPulse() { try { const p = pts(), last = p[p.length - 1]; if (pulse) { pulse.remove(); pulse = null; } if (!last || !map) return; const el = document.createElement("div"); el.className = "pulse"; el.title = "הרגע האחרון"; pulse = new maplibregl.Marker({ element: el }).setLngLat([last.lng, last.lat]).addTo(map); } catch (e) {} }
+function fitAll(ms) { const all = pts().map(m => [m.lng, m.lat]); /* בלי מיקום חי: רק המקומות של הרגעים */ if (all.length > 1) { const b = all.reduce((b, p) => b.extend(p), new maplibregl.LngLatBounds(all[0], all[0])); map.fitBounds(b, { padding: { top: 120, bottom: 80, left: 50, right: 50 }, maxZoom: 15, duration: ms == null ? 900 : ms, pitch: 0, bearing: 0 }); } else if (all.length === 1) map.easeTo({ center: all[0], zoom: 14.5, pitch: 0, bearing: 0 }); }
 function drawMap(fit) {
   if (!map || !map.getSource("line")) return; const p = pts();
   map.getSource("ghost").setData({ type: "Feature", properties: {}, geometry: { type: "LineString", coordinates: p.length > 1 ? p.map(m => [m.lng, m.lat]) : [] } });
-  map.getSource("area").setData(data.loc ? { type: "Feature", properties: {}, geometry: { type: "Point", coordinates: [data.loc.lng, data.loc.lat] } } : { type: "FeatureCollection", features: [] });
+  map.getSource("area").setData(false && data.loc ? { type: "Feature", properties: {}, geometry: { type: "Point", coordinates: [data.loc.lng, data.loc.lat] } } : { type: "FeatureCollection", features: [] });
   Object.values(markers).forEach(x => x.remove()); markers = {};
   p.forEach(m => { const el = document.createElement("div"); el.className = "pm" + (m.id === act ? " act" : ""); const c0 = moImgs(m)[0]; if (c0) el.style.backgroundImage = `url(${c0.src})`; else el.textContent = data.moments.indexOf(m) + 1;
     el.onclick = e => { e.stopPropagation(); const a = document.getElementById("m-" + m.id); if (a) { userMoved = 0; a.scrollIntoView({ behavior: "smooth", block: "center" }); setAct(m.id, true); } };
     markers[m.id] = new maplibregl.Marker({ element: el }).setLngLat([m.lng, m.lat]).addTo(map); });
-  drawLine(Math.min(lineF, Math.max(0, p.length - 1))); if (fit) { fitAll(0); drawLine(p.length - 1); }
+  drawLine(Math.min(lineF, Math.max(0, p.length - 1))); if (fit) { fitAll(0); drawLine(p.length - 1); } drawPulse();
 }
 /* הרגע הפעיל: המפה זזה אליו, הנקודה שלו גדלה, והקו נמתח עד אליו */
 function setAct(id, force) {
-  if (id === act && !force) return; act = id; $$("article.act").forEach(a => a.classList.remove("act")); const a = document.getElementById("m-" + id); if (a) a.classList.add("act");
+  if (id === act && !force) return; act = id; $$(".mo.act").forEach(a => a.classList.remove("act")); const a = document.getElementById("m-" + id); if (a) a.classList.add("act");
   Object.entries(markers).forEach(([k, mk]) => mk.getElement().classList.toggle("act", k === id));
   const p = pts(), i = p.findIndex(m => m.id === id); if (i < 0 || !map || !map.getSource("line")) return;
   if (lineStop) lineStop(); lineStop = Gal.spring(lineF, i, 0, drawLine, null, 90, 20);
@@ -163,23 +194,25 @@ function setAct(id, force) {
 }
 function watch() { if (io) io.disconnect(); if (!("IntersectionObserver" in window)) return;
   io = new IntersectionObserver(es => { const v = es.filter(x => x.isIntersecting).sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0]; if (v && !document.getElementById("grp")) setAct(v.target.id.slice(2)); }, { rootMargin: "-52% 0px -30% 0px", threshold: [0, 0.2, 0.6] });
-  $$("#feed article").forEach(a => io.observe(a)); }
+  $$("#feed section.mo").forEach(a => io.observe(a)); }
 
 function render() {
   const ms = data.moments, km = Object.values(data.stats || {}).reduce((a, s) => a + (s.km || 0), 0), places = new Set(ms.map(m => m.where).filter(Boolean)).size, photos = ms.reduce((a, m) => a + nFiles(m), 0), vids = ms.reduce((a, m) => a + (m.media || []).filter(x => x.k === "v").length, 0);
   $("#pill").hidden = !ms.length; $("#play").hidden = !ms.length; $("#pill").innerHTML = `${km ? `<span><b>${km.toFixed(1)}</b>ק"מ</span>` : ""}<span><b>${places}</b>מקומות</span><span><b>${photos - vids}</b>תמונות</span>${vids ? `<span><b>${vids}</b>סרטונים</span>` : ""}`;
   const byDay = {}; ms.forEach(m => (byDay[m.date] = byDay[m.date] || []).push(m));
-  $("#feed").innerHTML = Object.keys(byDay).sort().reverse().map(d => { const di = DAYS.indexOf(d), dm = byDay[d], cov = dm.map(m => moImgs(m)[0]).filter(Boolean)[0], s = (data.stats || {})[d] || {}, nph = dm.reduce((a, m) => a + nFiles(m), 0);
-    return `<header class="day"${cov && cov.ph ? ` style="background-image:url(${cov.ph})"` : ""}>${cov ? `<img src="${cov.src}" alt="" loading="lazy" onload="this.classList.add('ld')">` : ""}<div><small>${di >= 0 ? "יום " + (di + 1) + " · " : ""}${dayName(d).replace("יום ", "")}</small><b>${di >= 0 ? DT[di] : dayName(d)}</b><span>${s.km ? s.km.toFixed(1) + ' ק"מ · ' : ""}${dm.length} ${dm.length === 1 ? "רגע" : "רגעים"} · ${nph} קבצים</span></div></header>` +
-      dm.slice().reverse().map(m => { const re = (data.re || {})[m.id] || [], hearts = re.filter(r => r.h).length, n = ms.indexOf(m) + 1;
-      const isNew = !seen.has(m.id) && !firstVisit, caps = (m.media || []).filter(x => x.cap);
-      return `<article id="m-${m.id}" class="${m.id === act ? "act" : ""}${isNew ? " nw" : ""}">${isNew ? `<i class="tag-new">חדש</i>` : ""}${Gal.collage(moImgs(m))}
-        <div class="bd">${m.text ? `<p dir="auto">${esc(m.text)}</p>` : ""}${caps.length ? `<ul class="caps">${caps.slice(0, 4).map(x => `<li dir="auto">${x.k === "v" ? "🎬" : "📷"} ${esc(x.cap)}</li>`).join("")}</ul>` : ""}<small><span class="n">${n}</span>${esc(m.time)} · ${esc(m.where || "פראג")}</small>
-        ${re.filter(r => r.x).map(r => `<p class="re"><b>${esc(r.n)}:</b> ${esc(r.x)}</p>`).join("")}
-        <div class="acts"><button class="hb${hearted[m.id] ? " on" : ""}" data-h="${m.id}">❤️ ${hearts || ""}</button><form class="cf" data-c="${m.id}"><input placeholder="תגובה קצרה…" maxlength="140" enterkeyhint="send" autocomplete="off"><button>שלח</button></form></div></div></article>`; }).join(""); }).join("")
+  const RX = [["❤️", "h"], ["😂", "😂"], ["😮", "😮"]], cnt = (re, k) => re.filter(r => k === "h" ? r.h : r.x === k).length;
+  $("#feed").innerHTML = Object.keys(byDay).sort().reverse().map(d => { const di = DAYS.indexOf(d), dm = byDay[d].slice().reverse(), nph = dm.reduce((a, m) => a + nFiles(m), 0);
+    const tiles = dm.flatMap(m => moImgs(m).map(x => ({ x, m }))), isNew = m => !seen.has(m.id) && !firstVisit;
+    return `<div class="dh"><b>${di >= 0 ? "יום " + (di + 1) + " · " : ""}${dayName(d).replace("יום ", "")}</b><small>${nph} ${nph === 1 ? "תמונה" : "תמונות"}</small></div>
+      ${tiles.length ? `<div class="grid">${tiles.map(({ x, m }) => `<button class="gt gc-i${isNew(m) ? " nw" : ""}" data-g="${x.gid}" aria-label="לפתוח במסך מלא"${x.ph ? ` style="background-image:url(${x.ph})"` : ""}><img src="${x.src}" alt="" loading="lazy" onload="this.classList.add('ld')">${x.vid ? `<i>▶ ${x.dur ? Math.round(x.dur) + " שנ'" : "סרטון"}</i>` : ""}</button>`).join("")}</div>` : ""}
+      ${dm.map(m => { const re = (data.re || {})[m.id] || [], msgs = re.filter(r => r.x && !RX.some(e => e[1] === r.x)), mine = JSON.parse(localStorage.getItem("fam.rx") || "{}")[m.id] || {};
+        return `<section class="mo${m.id === act ? " act" : ""}" id="m-${m.id}">${m.text ? `<p dir="auto">${esc(m.text)}</p>` : ""}<div class="when">🕐 ${esc(m.time)} · 📍 ${esc(m.where || "פראג")}</div>
+          ${msgs.length ? `<div class="msgs">${msgs.map(r => `<p><b>${esc(r.n)}:</b> ${esc(r.x)}</p>`).join("")}</div>` : ""}
+          <div class="rx">${RX.map(([e, k]) => { const n = cnt(re, k); return `<button class="rb${mine[k] ? " on" : ""}" data-rx="${k}" data-id="${m.id}" aria-label="${e}">${e}${n ? `<small>${n}</small>` : ""}</button>`; }).join("")}<button class="rm" data-msg="${m.id}">💬 הודעה</button></div>
+          <form class="cf2" data-c="${m.id}" hidden><input placeholder="מה רצית להגיד לעומר?" maxlength="140" enterkeyhint="send" autocomplete="off"><button>שלח</button></form></section>`; }).join("")}`; }).join("")
     || `<div class="empty"><span>📷</span><b>עוד אין רגעים</b>כשעומר יעלה תמונה ראשונה מהטיול, היא תופיע כאן לבד.</div>`;
   $("#foot").innerHTML = `מתעדכן לבד כל דקה${data.updated ? " · עדכון אחרון " + ago(data.updated) : ""}<br>הקישור הזה סודי, בבקשה לא להעביר הלאה.<br>מפה: © <a href="https://openfreemap.org">OpenFreeMap</a> · <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>`;
-  header(); Gal.scan($("#feed")); Gal.reveal($("#feed"), "article,.day"); Gal.autoplay($("#feed")); drawMap(!act); watch();
+  header(); $$("#feed .gt img").forEach(i => { if (i.complete && i.naturalWidth) i.classList.add("ld"); }); drawMap(!act); watch();
   // מה שכבר הוצג נחשב "נראה": בביקור הבא לא יסומן כחדש
   const ids = ms.map(m => m.id); setTimeout(() => { ids.forEach(i => seen.add(i)); try { localStorage.setItem("fam.seen", JSON.stringify([...seen].slice(-400))); } catch (e) {} }, 6000);
   if (!firstRender && ms.some(m => !seen.has(m.id))) { try { navigator.vibrate && navigator.vibrate(20); } catch (e) {} } firstRender = false;
@@ -203,7 +236,9 @@ async function react(id, body) { if (!me) { $("#who").hidden = false; $("#who").
   try { const r = await fetch(`${API}/j/${KEY}/react`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ id, name: me, ...body }) }); if (r.ok) { if (body.heart) { hearted[id] = 1; localStorage.setItem("fam.h", JSON.stringify(hearted)); } lastSig = ""; load(); } } catch (e) {} }
 document.addEventListener("click", e => {
   const g = e.target.closest(".gc-i"); if (g) return viewer(g.dataset.g);
-  const h = e.target.closest("[data-h]"); if (h) { if (hearted[h.dataset.h]) return; h.classList.add("on", "pop"); react(h.dataset.h, { heart: true }); return; }
+  const rx = e.target.closest("[data-rx]"); if (rx) { const id = rx.dataset.id, k = rx.dataset.rx, all = JSON.parse(localStorage.getItem("fam.rx") || "{}"), mine = all[id] || {}; if (mine[k]) return; if (!me) { $("#who").hidden = false; $("#who").dataset.then = JSON.stringify([id, k === "h" ? { heart: true } : { text: k }]); return; }
+    mine[k] = 1; all[id] = mine; localStorage.setItem("fam.rx", JSON.stringify(all)); rx.classList.add("on"); try { navigator.vibrate && navigator.vibrate(15); } catch (x) {} react(id, k === "h" ? { heart: true } : { text: k }); return; }
+  const mb = e.target.closest("[data-msg]"); if (mb) { const f = document.querySelector(`form[data-c="${mb.dataset.msg}"]`); if (f) { f.hidden = !f.hidden; if (!f.hidden) f.querySelector("input").focus(); } return; }
   const w = e.target.closest("#who button"); if (w) { me = w.dataset.n; localStorage.setItem("fam.name", me); $("#who").hidden = true; const t = JSON.parse($("#who").dataset.then || "null"); if (t) react(t[0], t[1]); return; }
   if (e.target.closest("#play")) playTrip();
 });

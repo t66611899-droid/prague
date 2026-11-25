@@ -183,6 +183,16 @@ async function choose(it) {
     if (R && cur === my) { setLine([[r.lng, r.lat], ...decodePoly(R.geometry)]); card(`${fmtDist(R.distance)} · 🚶 ${fmtDur(R.distance / WALK)}`); } } catch (e) {}
 }
 
+/* ---------- מקומות ששמרתי ⭐: מודגשים על המפה ---------- */
+function drawSaved() { try { if (typeof map === "undefined" || !map || !map.getStyle || !map.getStyle()) return; const fc = { type: "FeatureCollection", features: saved().map(x => ({ type: "Feature", properties: { name: x.name }, geometry: { type: "Point", coordinates: [x.lng, x.lat] } })) }, src = map.getSource("saved");
+  if (src) return src.setData(fc);
+  map.addSource("saved", { type: "geojson", data: fc });
+  map.addLayer({ id: "saved-dot", type: "circle", source: "saved", paint: { "circle-color": "#e8a317", "circle-radius": ["interpolate", ["linear"], ["zoom"], 11, 4, 15, 7.5], "circle-stroke-color": "#fff", "circle-stroke-width": 2 } });
+  map.addLayer({ id: "saved-label", type: "symbol", source: "saved", minzoom: 13.5, layout: { "text-field": ["get", "name"], "text-font": ["Noto Sans Bold"], "text-size": 12, "text-offset": [0, 1.1], "text-anchor": "top", "text-optional": true }, paint: { "text-color": "#ffd27a", "text-halo-color": "#14161b", "text-halo-width": 1.6 } });
+} catch (e) {} }
+const hookSaved = () => { if (typeof map === "undefined" || !map || !map.on) return setTimeout(hookSaved, 500); map.on("style.load", () => setTimeout(drawSaved, 50)); [300, 1500, 4000, 9000].forEach(t => setTimeout(drawSaved, t)); }; hookSaved();
+const _lsSet = LS.set; LS.set = function (k, v) { const r = _lsSet.apply(this, arguments); if (k === "goSaved") setTimeout(drawSaved, 0); return r; };
+
 /* ---------- השורה הקבועה במסך הראשי ---------- */
 try { const hud = $("#hud"), days = $("#days"); if (hud && !$("#goBar")) { const b = document.createElement("button"); b.id = "goBar"; b.setAttribute("aria-label", "לאן? חיפוש מקום"); b.innerHTML = `<span>🔍</span><b>לאן?</b><small>Primark, פיצה, כספומט, רחוב…</small>`; b.onclick = () => openGo(); if (days && days.nextSibling) hud.insertBefore(b, days.nextSibling); else hud.appendChild(b); }
   if (typeof window.setSheet === "function") window.setSheet = (old => function () { const r = old.apply(this, arguments); place(); return r; })(window.setSheet);

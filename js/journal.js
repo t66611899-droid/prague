@@ -152,7 +152,8 @@ function newMoment() {
     <p class="sub" id="jrWhere">📍 ${bd(whereNow().where)} · 🕐 ${clockNow()} · נכנסים לבד. תמונה ישנה מהגלריה נכנסת לפי שעת הצילום שלה.</p>
     <div class="seg" id="jrVis"><button data-v="p">👨‍👩‍👦 להורים</button><button data-v="me">🔒 רק לי</button></div>
     <button class="btn pri wide big" id="jrSave" disabled>לשמור</button>`, "tall");
-  const seg = () => $$("#jrVis button").forEach(b => b.classList.toggle("sel", b.dataset.v === vis)); seg();
+  const seg = () => { $$("#jrVis button").forEach(b => b.classList.toggle("sel", b.dataset.v === vis)); const sv = $("#jrSave"); if (sv && !sv.dataset.busy) sv.textContent = vis === "p" ? "שלח להורים 💌" : "לשמור"; }; seg();
+  try { $("#jrF").click(); } catch (e) {} /* שתי לחיצות: המצלמה/הגלריה נפתחת מיד, ואחרי הבחירה רק "שלח" */
   $$("#jrVis button").forEach(b => b.onclick = () => { vis = b.dataset.v; LS.set("jrVis", vis); seg(); });
   const draw = async () => {
     urls.forEach(u => URL.revokeObjectURL(u)); urls = files.map(f => URL.createObjectURL(f)); const caps = $$("#jrPrev [data-cap]").map(i => i.value);
@@ -168,11 +169,11 @@ function newMoment() {
   $("#jrF").onchange = e => { files = [...files, ...e.target.files].slice(0, 10); e.target.value = ""; draw(); };
   $("#jrSave").onclick = async () => {
     const b = $("#jrSave"), ac = (() => { try { const C = window.AudioContext || window.webkitAudioContext; return files.some(f => isVid(f) && f.size > MED_MAX) && C ? new C() : null; } catch (e) { return null; } })(); // נוצר בלחיצה, בשביל הקול בכיווץ סרטון
-    b.disabled = true; b.textContent = "מכין…"; const caps = $$("#jrPrev [data-cap]").map(i => i.value), from = $("#jrPrev img, #jrPrev video"), fr = from ? from.getBoundingClientRect() : null, fsrc = from && from.tagName === "IMG" ? from.src : "";
+    b.disabled = true; b.dataset.busy = 1; b.textContent = "מכין…"; const caps = $$("#jrPrev [data-cap]").map(i => i.value), from = $("#jrPrev img, #jrPrev video"), fr = from ? from.getBoundingClientRect() : null, fsrc = from && from.tagName === "IMG" ? from.src : "";
     try { const mo = await addMoment(files, $("#jrT").value, caps, vis, ac, (i, n, p) => { b.textContent = p > 0 && p < 1 ? `מכווץ סרטון ${Math.round(p * 100)}% · ${i + 1}/${n}` : `מכין ${Math.min(i + 1, n)}/${n}…`; });
       if (ac) ac.close().catch(() => {}); buzz(12); openDiary(); jrFlyIn(mo, fr, fsrc);
       toast(vis === "me" ? "נשמר, רק אצלך ✓" : isOffline() || !apiTok() ? "נשמר. יישלח להורים כשתהיה רשת 💌" : "נשמר, נשלח להורים…", 3600);
-    } catch (e) { b.disabled = false; b.textContent = "לשמור"; toast(e.message === "long" ? "סרטון ארוך מ-20 שניות" : e.message === "codec" ? "הטלפון לא הצליח לפתוח את הסרטון. כדאי לנסות שוב, או לבחור סרטון קצר יותר" : e.message === "hidden" ? "צריך להשאיר את המסך דלוק ובאפליקציה בזמן שהסרטון מתכווץ (כמה שניות). מנסים שוב" : e.message === "norec" ? "הסרטון גדול מדי והדפדפן לא יכול לכווץ אותו. מקצרים אותו ובוחרים שוב" : "לא הצלחתי לשמור. אולי אין מקום בטלפון", 5200); }
+    } catch (e) { b.disabled = false; delete b.dataset.busy; b.textContent = vis === "p" ? "שלח להורים 💌" : "לשמור"; toast(e.message === "long" ? "סרטון ארוך מ-20 שניות" : e.message === "codec" ? "הטלפון לא הצליח לפתוח את הסרטון. כדאי לנסות שוב, או לבחור סרטון קצר יותר" : e.message === "hidden" ? "צריך להשאיר את המסך דלוק ובאפליקציה בזמן שהסרטון מתכווץ (כמה שניות). מנסים שוב" : e.message === "norec" ? "הסרטון גדול מדי והדפדפן לא יכול לכווץ אותו. מקצרים אותו ובוחרים שוב" : "לא הצלחתי לשמור. אולי אין מקום בטלפון", 5200); }
   };
 }
 /* האנימציה: התמונה "עפה" מהמסך של הרגע החדש אל המקום שלה ביומן, עם ✓ */

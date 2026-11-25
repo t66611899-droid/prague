@@ -22,7 +22,7 @@ const hotel = () => { const p = TRIP.places.hotel; return me && me.hotel && me.h
 const flightTicket = k => { try { return ((LS.get("tix", {})[k]) || []).length; } catch (e) { return 0; } };
 
 /* ---------- שורת הקיצורים לפי ההקשר ---------- */
-const H = { prep: () => openPrep(), tix: () => openTickets(), fl1: () => openTickets("fl1"), fl2: () => openTickets("fl2"), talk: () => openPhrases(), moment: () => newMoment(),
+const H = { prep: () => openPrep(), tix: () => openTickets(), fl1: () => openTickets("fl1"), fl2: () => openTickets("fl2"), talk: () => openPhrases(), moment: () => newMoment(), esim: () => window.openEsim && openEsim(),
   hotel: () => typeof goChoose === "function" ? goChoose({ ...hotel(), ic: "🏨" }) : openArrive(), arr: () => openArrive(),
   tlv: () => window.open(navUrl(TLV, "driving"), "_blank", "noopener"), air: () => window.open(navUrl(TRIP.places.airport, "transit"), "_blank", "noopener") };
 const QB = (k, ic, t, attr) => `<button ${attr || `data-h="${k}"`}>${ico(ic)}<span>${t}</span></button>`;
@@ -32,7 +32,8 @@ function quickHtml(ph) {
   if (ph === "before") return QB("prep", "check", n ? `הכנות · ${n}` : "הכנות ✓") + QB("tix", "ticket", "כרטיסים") + QB("talk", "talk", "לדבר") + cl + more + `<span hidden>${badge}</span>`;
   if (ph === "flight") return QB("fl1", "ticket", "כרטיס עלייה") + QB("tlv", "car", "לנתב\"ג") + QB("prep", "check", n ? `הכנות · ${n}` : "הכנות ✓") + cl + more + `<span hidden>${badge}</span>`;
   if (ph === "return") return QB("fl2", "ticket", "טיסה חזור") + QB("arr", "bed", "המלון") + QB("air", "plane", "לשדה") + upd + cl + more;
-  return QB("hotel", "bed", "המלון") + QB("moment", "camera", "רגע להורים") + cl + upd + QB("", "send", "ווטסאפ", 'data-q="wa"') + more;
+  const esim = (() => { try { const T = tripNow(); return T.dayIdx === 0 || (T.dayIdx === 1 && T.min < 600); } catch (e) { return false; } })() ? `<button data-h="esim"><span>📶 eSIM</span></button>` : "";
+  return esim + QB("hotel", "bed", "המלון") + QB("moment", "camera", "רגע להורים") + cl + upd + QB("", "send", "ווטסאפ", 'data-q="wa"') + more;
 }
 let lastPh = "";
 function renderQuick() { const q = $("#quick"), ph = phase(); if (!q || ph === lastPh) return; lastPh = ph; q.innerHTML = quickHtml(ph); try { refreshUpdates(); } catch (e) {} }

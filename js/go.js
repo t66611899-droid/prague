@@ -14,14 +14,15 @@ const PRG = { lat: 50.0875, lng: 14.4213 }, BOX = "14.22,49.94,14.71,50.18", NEA
 const rec = () => LS.get("goRec", []), saved = () => LS.get("goSaved", []);
 const same = (a, b) => a && b && Math.abs(a.lat - b.lat) < 2e-4 && Math.abs(a.lng - b.lng) < 2e-4;
 const hotelP = () => { const p = TRIP.places.hotel; return me && me.hotel && me.hotel.lat ? { ...p, ...me.hotel, name: "המלון" } : p; };
-const here = () => { try { if (window.__goRef) return { ...window.__goRef, me: true }; if (gps && (typeof gpsNear !== "function" || gpsNear())) return { lat: gps.lat, lng: gps.lng, me: true }; } catch (e) {} return { ...hotelP(), me: false }; };
+const DEV = /^(localhost|127\.0\.0\.1)$/.test(location.hostname); /* מיקום/שעה מדומים רק בבדיקות במחשב, אף פעם באתר החי */
+const here = () => { try { if (DEV && window.__goRef) return { ...window.__goRef, me: true, label: "📍 לפי המיקום שלך" }; if (typeof myPos === "function") return myPos(); if (gps && (typeof gpsNear !== "function" || gpsNear())) return { lat: gps.lat, lng: gps.lng, me: true }; } catch (e) {} return { ...hotelP(), me: false }; };
 const nrm = s => String(s || "").toLowerCase().normalize("NFD").replace(/[̀-֑ͯ-ׇ]/g, "").replace(/['׳’`"״.,\-–()]/g, " ").replace(/\s+/g, " ").trim();
 const mins = d => walkEst(d);
 const revUrl = x => "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent([x.name, x.st, "Praha"].filter(Boolean).join(", "));
 
 /* ---------- השעה בפראג ושעות פתיחה ---------- */
 const DAYS = ["mo", "tu", "we", "th", "fr", "sa", "su"];
-function nowP() { if (window.__goNow) return window.__goNow; const p = {}; for (const x of new Intl.DateTimeFormat("en-GB", { timeZone: TRIP.timezone || "Europe/Prague", weekday: "short", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).formatToParts(new Date())) p[x.type] = x.value; return { d: DAYS.indexOf(p.weekday.toLowerCase().slice(0, 2)), m: +p.hour * 60 + +p.minute }; }
+function nowP() { if (DEV && window.__goNow) return window.__goNow; const p = {}; for (const x of new Intl.DateTimeFormat("en-GB", { timeZone: TRIP.timezone || "Europe/Prague", weekday: "short", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).formatToParts(new Date())) p[x.type] = x.value; return { d: DAYS.indexOf(p.weekday.toLowerCase().slice(0, 2)), m: +p.hour * 60 + +p.minute }; }
 const hm = m => { m = ((m % 1440) + 1440) % 1440; return String(Math.floor(m / 60)).padStart(2, "0") + ":" + String(m % 60).padStart(2, "0"); };
 function daySet(spec) { const set = new Set(); for (const part of spec.split(",")) { const m = /^(mo|tu|we|th|fr|sa|su)(?:\s*-\s*(mo|tu|we|th|fr|sa|su))?$/.exec(part.trim()); if (!m) return null; let a = DAYS.indexOf(m[1]); const b = m[2] ? DAYS.indexOf(m[2]) : a; for (; ; a = (a + 1) % 7) { set.add(a); if (a === b) break; } } return set; }
 /* מחזיר {open, closeIn, closeT, openT} או null כשאין שעות או שהכתיב מורכב מדי (ואז "שעות לא ידועות") */
@@ -80,13 +81,13 @@ const CAT = { food: ["🍕", "אוכל בשבילי", mine, "בלי בשר: פי
 async function livePoi(ref) { const a = `(around:1500,${ref.lat.toFixed(3)},${ref.lng.toFixed(3)})`, j = await overpass(`[out:json][timeout:12];(${POI_RULES.query(a)});out center tags 700;`); return j.elements.map(e => POI_RULES.rec(e)).filter(Boolean).map(toObj); }
 let showClosed = false, curCat = "";
 async function runCat(cat) {
-  curCat = cat; const my = ++tok, C = CAT[cat], ref = here(), now = nowP(); paint(`<p class="sub dots">מחפש ${C[1]} קרוב</p>`, []);
+  curCat = cat; lastQ = null; const my = ++tok, C = CAT[cat], ref = here(), now = nowP(); lastRef = ref; paint(`<p class="sub dots">מחפש ${C[1]} קרוב</p>`, []);
   let base = await loadPoi(); if (my !== tok) return; let note = "";
   if (!base.some(x => hav(ref, x) < 1200)) { /* מחוץ לאזור שנשמר מראש */ if (isOffline()) note = "📡 אתה מחוץ לאזור שנשמר מראש ואין קליטה, אז אלה הקרובים ביותר מתוך מה ששמור."; else { try { base = await livePoi(ref); } catch (e) { note = "📡 החיפוש החי לא עונה כרגע, אז אלה הקרובים ביותר מתוך מה ששמור."; } if (my !== tok) return; } }
   const P = pick(base.filter(C[2]).map(x => judge(x, ref, now)), showClosed);
   paint(head(ref, P, C) + (note ? `<p class="fine note">${note}</p>` : "") + (P.list.length ? P.list.map(rowH).join("") : emptyState("🤷", "אין " + C[1] + " פתוח קרוב", "אפשר להציג גם מקומות סגורים, או לחפש בשם.")) + closedBtn(P), P.list);
 }
-const head = (ref, P, C) => `<div class="go-hd"><b>${C ? C[0] + " " + C[1] : "תוצאות"}</b><span>${ref.me ? "📍 לפי המיקום שלך" : "🏨 מחושב מהמלון"} · ${P.far ? "אין קרוב, אלה הכי קרובים" : "עד " + (P.wide ? 25 : 15) + " דק' הליכה"}${showClosed ? "" : " · רק פתוחים"}</span>${C && C[3] ? `<small>${C[3]}</small>` : ""}</div>`;
+const head = (ref, P, C) => `<div class="go-hd"><b>${C ? C[0] + " " + C[1] : "תוצאות"}</b><span>${ref.label || (ref.me ? "📍 לפי המיקום שלך" : "🏨 מחושב מהמלון")} · ${P.far ? "אין קרוב, אלה הכי קרובים" : "עד " + (P.wide ? 25 : 15) + " דק' הליכה"}${showClosed ? "" : " · רק פתוחים"}</span>${C && C[3] ? `<small>${C[3]}</small>` : ""}</div>`;
 const closedBtn = P => P.closed || showClosed ? `<button class="btn wide go-cl" data-cl="1">${showClosed ? "להציג רק פתוחים" : `להציג גם ${P.closed} סגורים עכשיו`}</button>` : "";
 
 /* ---------- חיפוש בשם: האפליקציה + השמורים + OSM, הכול לפי מרחק ---------- */
@@ -108,7 +109,7 @@ async function remoteFind(q, ref) {
 }
 function mergeFound(lists, ref, now) { const seen = [], out = []; for (const x of lists.flat()) { if (seen.some(y => nrm(y.name) === nrm(x.name) && hav(y, x) < 60)) { const y = seen.find(y => nrm(y.name) === nrm(x.name) && hav(y, x) < 60); if (!y.oh && x.oh) y.oh = x.oh; continue; } seen.push(x); } for (const x of seen) { const j = judge(x, ref, now); if (x.c === "x") { j.ic = x.ic0 || "📍"; if (!x.oh) { j.os = null; j.why = mins(j.d) + " דק' הליכה" + (x.addr ? " · כתובת" : x.app ? " · מהאפליקציה" : x.ic0 === "⭐" ? " · שמרת" : " · שעות לא ידועות"); j.rank = (x.app || x.addr || x.ic0 ? 0 : 1e6) + j.d; } } out.push(j); } return out; }
 async function search(q, deep) {
-  const my = ++tok; q = q.trim(); curCat = ""; if (!q) return home();
+  const my = ++tok; q = q.trim(); curCat = ""; lastQ = q || null; if (!q) return home(); lastRef = here();
   const ref = here(), now = nowP(), n = nrm(q), t = n.split(" ").filter(Boolean), hit = x => { const h = nrm([x.name, x.cz, x.q, x.b, x.st].join(" ")); return t.every(w => h.includes(w)); };
   const kwc = KW.find(k => k[1].test(n)), sub = /פיצה|pizza/.test(n) ? "p" : /פלאפל|falafel/.test(n) ? "l" : /פסטה|pasta/.test(n) ? "i" : /צ.?יפס|fries/.test(n) ? "r" : ""; let kw = "";
   const base = await loadPoi(); if (my !== tok) return;
@@ -122,6 +123,9 @@ async function search(q, deep) {
   const c = show([...local, rem], ""); if (!c && !kw) paint(emptyState("🔎", "לא מצאתי", "אפשר לנסות שם באנגלית או בצ'כית, או רק חלק מהשם."), []);
 }
 
+/* זזת יותר מ-50 מ' כשהרשימה פתוחה: מחשבים מחדש מהמיקום החדש */
+let lastRef = null, lastQ = null;
+setInterval(() => { try { if (!$("#goR") || (!curCat && !lastQ)) return; const r = here(); if (!r.me || !lastRef) { lastRef = r; return; } if (hav(r, lastRef) > 50) { lastRef = r; if (curCat) runCat(curCat); else if (lastQ) search(lastQ, true); } } catch (e) {} }, 5000);
 /* ---------- המסך ---------- */
 let list = [], tok = 0, timer = 0;
 const rowH = (x, i) => `<div class="ritem flat go-it${x.warn ? " warn" : ""}${x.os && !x.os.open ? " shut" : ""}"><button class="rmain go-r" data-i="${i}"><b${x.ltr || /^[\x20-\x7eÀ-ɏ]+$/.test(x.name) ? ' dir="ltr"' : ""}>${x.ic} ${esc(x.name)}</b><small>${esc(x.why)}</small>${x.warn ? `<small class="go-w">⚠️ ${esc(x.warn)}</small>` : ""}</button>${x.c !== "a" && x.c !== "w" && !x.addr ? `<a class="go-rev" href="${revUrl(x)}" target="_blank" rel="noopener" aria-label="ביקורות ב-Google Maps">⭐<span>ביקורות</span></a>` : ""}</div>`;
@@ -156,10 +160,10 @@ function place() { const c = $("#goCard"); if (!c) return; try { if (isDesktop()
 function card(distTxt) { if (!cur) return; let c = $("#goCard"); if (!c) { c = document.createElement("div"); c.id = "goCard"; document.body.appendChild(c); } const isSaved = saved().some(s => same(s, cur)), r = here();
   const line = [distTxt || (fmtDist(hav(r, cur) * 1.3) + " · 🚶 " + fmtDur(mins(hav(r, cur))) + (r.me ? "" : " מהמלון")), ...(cur.why ? cur.why.split(" · ").slice(1) : [])].join(" · ");
   c.innerHTML = `<div class="gc-h"><span class="gc-ic">${cur.ic && cur.ic !== "🕘" ? cur.ic : "📍"}</span><div><b${cur.ltr ? ' dir="ltr"' : ""}>${esc(cur.name)}</b><small>${esc(line)}</small>${cur.warn ? `<small class="go-w">⚠️ ${esc(cur.warn)}</small>` : ""}</div><button data-a="x" aria-label="לסגור">✕</button></div>
-    <div class="gc-b"><a class="btn pri" href="${navUrl(cur)}" target="_blank" rel="noopener">🧭 נווט</a><button class="btn" data-a="arrow">➤ חץ</button><button class="btn" data-a="add">➕ למסלול</button>${cur.rev ? `<a class="btn" href="${cur.rev}" target="_blank" rel="noopener" aria-label="ביקורות">⭐ ביקורות</a>` : ""}<button class="btn${isSaved ? " on" : ""}" data-a="save" aria-label="לשמור">${isSaved ? "★" : "☆"}</button></div>`;
+    <div class="gc-b"><a class="btn pri" href="${navUrl(cur)}" target="_blank" rel="noopener">🧭 נווט</a><button class="btn" data-a="arrow">➤ התחל</button><button class="btn" data-a="add">➕ למסלול</button>${cur.rev ? `<a class="btn" href="${cur.rev}" target="_blank" rel="noopener" aria-label="ביקורות">⭐ ביקורות</a>` : ""}<button class="btn${isSaved ? " on" : ""}" data-a="save" aria-label="לשמור">${isSaved ? "★" : "☆"}</button></div>`;
   c.onclick = e => { const b = e.target.closest("[data-a]"); if (!b) return; const a = b.dataset.a, it = cur;
     if (a === "x") return clearGo();
-    if (a === "arrow") { clearGo(); return startNav(it, it.name); }
+    if (a === "arrow") { clearGo(); return typeof navStart === "function" ? navStart(it) : startNav(it, it.name); }
     if (a === "add") { const pre = { lat: it.lat, lng: it.lng, name: it.name, q: it.q || "" }; clearGo(); return addStopFlow(pre); }
     if (a === "save") { const s = saved(), on = !s.some(x => same(x, it)); LS.set("goSaved", on ? [{ name: it.name, lat: it.lat, lng: it.lng, q: it.q || "", st: it.st || "", ltr: !!it.ltr }, ...s].slice(0, 30) : s.filter(x => !same(x, it))); buzz(8); toast(on ? "נשמר ⭐ יופיע תמיד ב\"לאן?\", גם בלי אינטרנט" : "הוסר מהשמורים"); card(distTxt); } };
   document.body.classList.add("go-on"); place(); }

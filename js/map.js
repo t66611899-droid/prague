@@ -84,12 +84,13 @@ const mySources = () => ({ poi: { type: "geojson", data: emptyFC }, plan: { type
 function buildVectorStyle(base, dark) {
   const P = PAL[dark ? "night" : "day"], st = JSON.parse(JSON.stringify(base)), out = [];
   for (const l of st.layers) {
-    if (l.id === "natural_earth" || l.id === "building-3d" || /shield|one_way/.test(l.id)) continue;
+    if (l.id === "natural_earth" || l.id === "building-3d" || /shield|one_way/.test(l.id) || /^poi_r\d+$/.test(l.id) || l["source-layer"] === "housenumber") continue; /* בלי מאות אייקונים של חנויות ומספרי בתים: רק מה שרלוונטי */
+    if (l.id === "poi_transit") l.filter = ["match", ["get", "class"], ["rail"], true, false]; /* רק מטרו ורכבת, בלי כל תחנת אוטובוס */
     if (l.type === "symbol" && l.layout && l.layout["text-field"] && /highway-name|label_|poi|water_name|waterway/.test(l.id)) l.layout["text-field"] = ["coalesce", ["get", "name:latin"], ["get", "name"]]; // שם לועזי/מקומי כמו על השלטים (חיפה = Hefa, לא עברית הפוכה)
     out.push(l);
     if (l.id === "water") out.push({ id: "water-bank", type: "line", source: "openmaptiles", "source-layer": "water", paint: { "line-color": P.bank, "line-width": ["interpolate", ["linear"], ["zoom"], 11, 1.5, 16, 5], "line-blur": 3, "line-opacity": 0.55 } }); // הצללה עדינה בגדות
-    if (l.id === "building") out.push({ id: "b3d", type: "fill-extrusion", source: "openmaptiles", "source-layer": "building", minzoom: 14, filter: ["!", ["has", "hide_3d"]], layout: { visibility: settings.is3d && !saver ? "visible" : "none" },
-      paint: { "fill-extrusion-color": P.b3d, "fill-extrusion-height": ["coalesce", ["get", "render_height"], 9], "fill-extrusion-base": ["coalesce", ["get", "render_min_height"], 0], "fill-extrusion-opacity": 0.88, "fill-extrusion-vertical-gradient": true } });
+    if (l.id === "building") out.push({ id: "b3d", type: "fill-extrusion", source: "openmaptiles", "source-layer": "building", minzoom: 15, filter: ["!", ["has", "hide_3d"]], layout: { visibility: settings.is3d && !saver ? "visible" : "none" },
+      paint: { "fill-extrusion-color": P.b3d, "fill-extrusion-height": ["coalesce", ["get", "render_height"], 9], "fill-extrusion-base": ["coalesce", ["get", "render_min_height"], 0], "fill-extrusion-opacity": ["interpolate", ["linear"], ["zoom"], 15, 0, 15.8, 0.88], /* תלת-ממד רק בזום קרוב, נכנס בהדרגה */ "fill-extrusion-vertical-gradient": true } });
   }
   for (const l of out) { const p = layerPaint(l, P); l.paint = Object.assign(l.paint || {}, p); }
   delete st.sources.ne2_shaded;
@@ -322,7 +323,7 @@ let watchId = null, lastProc = 0, lowPower = false, lastMove = { t: 0, p: null }
 const PRG_C = { lat: 50.0875, lng: 14.4213 };
 const gpsNear = () => !!(gps && hav(gps, PRG_C) < 300000);
 function startGPS(userTap) {
-  const f = /^(-?[\d.]+),(-?[\d.]+)$/.exec(QS.get("gps") || "");
+  const f = /^(localhost|127\.0\.0\.1)$/.test(location.hostname) && /^(-?[\d.]+),(-?[\d.]+)$/.exec(QS.get("gps") || ""); /* מיקום מדומה רק בבדיקות במחשב */
   if (f) { settings.gps = true; onPos({ coords: { latitude: +f[1], longitude: +f[2], accuracy: 18 } }); return; }
   if (!navigator.geolocation) { toast("אין GPS בדפדפן הזה"); return; }
   if (watchId != null) return;

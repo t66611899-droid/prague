@@ -199,7 +199,7 @@ function onAct(act, id) {
   else if (act === "bolt") openBolt();
   else if (act === "waway") waSend(msgOnWay());
   else if (act === "wahome") waSend(msgHome());
-  else if (act === "navin") { const s = findStop(id), l = s && loc(s); if (l) startNav(l, s.n); closeModal(); }
+  else if (act === "navin") { const s = findStop(id), l = s && loc(s); closeModal(); if (l) (typeof navStart === "function" ? navStart({ ...l, name: s.n }) : startNav(l, s.n)); }
   else if (act === "close") closeModal();
 }
 

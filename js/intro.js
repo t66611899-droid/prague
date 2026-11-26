@@ -218,7 +218,7 @@ function makeFx(cv, kind, lite, noVeil) {
 
 /* ---------- סאונד (מסונתז, כבוי כברירת מחדל) ---------- */
 let AC = null;
-const snd = (kind, at = 0) => { if (!settings.cineSound) return; try { AC = AC || new (window.AudioContext || window.webkitAudioContext)(); const t = AC.currentTime + at, o = AC.createOscillator(), g = AC.createGain(); o.connect(g); g.connect(AC.destination);
+const snd = (kind, at = 0) => { if (!settings.cineSound) return; if (kind !== "chime" && window.Music && Music.active()) return; try { AC = AC || new (window.AudioContext || window.webkitAudioContext)(); const t = AC.currentTime + at, o = AC.createOscillator(), g = AC.createGain(); o.connect(g); g.connect(AC.destination);
   if (kind === "flap") { const b = AC.createBuffer(1, 600, AC.sampleRate), d = b.getChannelData(0); for (let i = 0; i < 600; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / 600, 4); const s = AC.createBufferSource(), f = AC.createBiquadFilter(); f.type = "highpass"; f.frequency.value = 1800; s.buffer = b; s.connect(f); f.connect(g); g.gain.value = 0.22; s.start(t); o.disconnect(); return; }
   if (kind === "kick") { o.frequency.setValueAtTime(140, t); o.frequency.exponentialRampToValueAtTime(42, t + 0.18); g.gain.setValueAtTime(0.5, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.3); o.start(t); o.stop(t + 0.32); return; }
   if (kind === "chime") { o.type = "triangle"; o.frequency.setValueAtTime(1318, t); g.gain.setValueAtTime(0.08, t); g.gain.exponentialRampToValueAtTime(0.001, t + 1.1); o.start(t); o.stop(t + 1.2); return; }
@@ -292,7 +292,7 @@ gl_FragColor=vec4(c,1.);}`;
   };
 }
 /* אווירה (רק כשהסאונד דלוק): רוח רכה מסוננת, נכנסת ויוצאת בעדינות */
-function ambience(sec) { if (!settings.cineSound) return; try { AC = AC || new (window.AudioContext || window.webkitAudioContext)(); const len = AC.sampleRate * 2, b = AC.createBuffer(1, len, AC.sampleRate), d = b.getChannelData(0); let l = 0; for (let i = 0; i < len; i++) { l = l * 0.985 + (Math.random() * 2 - 1) * 0.015; d[i] = l * 6; } const src = AC.createBufferSource(), f = AC.createBiquadFilter(), g = AC.createGain(), t = AC.currentTime; src.buffer = b; src.loop = true; f.type = "lowpass"; f.frequency.setValueAtTime(260, t); f.frequency.linearRampToValueAtTime(900, t + sec * 0.6); f.frequency.linearRampToValueAtTime(320, t + sec); g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.09, t + 0.8); g.gain.linearRampToValueAtTime(0.0001, t + sec); src.connect(f); f.connect(g); g.connect(AC.destination); src.start(t); src.stop(t + sec + 0.1); } catch (e) {} }
+function ambience(sec) { if (!settings.cineSound || (window.Music && Music.active())) return; try { AC = AC || new (window.AudioContext || window.webkitAudioContext)(); const len = AC.sampleRate * 2, b = AC.createBuffer(1, len, AC.sampleRate), d = b.getChannelData(0); let l = 0; for (let i = 0; i < len; i++) { l = l * 0.985 + (Math.random() * 2 - 1) * 0.015; d[i] = l * 6; } const src = AC.createBufferSource(), f = AC.createBiquadFilter(), g = AC.createGain(), t = AC.currentTime; src.buffer = b; src.loop = true; f.type = "lowpass"; f.frequency.setValueAtTime(260, t); f.frequency.linearRampToValueAtTime(900, t + sec * 0.6); f.frequency.linearRampToValueAtTime(320, t + sec); g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.09, t + 0.8); g.gain.linearRampToValueAtTime(0.0001, t + sec); src.connect(f); f.connect(g); g.connect(AC.destination); src.start(t); src.stop(t + sec + 0.1); } catch (e) {} }
 
 /* ---------- הפתיח ---------- */
 let RUN = null;
@@ -311,11 +311,12 @@ function playIntro(n, opts = {}) {
   const A = !REDUCED && artReady(n); if (A) { const host = el.querySelector(".art"), svg0 = host.innerHTML; host.innerHTML = `<canvas class="glc" aria-hidden="true"></canvas>`; run.gl = makeStage(host.firstChild, A, lite, n); if (run.gl) { el.classList.add("gl"); el.addEventListener("pointermove", e => run.gl.pointer(e.clientX / innerWidth - 0.5, e.clientY / innerHeight - 0.5), { passive: true }); if (!opts.hold) { if (quick || opts.fromTeaser) run.gl.set(KF[n].rest); else { run.gl.set(Object.assign({}, KF[n].rest, { z: KF[n].rest.z + 0.16, e: 0, fog: Math.min(1, (KF[n].rest.fog || 0) + 0.5), b: 0.01 })); run.gl.to(Object.assign({ b: 0, e: 1 }, KF[n].rest), 2800); } } } else host.innerHTML = svg0; }
   const later = (fn, ms) => run.tm.push(setTimeout(() => { if (!run.dead) fn(); }, quick ? Math.min(ms, 120) : ms));
   const tmr = el.querySelector(".in-timer");
-  tickTimer(tmr, false); run.tick = setInterval(() => { if (!run.dead && !document.hidden) { tickTimer(tmr, true); if (el.classList.contains("t3")) snd("flap"); } }, 1000);
+  tickTimer(tmr, false); run.tick = setInterval(() => { if (!run.dead && !document.hidden) { tickTimer(tmr, true); } }, 1000);
   const start = () => {
   if (!REDUCED) run.fx = makeFx(el.querySelector(".fx"), run.gl && S.fx === "fog" ? "snow" : S.fx, lite, !!run.gl); /* על האיור המצויר הערפל כבר ב-shader */
   requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add("t0")));
   const TT = opts.fromTeaser ? [220, 560, 620, 950, 1350] : [250, 1200, 1800, 2600, 3400]; if (opts.fromTeaser) el.classList.add("ft");
+  if (!opts.fromTeaser) try { window.Music && Music.play(Music.kindForCount(n), quick ? 120 : TT[1]); } catch (e) {}
   later(() => { el.classList.add("t1"); if (!opts.fromTeaser) snd("whoosh"); }, TT[0]);   // כותרת
   later(() => el.classList.add("t2"), TT[1]);                                   // משפט
   later(() => { el.classList.add("t3"); }, TT[2]);                              // טיימר
@@ -336,12 +337,13 @@ function playIntro(n, opts = {}) {
   if (!lite && !REDUCED) { let fr = 0, t0 = 0; const mon = now => { if (run.dead) return; if (!t0) t0 = now; fr++; if (now - t0 < 1500) return requestAnimationFrame(mon); if (fr / ((now - t0) / 1000) < 45) { el.classList.add("lite"); run.fx && run.fx.thin(); } }; requestAnimationFrame(mon); }
   const leave = () => closeIntro(false);
   el.querySelector(".skip").onclick = leave; el.querySelector(".go").onclick = () => { buzz(12); snd("boom"); leave(); };
-  el.querySelector(".snd").onclick = e => { settings.cineSound = !settings.cineSound; saveSet(); e.currentTarget.textContent = settings.cineSound ? "🔊" : "🔈"; if (settings.cineSound) snd("chime"); };
+  el.querySelector(".snd").onclick = e => { settings.cineSound = !settings.cineSound; saveSet(); e.currentTarget.textContent = settings.cineSound ? "🔊" : "🔈"; try { if (settings.cineSound) { if (!(window.Music && Music.play(Music.kindForCount(n), 300))) snd("chime"); } else if (window.Music) Music.stop(); } catch (x) {} };
   if (!opts.replay) { const s = seen(); s[pragueDate()] = 1; LS.set("introSeen", s); }
   return run;
 }
 function closeIntro(silent) {
   if (silent === "all" && typeof closeTeaser === "function") closeTeaser();
+  if (silent !== true) try { window.Music && Music.stop(); } catch (e) {}
   const r = RUN; if (!r) return; RUN = null; r.dead = true; r.tm.forEach(clearTimeout); clearInterval(r.tick); clearInterval(r.beat); r.fx && r.fx.stop(); if (r.gl) setTimeout(() => r.gl.stop(), silent ? 0 : 950);
   document.body.classList.remove("intro-on");
   if (silent) { r.el.remove(); return; }
@@ -381,6 +383,7 @@ function playTeaser(n, opts = {}) {
   const at = (ms, fn) => T.tm.push(setTimeout(() => { if (!T.dead) fn(); }, ms));
   const toIntro = extra => { if (T.dead) return; if (IR) { IR.gl.to(KF[n].rest, extra && extra.quick ? 500 : 1150); IR.release(!!(extra && extra.quick)); return IR; } const o = Object.assign({}, opts, extra); return playIntro(n, o); };
   el.querySelector(".tz-skip").onclick = () => { const t = T; toIntro({ quick: true }); t.dead = true; closeTeaser(); };
+  try { window.Music && Music.play(Music.kindForCount(n), 2950); } catch (e) {}
   if (IR) { IR.gl.play(KF[n].path); ambience(5.5); }
   const cv = el.querySelector(".tz-cv"), ctx = cv.getContext("2d"), dpr = Math.min(window.devicePixelRatio || 1, lite ? 1.5 : 2), W = cv.clientWidth, H = cv.clientHeight;
   cv.width = W * dpr; cv.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);

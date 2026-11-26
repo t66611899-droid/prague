@@ -19,7 +19,7 @@ try { Object.defineProperty(window, "__cineActive", { get: () => !!CN, configura
 
 /* ---------- סאונד (מסונתז, בלי קבצים), רק אם הודלק ---------- */
 let _ac = null;
-const sfx = kind => { if (!settings.cineSound) return; try { _ac = _ac || new (window.AudioContext || window.webkitAudioContext)(); const ac = _ac, t = ac.currentTime, o = ac.createOscillator(), g = ac.createGain(); o.connect(g); g.connect(ac.destination);
+const sfx = kind => { if (!settings.cineSound) return; if (kind !== "win" && window.Music && Music.active()) return; try { _ac = _ac || new (window.AudioContext || window.webkitAudioContext)(); const ac = _ac, t = ac.currentTime, o = ac.createOscillator(), g = ac.createGain(); o.connect(g); g.connect(ac.destination);
   if (kind === "slam") { o.type = "sine"; o.frequency.setValueAtTime(140, t); o.frequency.exponentialRampToValueAtTime(38, t + 0.35); g.gain.setValueAtTime(0.55, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.45); o.start(t); o.stop(t + 0.5);
     const n = ac.createBufferSource(), b = ac.createBuffer(1, ac.sampleRate * 0.2, ac.sampleRate), d = b.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / d.length, 3); n.buffer = b; const ng = ac.createGain(); ng.gain.value = 0.25; n.connect(ng); ng.connect(ac.destination); n.start(t); }
   else if (kind === "tick") { o.type = "square"; o.frequency.setValueAtTime(880, t); g.gain.setValueAtTime(0.06, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.06); o.start(t); o.stop(t + 0.07); }
@@ -36,10 +36,11 @@ function cineOpen(cls) {
   document.body.appendChild(el); document.body.classList.add("cine-on");
   const run = { el, stage: el.querySelector(".cn-stage"), dead: false, tm: [] };
   el.querySelector(".cn-skip").onclick = () => { buzz(8); cineClose(); };
-  el.querySelector(".cn-snd").onclick = e => { settings.cineSound = !settings.cineSound; saveSet(); e.target.textContent = settings.cineSound ? "🔊" : "🔇"; if (settings.cineSound) sfx("tick"); };
+  el.querySelector(".cn-snd").onclick = e => { settings.cineSound = !settings.cineSound; saveSet(); e.target.textContent = settings.cineSound ? "🔊" : "🔇"; try { if (settings.cineSound) { if (!(window.Music && run.mk && Music.play(run.mk, 300))) sfx("win"); } else if (window.Music) Music.stop(); } catch (x) {} };
   requestAnimationFrame(() => el.classList.add("in")); CN = run; return run;
 }
 function cineClose(silent) {
+  try { window.Music && Music.stop(); } catch (e) {}
   const r = CN; if (!r) return; CN = null; r.dead = true; r.tm.forEach(clearTimeout); try { map.stop(); } catch (e) {} cineClearMap();
   r.el.classList.add("out"); document.body.classList.remove("cine-on"); setTimeout(() => r.el.remove(), silent ? 0 : 450);
   if (!silent) { window.__cineLand = false; try { flyDay(curDay); } catch (e) {} if (r.onEnd) r.onEnd(); } // נוחתים חזרה על היום במפה
@@ -76,6 +77,7 @@ async function cineDay(di, opts = {}) {
   const ready = lite ? false : await Promise.race([mapReadyP(), wait(2500).then(() => false)]); if (!alive(r)) return;
   const pts = ks.map(s => loc(s)), cen = pts[0] || { lng: 14.4213, lat: 50.0875 };
   if (canFly()) { try { map.jumpTo({ center: [cen.lng, cen.lat], zoom: 14.2, pitch: 62, bearing: -30 }); } catch (e) {} }
+  try { window.Music && Music.play(Music.kindForDay(di), 1480); r.mk = Music.kindForDay(di); } catch (e) {} /* השיא כשהמשפט עולה */
   if (!await step(r, 380)) return; r.el.classList.add("t1"); thump();                               // הכותרת בחבטה
   const panels = await Promise.all(ks.map((s, i) => panelFor(s, i, di))); if (!alive(r)) return;
   r.stage.querySelector(".cn-panels").innerHTML = panels.join("");
@@ -106,6 +108,7 @@ async function cineFlight(opts = {}) {
   if (!await step(r, 500)) return; r.el.classList.add("f1"); sfx("tick"); try { navigator.vibrate && navigator.vibrate(12); } catch (e) {}        // הכרטיס נקרע
   if (!await step(r, 1100)) return; r.el.classList.add("f2"); sfx("whoosh");                                                                     // ממריאים
   if (!canFly()) await Promise.race([mapReadyP(2000), wait(2000)]);                                            // נותנים למפה עוד רגע להיטען
+  try { window.Music && Music.play("flight", 4300); CN && (CN.mk = "flight"); } catch (e) {} /* המראה: וווש, ביט שנבנה, והשיא בנחיתה */
   if (canFly()) try { map.jumpTo({ center: [34.8, 32.05], zoom: 5.6, pitch: 35, bearing: -20 }); map.flyTo({ center: [14.26, 50.1], zoom: 9.4, pitch: 50, bearing: -15, duration: 4300, curve: 1.6, essential: true }); } catch (e) {}
   if (!await step(r, 4300)) return; r.el.classList.add("f3"); thump(); if (typeof snowBurst === "function") try { snowBurst(); } catch (e) {}       // נחיתה: אורות העיר, שלג
   if (canFly()) try { map.easeTo({ center: [14.42, 50.085], zoom: 12.3, pitch: 55, bearing: 10, duration: 2200 }); } catch (e) {}
@@ -211,7 +214,7 @@ function openCineMenu() {
     <div class="menu-top"><button class="big" data-c="day"><span>🎬</span>הפתיח של ${di === curDay ? "היום" : "יום " + (curDay + 1)}</button><button data-c="flight"><span>✈️</span>הטיסה לפראג</button><button data-c="recap"><span>🏁</span>תקציר היום</button><button class="mv" data-c="trailer"><span>🏆</span><div>טריילר הטיול<small>כל חמשת הימים ברצף, ופוסטר לשיתוף</small></div></button></div>
     <label class="sw"><span><b>סאונד בפתיחים</b><small>כבוי כברירת מחדל</small></span><input type="checkbox" id="cnSndSw" ${settings.cineSound ? "checked" : ""}><i></i></label>`, "tall");
   $$("#mbody [data-c]").forEach(b => b.onclick = () => { closeModal(); const k = b.dataset.c; setTimeout(() => k === "day" ? cineDay(curDay, { replay: 1 }) : k === "flight" ? cineFlight({ replay: 1 }) : k === "recap" ? cineRecap(curDay, { replay: 1 }) : cineTrailer({ replay: 1 }), 280); });
-  $("#cnSndSw").onchange = e => { settings.cineSound = e.target.checked; saveSet(); if (settings.cineSound) sfx("tick"); };
+  $("#cnSndSw").onchange = e => { settings.cineSound = e.target.checked; saveSet(); if (settings.cineSound) sfx("win"); };
 }
 
 /* ---------- עיצוב ---------- */

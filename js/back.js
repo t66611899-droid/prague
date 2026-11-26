@@ -33,7 +33,7 @@ function backOne() {
   try {
     const tv = $("#tkView"); if (tv && !tv.hidden) { const x = tv.querySelector(".tv-x, header button"); if (x) x.click(); else tv.hidden = true; return true; }
     const big = $("#big"); if (big && !big.hidden) { big.hidden = true; return true; }
-    const gv = $("#gv"); if (gv && window.Gal && Gal.close) { Gal.close(); return true; }
+    const gv = $("#gv"); if (gv) { const G = typeof Gal !== "undefined" ? Gal : window.Gal; if (G && G.close) G.close(); else { const x = gv.querySelector(".gv-x"); if (x) x.click(); else gv.remove(); } return true; } /* Gal מוגדר ב-gallery.js בלי window */
     if ($("#teaser") || $("#intro")) { const tz = $("#teaser .tz-skip"); if (tz) { tz.click(); setTimeout(() => { const k = $("#intro .skip"); k && k.click(); }, 60); } else { const k = $("#intro .skip"); k && k.click(); } return true; } /* פתיח: יוצאים ממנו לאפליקציה */
     const cn = $("#cine"); if (cn && window.cineClose) { cineClose(); return true; }
     if (modalOpen()) { modalBack(); return true; }

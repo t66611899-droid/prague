@@ -39,7 +39,8 @@ function openEsim() {
 const pragueNow = () => { try { const w = wall(); return { d: dstr(w), m: w.getUTCHours() * 60 + w.getUTCMinutes() }; } catch (e) { return { d: "", m: 0 }; } };
 function due() {
   if (LS.get("esimAuto", 0)) return false; const p = pragueNow();
-  const time = (p.d === "2026-11-30" && p.m >= 21 * 60 + 30) || (p.d === "2026-12-01" && p.m < 4 * 60);
+  const a = Math.round(fltAdj("out") / 6e4), on = 21 * 60 + 30 + a; /* עיכוב בטיסה: המסך עולה לפי הנחיתה המעודכנת */
+  const time = on >= 24 * 60 ? (p.d === "2026-12-01" && p.m >= on - 24 * 60 && p.m < 6 * 60) : (p.d === "2026-11-30" && p.m >= on) || (p.d === "2026-12-01" && p.m < 4 * 60 + Math.max(0, a));
   let atAir = false; try { atAir = !!(gps && hav(gps, TRIP.places.airport) < 2000); } catch (e) {}
   return time || (atAir && p.d >= "2026-11-30" && p.d <= "2026-12-01");
 }

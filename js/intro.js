@@ -14,7 +14,7 @@ const pragueDate = () => new Date(nowMs()).toISOString().slice(0, 10);
 const daysLeft = () => { const d = pragueDate().split("-").map(Number); return Math.round((Date.UTC(2026, 10, 30) - Date.UTC(d[0], d[1] - 1, d[2])) / 864e5); };
 /* המספר בפתיח = ימים מלאים עד ההמראה, בדיוק כמו בסרגל העליון ובטיימר ("5 ימים ו-18 שע'" ← הפתיח של "עוד 5 ימים").
    ביום הטיסה עצמו: סצנת יום הטיסה. ערב לפני (פחות מיום מלא, אבל עוד לא התאריך): "מחר". */
-const sceneFor = () => { const dl = daysLeft(), w = nowMs(); if (dl < 0 || (dl === 0 && w >= FLY_AT)) return null; if (dl === 0) return 0; const full = Math.floor((FLY_AT - w) / 864e5); return Math.min(7, Math.max(1, full)); };
+const sceneFor = () => { const dl = daysLeft(), w = nowMs(); if (dl < 0 || (dl === 0 && w >= (FLY_AT + fltAdj("out")))) return null; if (dl === 0) return 0; const full = Math.floor(((FLY_AT + fltAdj("out")) - w) / 864e5); return Math.min(7, Math.max(1, full)); };
 const introLight = () => REDUCED || saver || (navigator.deviceMemory && navigator.deviceMemory < 3) || (navigator.hardwareConcurrency && navigator.hardwareConcurrency < 4) || (window._batt && window._batt.level < 0.2 && !window._batt.charging) || QS.get("intro") === "light";
 const seen = () => LS.get("introSeen", {});
 
@@ -157,7 +157,7 @@ function setDigit(el, ch, animate) {
   el.classList.remove("flp"); void el.offsetWidth; el.classList.add("flp"); clearTimeout(el._t); el._t = setTimeout(() => { b.firstChild.textContent = ch; el.classList.remove("flp"); }, 520);
 }
 function tickTimer(root, animate) {
-  const ms = Math.max(0, FLY_AT - nowMs()), v = { d: Math.floor(ms / 864e5), h: Math.floor(ms % 864e5 / 36e5), m: Math.floor(ms % 36e5 / 6e4), s: Math.floor(ms % 6e4 / 1000) };
+  const ms = Math.max(0, (FLY_AT + fltAdj("out")) - nowMs()), v = { d: Math.floor(ms / 864e5), h: Math.floor(ms % 864e5 / 36e5), m: Math.floor(ms % 36e5 / 6e4), s: Math.floor(ms % 6e4 / 1000) };
   root.querySelectorAll(".grp").forEach(g => { const s = String(v[g.dataset.k]).padStart(2, "0"); g.querySelectorAll(".fl").forEach((f, i) => setDigit(f, s[i], animate)); });
   return ms;
 }
@@ -172,7 +172,7 @@ const bigPassHtml = () => `<div class="in-bp"><div class="slot"><i></i></div><di
   <div class="gr"><span><small>טיסה</small><b>QS1285</b></span><span><small>תאריך</small><b>30.11</b></span><span><small>המראה · ישראל</small><b>18:25</b></span><span><small>נוסע</small><b>עומר</b></span></div>
   <div class="perf"></div>${barcode(54, 2026, 46)}<div class="stamp">צ'ק-אין<br>נפתח</div></div></div></div>`;
 const BOARD = [["17:55", "LO 152", "WARSAW", "DEPARTED"], ["18:10", "A3 929", "ATHENS", "GATE CLOSED"], ["18:25", "QS 1285", "PRAGUE", null], ["18:40", "FR 2416", "BUDAPEST", "ON TIME"]];
-const boardStatus = () => { const left = FLY_AT - nowMs(); return left <= 60 * 6e4 ? "BOARDING" : left <= 3 * 36e5 ? "CHECK-IN" : "ON TIME"; };
+const boardStatus = () => { const left = (FLY_AT + fltAdj("out")) - nowMs(); return left <= 60 * 6e4 ? "BOARDING" : left <= 3 * 36e5 ? "CHECK-IN" : "ON TIME"; };
 const boardHtml = () => `<div class="in-board" dir="ltr"><div class="bh"><span>DEPARTURES</span><span>יציאות</span></div>${BOARD.map(r => `<div class="br${r[3] ? "" : " mine"}">${[r[0], r[1], r[2], r[3] || boardStatus()].map((c, j) => `<span class="c${j}">${c.split("").map(ch => `<i data-c="${ch === " " ? "&nbsp;" : ch}">${ch === " " ? "&nbsp;" : ""}</i>`).join("")}</span>`).join("")}</div>`).join("")}</div>`;
 function boardFlip(root, quick) {
   const A = "ABCDEFGHIJKLMNOPRSTUVWXYZ0123456789"; let i = 0;

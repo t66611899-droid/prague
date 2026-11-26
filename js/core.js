@@ -27,6 +27,8 @@ function wall() {
   return new Date(Date.UTC(p.year, p.month - 1, p.day, p.hour, p.minute, p.second));
 }
 const dstr = d => d.toISOString().slice(0, 10);
+/* עיכוב טיסה במילישניות (flight.js). k: out | back | leave. בלי מידע: 0, והכול לפי השעות המקוריות */
+const fltAdj = k => { try { const f = window.__fltDelay; return (typeof f === "function" ? (+f(k) || 0) : 0) * 6e4; } catch (e) { return 0; } };
 const HEDAYS = ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"];
 const parseT = t => { const [h, m] = t.split(":").map(Number); return h * 60 + m; };
 const fmtT = m => { m = Math.round(m); const h = Math.floor(m / 60) % 24, mm = ((m % 60) + 60) % 60; return String((h + 24) % 24).padStart(2, "0") + ":" + String(mm).padStart(2, "0"); };

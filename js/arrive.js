@@ -46,7 +46,7 @@ function openArrive(openK) {
 }
 /* נפתח לבד: בערב הראשון אחרי הנחיתה, ושוב כשמתקרבים למלון */
 function arriveAuto() {
-  const T = tripNow(); if (T.phase !== "during" || T.dayIdx !== 0 || T.min < 21 * 60 + 35) return; const st = arrSt(); if (st.room) return;
+  const T = tripNow(); if (T.phase !== "during" || T.dayIdx !== 0 || T.min < 21 * 60 + 35 + Math.round(fltAdj("out") / 6e4)) return; const st = arrSt(); if (st.room) return;
   if (!$("#modal").hidden || !$("#splash").hidden) return;
   const near = gps && hav(gps, place("hotel")) < 300;
   if (near && !LS.get("arrA2")) { LS.set("arrA2", 1); LS.set("arrA1", 1); ["esim", "cash", "air"].forEach(k => st[k] = 1); LS.set("arr", st); buzz([20, 60, 20]); openArrive(); }

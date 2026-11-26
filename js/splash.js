@@ -47,14 +47,14 @@ function milestone(ms) { // שבוע / 3 ימים / יום / 3 שעות לפני
 
 /* ---------- מסך הטיימר ---------- */
 function countdownSplash(done, mode) { // mode: out (לפני הטיסה) | air (בדרך) | back (יום החזרה)
-  const sp = $("#splash"), w = wall().getTime(), back = mode === "back", target = mode === "out" ? T_FLY : mode === "air" ? T_LAND : (w < T_LEAVE ? T_LEAVE : T_HOME);
-  const head = mode === "out" ? "ההמראה לפראג בעוד" : mode === "air" ? "נוחתים בפראג בעוד" : w < T_LEAVE ? "יוצאים לשדה התעופה בעוד" : "ההמראה הביתה בעוד";
+  const sp = $("#splash"), w = wall().getTime(), back = mode === "back", target = mode === "out" ? (T_FLY + fltAdj("out")) : mode === "air" ? (T_LAND + fltAdj("out")) : (w < (T_LEAVE + fltAdj("leave")) ? (T_LEAVE + fltAdj("leave")) : (T_HOME + fltAdj("back")));
+  const head = mode === "out" ? "ההמראה לפראג בעוד" : mode === "air" ? "נוחתים בפראג בעוד" : w < (T_LEAVE + fltAdj("leave")) ? "יוצאים לשדה התעופה בעוד" : "ההמראה הביתה בעוד";
   const ms0 = Math.max(0, target - w), big = ms0 >= 864e5;
   sp.className = "cd " + (wantDark() ? "nt" : "dy"); sp.hidden = false;
   sp.innerHTML = `${skylineSvg()}${snowHtml(26)}<div class="cd-top">${planeSvg(back)}</div>
     <div class="cd-in"><p class="cd-k">${head}</p>
       <div class="flaps${big ? "" : " nod"}">${big ? flapHtml("fD", "ימים") + `<i class="col">:</i>` : ""}${flapHtml("fH", "שעות")}<i class="col">:</i>${flapHtml("fM", "דקות")}<i class="col">:</i>${flapHtml("fS", "שניות")}</div>
-      ${back && w < T_LEAVE ? `<p class="cd-sub">ההמראה ב-12:45 · הדלפק נסגר ב-12:05 · 200 Kč במזומן למס העירוני</p>` : `<p class="cd-line" id="cdLine"></p>`}
+      ${back && w < (T_LEAVE + fltAdj("leave")) ? `<p class="cd-sub">ההמראה ב-${new Date(T_HOME + fltAdj("back")).toISOString().slice(11, 16)} · 200 Kč במזומן למס העירוני</p>` : `<p class="cd-line" id="cdLine"></p>`}
       ${mode === "out" ? milestone(ms0) : ""}
       <div class="bp"><div class="bp-a"><small>${back ? "PRAGUE" : "TEL AVIV"}</small><b>${back ? "PRG" : "TLV"}</b></div><div class="bp-m"><i></i><span>✈</span><i></i><small>${back ? "QS1284" : "QS1285"}</small></div><div class="bp-a"><small>${back ? "TEL AVIV" : "PRAGUE"}</small><b>${back ? "TLV" : "PRG"}</b></div>
         <div class="bp-f"><span><small>תאריך</small>${back ? "4.12" : "30.11"}</span><span><small>${back ? "המראה" : "המראה · ישראל"}</small>${back ? "12:45" : "18:25"}</span><span><small>נוסע</small>עומר</span><i class="bar"></i></div></div>
@@ -96,10 +96,10 @@ function dailySplash(done) {
 function showSplash(done) {
   const w = wall().getTime(), T = tripNow(), force = QS.get("splash");
   if (force === "welcome") return welcomeSplash(done);
-  if (w < T_FLY) return countdownSplash(done, "out");
-  if (w < T_LAND) return countdownSplash(done, "air");
-  if (w < T_LAND + 20 * 36e5 && !LS.get("welcomed")) return welcomeSplash(done);
-  if (T.date === "2026-12-04" && w < T_HOME) return countdownSplash(done, "back");
+  if (w < (T_FLY + fltAdj("out"))) return countdownSplash(done, "out");
+  if (w < (T_LAND + fltAdj("out"))) return countdownSplash(done, "air");
+  if (w < (T_LAND + fltAdj("out")) + 20 * 36e5 && !LS.get("welcomed")) return welcomeSplash(done);
+  if (T.date === "2026-12-04" && w < (T_HOME + fltAdj("back"))) return countdownSplash(done, "back");
   dailySplash(done);
 }
 

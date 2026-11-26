@@ -193,7 +193,7 @@ function cinePick() { // מה לנגן אוטומטית עכשיו (או null)
   const T = tripNow(), seen = cineSeen(), w = wall().getTime(), f = QS.get("cine");
   if (f === "flight") return () => cineFlight(); if (f === "day") return () => cineDay(T.dayIdx >= 0 ? T.dayIdx : curDay); if (f === "recap") return () => cineRecap(T.dayIdx >= 0 ? T.dayIdx : curDay); if (f === "trailer") return () => cineTrailer();
   if (f === "0" || T.phase !== "during") return null;
-  if (T.dayIdx === 0) return w >= T_LAND && !seen.flight ? () => cineFlight() : null;                          // יום הטיסה: רק אחרי הנחיתה
+  if (T.dayIdx === 0) return w >= T_LAND + fltAdj("out") && !seen.flight ? () => cineFlight() : null;                          // יום הטיסה: רק אחרי הנחיתה
   if (T.min >= 26 * 60 && !seen["r" + T.date]) return () => cineRecap(T.dayIdx);                               // אחרי 02:00: התקציר של היום
   if (T.date === "2026-12-04" && T.min >= 11 * 60 && !seen.trailer) return () => cineTrailer();               // היום האחרון, בדרך הביתה: הטריילר
   if (!seen["d" + T.date] && T.min >= 5 * 60) return () => cineDay(T.dayIdx);                                   // בוקר: הפתיח של היום

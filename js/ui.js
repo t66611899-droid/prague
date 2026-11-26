@@ -48,8 +48,8 @@ function initSheet() {
 const FLIGHT = Date.UTC(2026, 10, 30, 17, 25); // 18:25 בישראל = 17:25 על שעון פראג
 function statusLine() {
   const T = tripNow(), w = T.w;
-  if (T.phase === "before" || (T.dayIdx === 0 && w.getTime() < FLIGHT)) {
-    const ms = FLIGHT - w.getTime(), d = Math.floor(ms / 864e5), h = Math.floor(ms % 864e5 / 36e5), mi = Math.floor(ms % 36e5 / 6e4);
+  if (T.phase === "before" || (T.dayIdx === 0 && w.getTime() < (FLIGHT + fltAdj("out")))) {
+    const ms = (FLIGHT + fltAdj("out")) - w.getTime(), d = Math.floor(ms / 864e5), h = Math.floor(ms % 864e5 / 36e5), mi = Math.floor(ms % 36e5 / 6e4);
     return "✈️ " + (d > 0 ? `עוד ${d} ימים ו-${h} שע' לטיסה` : h > 0 ? `עוד ${h} שע' ו-${mi} דק' לטיסה` : `עוד ${mi} דק' לטיסה`);
   }
   if (T.phase === "during") return `יום ${T.dayIdx + 1} מתוך ${plan.length}`;
@@ -58,14 +58,14 @@ function statusLine() {
 /* שורת הסטטוס בפס העליון, בשתי שורות קצרות שלא נחתכות: "✈️ 7 ימים" ומתחת "ו-3 שע' לטיסה" */
 /* "בעוד…" בגיליון: אותו חישוב כמו בפס העליון. יום הטיסה = הזמן עד ההמראה; יום אחר = הזמן עד תחילת היום */
 function untilText(day) {
-  try { const T = tripNow(), w = T.w.getTime(), d0 = Date.UTC(...day.date.split("-").map((v, i) => i === 1 ? v - 1 : +v)), target = day.date === plan[0].date ? FLIGHT : d0;
+  try { const T = tripNow(), w = T.w.getTime(), d0 = Date.UTC(...day.date.split("-").map((v, i) => i === 1 ? v - 1 : +v)), target = day.date === plan[0].date ? (FLIGHT + fltAdj("out")) : d0;
     const ms = target - w; if (ms <= 0) return "היום"; const dd = Math.floor(ms / 864e5), hh = Math.floor(ms % 864e5 / 36e5);
     return dd >= 1 ? `בעוד ${dd === 1 ? "יום" : dd + " ימים"} ו-${hh} שע'` : `בעוד ${hh} שע'`; } catch (e) { return ""; }
 }
 function statusParts() {
   const T = tripNow(), w = T.w;
-  if (T.phase === "before" || (T.dayIdx === 0 && w.getTime() < FLIGHT)) {
-    const ms = FLIGHT - w.getTime(), d = Math.floor(ms / 864e5), h = Math.floor(ms % 864e5 / 36e5), mi = Math.floor(ms % 36e5 / 6e4);
+  if (T.phase === "before" || (T.dayIdx === 0 && w.getTime() < (FLIGHT + fltAdj("out")))) {
+    const ms = (FLIGHT + fltAdj("out")) - w.getTime(), d = Math.floor(ms / 864e5), h = Math.floor(ms % 864e5 / 36e5), mi = Math.floor(ms % 36e5 / 6e4);
     return d > 0 ? ["✈️ " + (d === 1 ? "יום אחד" : d + " ימים"), `ו-${h} שע'`] : h > 0 ? [`✈️ ${h} שע'`, `ו-${mi} דק'`] : [`✈️ ${mi} דק'`, "להמראה"]; // ✈️ כבר אומר "לטיסה", והפס צר
   }
   if (T.phase === "during") return [`יום ${T.dayIdx + 1}`, `מתוך ${plan.length}`];

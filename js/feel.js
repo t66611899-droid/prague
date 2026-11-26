@@ -39,7 +39,7 @@ if (mbox && modal) {
   const end = () => {
     if (y0 == null) return; y0 = null; if (!dragging) return; dragging = false; mbox.classList.remove("drag");
     const v = dy / Math.max(1, Date.now() - t0), bk = document.getElementById("mback"); if (bk) bk.style.opacity = "";
-    if (dy > 120 || (v > 0.55 && dy > 40)) { mbox.style.transform = `translateY(${mbox.offsetHeight + 40}px)`; buzz && buzz(6); setTimeout(() => { closeModal(); setTimeout(() => { mbox.style.transform = ""; }, 300); }, 160); }
+    if (dy > 120 || (v > 0.55 && dy > 40)) { mbox.style.transform = `translateY(${mbox.offsetHeight + 40}px)`; buzz && buzz(6); setTimeout(() => { (window.__modalBack || closeModal)(); setTimeout(() => { mbox.style.transform = ""; }, 300); }, 160); }
     else mbox.style.transform = "";
   };
   mbox.addEventListener("touchend", end); mbox.addEventListener("touchcancel", end);

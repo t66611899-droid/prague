@@ -78,7 +78,6 @@ async function showTicket(k, id) {
   const e = TIX_EV.find(x => x.k === k) || { ic: "🎟️", n: "כרטיס" }, fs = tix[k] || [], f = fs.find(x => x.id === id) || fs[0]; if (!f) return openTickets(k);
   let blob = null; try { blob = await imgGet("tk:" + f.id); } catch (err) {}
   if (!blob) return toast("הקובץ לא נמצא בטלפון. צריך לשלוח אותו שוב", 4200);
-  try { closeModal(); } catch (err) {}
   let v = $("#tkView"); if (!v) { v = document.createElement("div"); v.id = "tkView"; document.body.appendChild(v); }
   freeUrls(); const kind = kindOf(f, blob), i = fs.indexOf(f), nx = fs.length > 1 ? fs[(i + 1) % fs.length] : null;
   v.className = "tv"; v.setAttribute("role", "dialog"); v.setAttribute("aria-label", e.n);
@@ -86,7 +85,7 @@ async function showTicket(k, id) {
     <div class="tv-body" data-pinch><p class="tv-wait">פותח…</p></div>
     <footer><p class="tv-tip">☀️ תגביר את בהירות המסך · תעודה מזהה ביד</p><div class="tv-b"><button class="tv-sh">📤 שמור ל-Files / שתף</button>${nx ? `<button class="tv-nx">הבא ←</button>` : ""}<button class="tv-back">כל הכרטיסים</button></div></footer>`;
   v.hidden = false; try { if (navigator.wakeLock) lock = await navigator.wakeLock.request("screen"); } catch (err) {}
-  v.querySelector(".tv-x").onclick = closeView; v.querySelector(".tv-back").onclick = () => { closeView(); openTickets(k); };
+  v.querySelector(".tv-x").onclick = closeView; v.querySelector(".tv-back").onclick = () => { closeView(); const m = $("#modal"); if (!m || m.hidden || !/הכרטיסים/.test(($("#mbody h2") || {}).textContent || "")) openTickets(k); };
   v.querySelector(".tv-sh").onclick = () => shareFile(f, blob); const nb = v.querySelector(".tv-nx"); if (nb) nb.onclick = () => showTicket(k, nx.id);
   const body = v.querySelector(".tv-body");
   try {

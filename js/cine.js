@@ -19,7 +19,7 @@ try { Object.defineProperty(window, "__cineActive", { get: () => !!CN, configura
 
 /* ---------- סאונד (מסונתז, בלי קבצים), רק אם הודלק ---------- */
 let _ac = null;
-const sfx = kind => { if (!settings.cineSound) return; if (kind !== "win" && window.Music && Music.active()) return; try { _ac = _ac || new (window.AudioContext || window.webkitAudioContext)(); const ac = _ac, t = ac.currentTime, o = ac.createOscillator(), g = ac.createGain(); o.connect(g); g.connect(ac.destination);
+const sfx = kind => { return; /* הצלילים הישנים כבויים: רק הסאונד מהקובץ */ if (!settings.cineSound) return; if (kind !== "win" && window.Music && Music.active()) return; try { _ac = _ac || new (window.AudioContext || window.webkitAudioContext)(); const ac = _ac, t = ac.currentTime, o = ac.createOscillator(), g = ac.createGain(); o.connect(g); g.connect(ac.destination);
   if (kind === "slam") { o.type = "sine"; o.frequency.setValueAtTime(140, t); o.frequency.exponentialRampToValueAtTime(38, t + 0.35); g.gain.setValueAtTime(0.55, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.45); o.start(t); o.stop(t + 0.5);
     const n = ac.createBufferSource(), b = ac.createBuffer(1, ac.sampleRate * 0.2, ac.sampleRate), d = b.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / d.length, 3); n.buffer = b; const ng = ac.createGain(); ng.gain.value = 0.25; n.connect(ng); ng.connect(ac.destination); n.start(t); }
   else if (kind === "tick") { o.type = "square"; o.frequency.setValueAtTime(880, t); g.gain.setValueAtTime(0.06, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.06); o.start(t); o.stop(t + 0.07); }
@@ -121,7 +121,7 @@ async function cineFlight(opts = {}) {
 const momentsOf = date => (typeof jr !== "undefined" ? jr : []).filter(m => m.date === date);
 function cineClearMap() { try { ["cn-trail", "cn-trail-c"].forEach(id => map.getLayer(id) && map.removeLayer(id)); map.getSource("cn-trail") && map.removeSource("cn-trail"); } catch (e) {} (window._cnMk || []).forEach(m => m.remove()); window._cnMk = []; }
 async function cineRecap(di, opts = {}) {
-  const r = cineOpen("cn-rec"), day = plan[di], date = day.date, segs = trackSegs(date), walked = segs.length > 0, lite = cineLight(); r.onEnd = opts.onEnd; if (!opts.replay) cineMark("r" + date);
+  const r = cineOpen("cn-rec"), day = plan[di], date = day.date, segs = trackSegs(date), walked = segs.length > 0, lite = cineLight(); r.onEnd = opts.onEnd; if (!opts.replay) cineMark("r" + date); try { window.Music && Music.play("intro", 2200); } catch (e) {}
   let path = walked ? segs.flat() : []; if (!walked) dayLine(di).legs.forEach(l => path.push(...l.coords));
   const km = walked ? trackKm(date) : dayLine(di).legs.reduce((a, l) => a + (l.cum[l.cum.length - 1] || 0), 0) / 1000, ms = momentsOf(date), photos = ms.reduce((a, m) => a + ((m.media || []).length || (m.th || []).length), 0);
   const places = day.stops.filter(s => marks[s.id] === "done").length, nx = plan[di + 1];
@@ -162,7 +162,7 @@ async function recapPoster(di, s, trailer) { // תמונה 1080×1350 לשליח
 
 /* ---------- טריילר הטיול ---------- */
 async function cineTrailer(opts = {}) {
-  const r = cineOpen("cn-tr"), lite = cineLight(); r.onEnd = opts.onEnd; if (!opts.replay) cineMark("trailer");
+  const r = cineOpen("cn-tr"), lite = cineLight(); r.onEnd = opts.onEnd; if (!opts.replay) cineMark("trailer"); try { window.Music && Music.play("intro", 2200); } catch (e) {}
   const all = typeof jr !== "undefined" ? [...jr].sort((a, b) => a.t - b.t) : [], hearts = m => ((typeof jrRe !== "undefined" && jrRe[m.id]) || []).filter(x => x.h).length;
   const walkedAll = plan.reduce((a, d) => a + (trackKm(d.date) || 0), 0), plannedAll = plan.reduce((a, d, i) => a + dayLine(i).legs.reduce((b, l) => b + (l.cum[l.cum.length - 1] || 0), 0), 0) / 1000;
   const tot = { km: walkedAll || plannedAll, places: plan.reduce((a, d) => a + d.stops.filter(s => marks[s.id] === "done").length, 0) || plan.reduce((a, d) => a + d.stops.filter(s => loc(s)).length, 0), photos: all.reduce((a, m) => a + ((m.media || []).length || (m.th || []).length), 0) };

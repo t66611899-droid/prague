@@ -1,8 +1,8 @@
 /* flight: "טייס אוטומטי" לטיסות. בלי שום הגדרה.
    מקור: נתוני הטיסות הרשמיים של נתב"ג (רשות שדות התעופה, data.gov.il). חינם, בלי מפתח, בלי פרטים אישיים: שואלים רק על מספר טיסה.
    • בימי הטיסות בלבד, כל 10 דק' כשהאפליקציה פתוחה (ברקע לא, בגלל הסוללה).
-   • עיכוב (10 דק' ומעלה): הכול זז לבד. הספירה לאחור, שעת הנחיתה, מסך ה-eSIM ומדריך ההגעה, התחנות והתזכורות.
-     בחזרה: היציאה מהמלון זזה לפי העיכוב פחות רבע שעה ביטחון.
+   • עיכוב בהלוך (10 דק' ומעלה): הכול זז לבד. הספירה לאחור, שעת הנחיתה, מסך ה-eSIM ומדריך ההגעה, התחנות והתזכורות.
+     בחזור (4.12): שום דבר לא זז (יציאה 09:45, הדלפק נסגר 12:05). רק שורת מידע: לא לשנות את היציאה אלא אם Smartwings הודיעו אחרת.
    • שורה אחת חמה בכרטיס הראשי (סטטוס, שעה, דלפקים), והודעה אחת בכל שינוי. ביטול: הודעה ברורה עם מה עושים.
    מוגן: אם משהו כאן נכשל, האפליקציה ממשיכה עם השעות המקוריות. */
 "use strict";
@@ -17,14 +17,13 @@ const cancelled = st => /CANCEL/.test(st || "");
 const dur = m => { m = Math.abs(Math.round(m)); const h = Math.floor(m / 60), r = m % 60, near = r < 10 || r > 50, hh = r > 50 ? h + 1 : h;
   if (m < 55) return `כ-${m} דק'`; if (near) return hh === 1 ? "כשעה" : hh === 2 ? "כשעתיים" : `כ-${hh} שעות`; if (r >= 20 && r <= 40) return h === 1 ? "כשעה וחצי" : h === 2 ? "כשעתיים וחצי" : `כ-${h} שעות וחצי`; return `${h === 1 ? "כשעה" : h === 2 ? "כשעתיים" : "כ-" + h + " שעות"} ו-${r} דק'`; };
 /* כמה דקות להזיז כל דבר (0 אם בזמן, אם בוטלה, או אם אין מידע) */
-function delay(k) {
-  try { const f = get(), o = f[k === "leave" ? "back" : k]; if (!o || cancelled(o.st) || Math.abs(o.d) < 10) return 0; const d = Math.max(-30, Math.min(600, o.d));
-    return k === "leave" ? Math.max(0, d - 15) : d; } catch (e) { return 0; }
-}
+function raw(k) { try { const o = get()[k]; if (!o || cancelled(o.st) || Math.abs(o.d) < 10) return 0; return Math.max(-30, Math.min(600, o.d)); } catch (e) { return 0; } }
+/* בחזור (4.12) לא מזיזים כלום: יציאה 09:45, הדלפק נסגר 12:05 שעון פראג. רק שורת מידע. בהלוך: הכול זז לפי העיכוב */
+function delay(k) { return k === "out" ? raw("out") : 0; }
 window.__fltDelay = delay;
 
 /* ---------- הזזה של התחנות ושל הכרטיסים (בזיכרון, מהשעה המקורית) ---------- */
-const SHIFT = { "2026-11-30": { "המראה QS1285": "out", "נחיתה בפראג": "out", "המלון · כניסה עצמית": "out" }, "2026-12-04": { "מס עירוני · יוצאים לשדה": "leave", "בשדה · Terminal 1": "leave", "המראה QS1284": "back" } };
+const SHIFT = { "2026-11-30": { "המראה QS1285": "out", "נחיתה בפראג": "out", "המלון · כניסה עצמית": "out" }, };
 const hm = t => new Date(t).toISOString().slice(11, 16);
 function apply() {
   try { plan.forEach(d => { const map = SHIFT[d.date]; if (!map) return; d.stops.forEach(s => { const k = map[s.n]; if (!k) return; if (s.m0 == null) s.m0 = s.m; s.m = s.m0 + delay(k); }); });
@@ -54,7 +53,7 @@ function tell(k, n, o) {
   if (!o && abs < 10) return; /* הפעם הראשונה ובזמן: לא מטרידים */
   if (abs < 10) return toast(`✈️ ${name} חזרה לזמן. עדכנתי הכול לבד`, 4200);
   if (k === "out") toast(`✈️ ${name} ${d > 0 ? "נדחתה" : "מקדימה"} ב${dr}. עדכנתי לבד את הספירה, הנחיתה וה-eSIM`, 6000);
-  else toast(`✈️ ${name} ${d > 0 ? "נדחתה" : "מקדימה"} ב${dr}. ${delay("leave") ? `אפשר לצאת מהמלון ב-${hm(Date.UTC(2026, 11, 4, 9, 45) + delay("leave") * 6e4)}, ` : ""}עדכנתי לבד`, 6500);
+  else toast(`✈️ QS1284 מדווחת כ${d > 0 ? "נדחית" : "מקדימה"} ב${dr}. אל תשנה את היציאה, הדלפק נסגר לפי השעה המקורית אלא אם Smartwings הודיעו אחרת.`, 8000);
   try { buzz([15, 50, 15]); } catch (e) {}
 }
 function cancelMsg(k) {
@@ -71,7 +70,8 @@ function line() {
   try { const day = today(), f = get(), k = day >= FL.back.from ? "back" : "out", o = f[k], F = FL[k]; if (!o || day < F.from || day > F.to) return "";
     if (k === "out" && /DEPARTED|LANDED/.test(o.st) && day === F.date) return `<div class="flt ok">✈️ QS1285 ${o.st === "LANDED" ? "נחתה" : "בדרך לפראג"} · נחיתה ${hm(Date.UTC(2026, 10, 30, 21, 35) + delay("out") * 6e4)} שעון פראג</div>`;
     if (cancelled(o.st)) return `<div class="flt bad">✈️ QS${F.no} מסומנת כמבוטלת · <button class="lnk" data-flt="cx">מה עושים</button></div>`;
-    const d = delay(k), when = k === "out" ? `המראה ${hm(Date.UTC(2026, 10, 30, 18, 25) + d * 6e4)} שעון ישראל` : `המראה ${hm(Date.UTC(2026, 11, 4, 12, 45) + d * 6e4)} מפראג`;
+    const d = raw(k); if (k === "back") return d >= 10 || d <= -10 ? `<div class="flt late">✈️ QS1284 מדווחת כ${d > 0 ? "נדחית" : "מקדימה"} ב${dur(d)}. אל תשנה את היציאה (09:45), הדלפק נסגר 12:05 לפי השעה המקורית אלא אם Smartwings הודיעו אחרת.<small>עודכן ${Math.max(1, Math.round((Date.now() - o.t) / 6e4))} דק' · רשות שדות התעופה</small></div>` : `<div class="flt">✈️ QS1284 · בזמן · המראה 12:45 מפראג · הדלפק נסגר 12:05<small>עודכן ${Math.max(1, Math.round((Date.now() - o.t) / 6e4))} דק' · רשות שדות התעופה</small></div>`;
+    const when = k === "out" ? `המראה ${hm(Date.UTC(2026, 10, 30, 18, 25) + d * 6e4)} שעון ישראל` : `המראה ${hm(Date.UTC(2026, 11, 4, 12, 45) + d * 6e4)} מפראג`;
     const st = d >= 10 ? `נדחתה ב${dur(d)}` : d <= -10 ? `מקדימה ב${dur(d)}` : "בזמן";
     const desk = k === "out" && o.ci ? ` · דלפקים ${esc(o.ci)}${o.cz ? ` (אזור ${esc(o.cz)})` : ""}` : "";
     return `<div class="flt${d >= 10 ? " late" : ""}">✈️ QS${F.no} · ${st} · ${when}${desk}<small>עודכן ${Math.max(1, Math.round((Date.now() - o.t) / 6e4))} דק' · רשות שדות התעופה</small></div>`;

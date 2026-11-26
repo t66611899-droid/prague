@@ -118,18 +118,21 @@ async function reroute() {
   const el = ui(); el.querySelector(".nl-t").textContent = "מחשב מסלול מחדש…"; el.querySelector(".nl-a").innerHTML = ICO.uturn;
   try { const r = await route(gps, N.dest); if (N !== my) return; Object.assign(N, { route: r, stepIx: 0, along: 0, buzzed: {} }); drawLine(); toast("המסלול חושב מחדש", 1800); tick(); } catch (e) { paint(); }
 }
+let gpsOff = 0;
 function arrived() {
   const n = N && N.dest && N.dest.name; navStop(true);
+  clearTimeout(gpsOff); gpsOff = setTimeout(() => { if (N) return; try { stopGPS(); settings.gps = false; saveSet(); updateFab(); } catch (e) {} }, 60000); /* הגעת: ה-GPS נכבה לבד אחרי דקה (המסך כבר משוחרר) */
   try { (window.__haptic || buzz)([25, 50, 25, 50, 40]); } catch (e) {}
   const el = document.createElement("div"); el.id = "navDone"; el.innerHTML = `<span>✓</span><b>הגעת</b><small>${esc(n || "")}</small>`; document.body.appendChild(el); setTimeout(() => el.remove(), 3500);
 }
 
 /* ---------- המסך לא נכבה ---------- */
 async function wake() { try { if (N && "wakeLock" in navigator && !document.hidden) N.wake = await navigator.wakeLock.request("screen"); } catch (e) {} }
-document.addEventListener("visibilitychange", () => { if (N && !document.hidden) wake(); });
+document.addEventListener("visibilitychange", () => { if (!N) return; if (document.hidden) { try { N.wake && N.wake.release(); } catch (e) {} N.wake = null; } else wake(); });
 
 /* ---------- התחלה וסיום ---------- */
 async function navStart(dest) {
+  clearTimeout(gpsOff);
   if (!dest || dest.lat == null) return; dest = { lat: +dest.lat, lng: +dest.lng, name: dest.name || dest.n || "", q: dest.q || "" };
   try { if (typeof goClear === "function") goClear(); if (typeof closeModal === "function") closeModal(); } catch (e) {}
   if (isOffline()) { toast("📡 אין אינטרנט, אז אין ניתוב מלא. מנווט עם חץ: כיוון ומרחק ליעד", 4200); return startNav(dest, dest.name); }

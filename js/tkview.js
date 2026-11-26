@@ -100,6 +100,7 @@ async function showTicket(k, id) {
   } catch (err) { body.innerHTML = `<div class="tv-pass"><span>⚠️</span><b>לא הצלחתי להציג את הקובץ כאן</b><p>הקובץ עצמו שמור בטלפון. אפשר לפתוח אותו מבחוץ:</p><button class="btn pri wide tv-out">📤 לפתוח / לשמור ל-Files</button></div>`; body.querySelector(".tv-out").onclick = () => shareFile(f, blob); }
 }
 window.showTicket = showTicket;
+document.addEventListener("visibilitychange", async () => { try { const v = $("#tkView"); if (document.hidden) { if (lock) { lock.release().catch(() => {}); lock = null; } } else if (v && !v.hidden && !lock && navigator.wakeLock) lock = await navigator.wakeLock.request("screen"); } catch (e) {} });
 
 /* ---------- סדר הרשימה: לפי תאריך, מלון וביטוח למטה, "📍 היום" ראשון ---------- */
 try { const ORDER = ["fl1", "boat", "dup1", "epic", "dup2", "fl2", "hot", "ins"]; TIX_EV.sort((a, b) => ORDER.indexOf(a.k) - ORDER.indexOf(b.k)); } catch (e) {}

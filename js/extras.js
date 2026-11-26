@@ -433,6 +433,7 @@ async function init() {
   matchMedia("(prefers-color-scheme: dark)").addEventListener("change", applyTheme);
   setInterval(() => { applyTheme(); renderLive(); checkReminders(); leaveReminder(); }, 20000);
   setInterval(() => { loadWeather(); loadPid(); loadFx(); refreshUpdates(); }, 5 * 60000); // הבדיקה כל 5 דק', הרענון בפועל כל חצי שעה
+  let hidAt = 0; document.addEventListener("visibilitychange", () => { if (document.hidden) { hidAt = Date.now(); return; } if (hidAt && Date.now() - hidAt > 60000) { hidAt = 0; loadWeather(); loadPid(); refreshUpdates(); } }); /* חזרה אחרי דקה ומעלה: רענון אחד (כל אחד בודק בעצמו אם צריך) */
   initSwipe(); $("#freeBtn").onclick = openFree; refreshUpdates(); loadPid(); loadFx();
   loadWeather();
   if ("serviceWorker" in navigator && location.protocol !== "file:" && QS.get("sw") !== "0") {

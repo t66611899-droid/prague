@@ -27,13 +27,14 @@ const TRIP = {
     rieg:      {name:"גני ריגר",           cz:"Riegrovy sady",         lat:50.08018, lng:14.44050, q:"Riegrovy sady, Praha"},
     primark:   {name:"Primark",            cz:"",                      lat:50.08091, lng:14.42881, q:"Primark, Václavské náměstí 47, Praha"},
     palladium: {name:"Palladium",          cz:"",                      lat:50.08943, lng:14.42964, q:"Palladium, Náměstí Republiky, Praha"},
+    mypeople:  {name:"My People Bar",      cz:"Michalská 20",          lat:50.08582, lng:14.42001, q:"My People Bar, Michalská 20, Praha"},
     manifesto: {name:"שוק האוכל",          cz:"Manifesto Market Anděl", lat:50.06935, lng:14.40413, q:"Manifesto Market Anděl, Praha"}
   },
   days: [
     {date:"2026-11-30", title:"טסים", stops:[
       {t:"14:00", n:"יוצאים מהבית", at:null, ic:"🏠", ty:"transit", w:"רכבת 14:49 ממודיעין מרכז", il:true},
       {t:"18:25", n:"המראה QS1285", at:null, ic:"✈️", ty:"transit", w:"הדלפק נסגר 17:25 (שעון ישראל)", big:true, il:true},
-      {t:"21:35", n:"נחיתה בפראג", at:"airport", w:"21:35 שעון פראג · eSIM · Bolt במזומן (550–700 Kč) · גיבוי: 59 + מטרו", big:true},
+      {t:"21:35", n:"נחיתה בפראג", at:"airport", w:"נחיתה · רישום EES בעמדה (כ-20–45 דק') · eSIM · Bolt במזומן", big:true},
       {t:"23:00", n:"המלון · כניסה עצמית", at:"hotel", w:"קוד בדלת הקבלה · מעטפה על הארון הכחול", big:true}]},
     {date:"2026-12-01", title:"העיר הישנה והסירה", stops:[
       {t:"10:00", n:"יוצאים מהמלון", at:"hotel", w:"ברגל במורד כיכר ואצלב"},
@@ -58,14 +59,16 @@ const TRIP = {
       {t:"14:30", n:"פארק לטנה", at:"letna", w:"המטוטלת, סקייטרים, נוף"},
       {t:"15:30", n:"חנות הווינטג'", at:"kuz"},
       {t:"18:00", n:"ערב בעיר העתיקה", at:"ots", w:"אוכל ושווקים מוארים"},
+      {t:"21:00", n:"My People Bar – שוטים עם קסדה (לאכול לפני)", at:"mypeople", w:"Michalská 20"},
       {t:"22:30", n:"EPIC · Erasmus Winter Party", at:"epic", w:"דלתות 22:00 · כרטיס Basic", big:true},
       {t:"27:00", n:"חזרה למלון", at:"hotel"}]},
     {date:"2026-12-03", title:"קניות ו-Duplex", stops:[
       {t:"11:00", n:"שוק הכריסמס בכיכר השלום", at:"miru", w:"5 דק' מהמלון"},
       {t:"12:00", n:"גני ריגר", at:"rieg", w:"תצפית"},
       {t:"13:00", n:"Primark", at:"primark", w:"3 קומות"},
+      {t:"13:30", n:"Footshop – סניקרס במבצע", at:"prik"},
       {t:"14:00", n:"קונים ב-Footshop", at:"prik", w:"הפעם קונים"},
-      {t:"15:30", n:"Palladium", at:"palladium"},
+      {t:"15:30", n:"Palladium", at:"palladium", w:"Tax Free מעל 2001 Kč בקבלה אחת"},
       {t:"17:30", n:"שוק האוכל Manifesto", at:"manifesto", w:"רק כרטיס, בלי מזומן"},
       {t:"20:00", n:"מלון · לארוז ולנוח", at:"hotel", w:"לשקול את התיק: מעל 8 ק\"ג? מזוודה אונליין (€40), לא בשער (€60) · לנוח", big:true},
       {t:"24:00", n:"Duplex · Tasty Thursday", at:"duplex", w:"להגיע 00:00–01:00, לפני זה ריק", big:true},
@@ -73,7 +76,7 @@ const TRIP = {
     {date:"2026-12-04", title:"חוזרים", stops:[
       {t:"08:45", n:"קמים וסוגרים תיק", at:"hotel", w:"מעיל ונעליים כבדות עליך"},
       {t:"09:45", n:"מס עירוני · יוצאים לשדה", at:"hotel", w:"200 Kč · מטרו C→A + טרוליבוס 59 (כרטיס 90 דק') או Bolt", big:true},
-      {t:"10:45", n:"בשדה · Terminal 1", at:"airport", w:"הדלפק נסגר 12:05", big:true},
+      {t:"10:45", n:"בשדה · Terminal 1", at:"airport", w:"EES גם ביציאה · דלפק נסגר 12:05", big:true},
       {t:"12:45", n:"המראה QS1284", at:"airport", w:"נחיתה בנתב\"ג 17:35", big:true}]}
   ],
   pack: {
@@ -109,6 +112,7 @@ TRIP.info = {
   miru:      {ic:"🎄", ty:"food", wiki:"Náměstí_Míru", stay:"30–45 דק'", d:"\"כיכר השלום\", עם כנסיית לודמילה הקדושה ושוק כריסמס שכונתי ונעים. פחות תיירותי וזול יותר מהשווקים במרכז."},
   rieg:      {ic:"🌳", ty:"view", wiki:"Riegrovy_Sady", stay:"30 דק'", d:"פארק שכונתי על גבעה ב-Vinohrady. מהמדשאה המשופעת יש נוף ישר לטירה, והמקומיים באים לכאן לשקיעה."},
   primark:   {ic:"🛍️", ty:"shop", in:true, stay:"שעה", d:"שלוש קומות של בגדים זולים בראש כיכר ואצלב. טוב לשכבות חמות, כפפות וגרביים אם קר לך."},
+  mypeople:  {ic:"🍻", ty:"food", in:true, stay:"שעה", d:"בר שוטים בעיר העתיקה, 10 דק' הליכה מ-EPIC. לאכול לפני."},
   palladium: {ic:"🛍️", ty:"shop", in:true, wiki:"Palladium_(Prague)", stay:"שעה וחצי", d:"הקניון הגדול במרכז: כ-200 חנויות, קומת אוכל ושירותים נקיים. חם בפנים, אז זה גם מקום טוב להתחמם."},
   manifesto: {ic:"🍜", ty:"food", in:true, stay:"שעה", d:"שוק אוכל מעוצב עם דוכנים מכל העולם ואווירה צעירה. יש הרבה אפשרויות בלי בשר. משלמים רק בכרטיס."}
 };

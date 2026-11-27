@@ -94,3 +94,13 @@ if (!LS.get("planFix4")) { let ch = false; plan.forEach(d => d.stops.forEach(s =
     if (s.n === "נחיתה בפראג" && /59|Bolt/.test(s.w || "")) { s.w = "21:35 שעון פראג · eSIM · Bolt במזומן (550–700 Kč) · גיבוי: 59 + מטרו"; ch = true; }
     if (s.n === "המראה QS1285" && s.w === "הדלפק נסגר 17:25") { s.w = "הדלפק נסגר 17:25 (שעון ישראל)"; ch = true; } }));
   if (ch && LS.get("plan")) savePlan(); LS.set("planFix4", 1); }
+/* planFix5: עדכון טקסטים ותחנות חדשות (EES, My People Bar, Footshop, Tax Free) גם בתוכנית ששמורה בטלפון. רץ פעם אחת, אחרי התיקונים הקודמים */
+if (!LS.get("planFix5")) { let ch = false; const day = k => plan.find(x => x.date === k);
+  const put = (k, st) => { const x = day(k); if (!x || x.stops.some(s => s.n === st.n)) return; let i = x.stops.findIndex(s => s.m > st.m); if (i < 0) i = x.stops.length; x.stops.splice(i, 0, st); ch = true; };
+  const set = (k, f, w) => { const x = day(k); if (!x) return; x.stops.forEach(s => { if (f(s) && s.w !== w) { s.w = w; ch = true; } }); };
+  set("2026-11-30", s => s.n === "נחיתה בפראג", "נחיתה · רישום EES בעמדה (כ-20–45 דק') · eSIM · Bolt במזומן");
+  set("2026-12-04", s => /^בשדה/.test(s.n), "EES גם ביציאה · דלפק נסגר 12:05");
+  set("2026-12-03", s => s.at === "palladium" && !s.w, "Tax Free מעל 2001 Kč בקבלה אחת");
+  put("2026-12-02", { id: "d2mp", m: 21 * 60, n: "My People Bar – שוטים עם קסדה (לאכול לפני)", at: "mypeople", w: "Michalská 20", big: false, il: false });
+  put("2026-12-03", { id: "d3fs", m: 13 * 60 + 30, n: "Footshop – סניקרס במבצע", at: "prik", w: "", big: false, il: false });
+  if (ch && LS.get("plan")) savePlan(); LS.set("planFix5", 1); }

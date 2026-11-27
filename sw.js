@@ -1,7 +1,7 @@
 /* service worker: האפליקציה, הנתונים והמפה של מרכז פראג עובדים גם בלי קליטה */
-const V = "prg-v61";
+const V = "prg-v62";
 const SHELL = ["./", "index.html", "styles.css", "data.js", "routes.js", "manifest.webmanifest",
-  "js/config.js", "js/core.js", "js/map.js", "js/ui.js", "js/chat.js", "js/flow.js", "js/safety.js", "js/updates.js", "js/more.js", "js/gallery.js", "js/media.js", "js/journal.js", "js/arrive.js", "js/tickets.js", "js/ask.js", "js/talk.js", "js/go.js", "js/where.js", "js/nav.js", "js/home.js", "js/esim.js", "js/tkview.js", "js/flight.js", "js/back.js", "js/poi-rules.js", "poi.json", "js/prep.js", "js/import.js", "js/harel.js", "js/docs.js", "js/transfer.js", "js/vault.js", "js/feel.js", "family.html", "js/splash.js", "js/music.js", "snd/intro.m4a", "js/cine.js", "js/intro.js", "js/extras.js", "prague.ics",
+  "js/config.js", "js/core.js", "js/map.js", "js/ui.js", "js/chat.js", "js/flow.js", "js/safety.js", "js/updates.js", "js/more.js", "js/gallery.js", "js/media.js", "js/journal.js", "js/arrive.js", "js/tickets.js", "js/ask.js", "js/talk.js", "js/go.js", "js/where.js", "js/nav.js", "js/home.js", "js/esim.js", "js/tkview.js", "js/flight.js", "js/back.js", "js/poi-rules.js", "poi.json", "js/prep.js", "js/import.js", "js/harel.js", "js/docs.js", "js/transfer.js", "js/vault.js", "js/feel.js", "family.html", "js/splash.js", "js/music.js", "snd/intro.m4a", "js/cine.js", "js/intro.js", "js/extras.js", "js/photos-data.js", "js/placecard.js", "js/mapclean.js", "prague.ics",
   "vendor/maplibre-gl.js", "vendor/maplibre-gl.css", "vendor/mapbox-gl-rtl-text.js", "vendor/pdf.min.js", "vendor/pdf.worker.min.js", "vendor/jsQR.js", "icons/icon.svg", "icons/icon-192.png", "icons/icon-512.png", "icons/icon-180.png", "icons/icon-maskable-512.png"];
 const MAP = "prg-map", MEDIA = "prg-media";
 
@@ -46,7 +46,7 @@ async function appFetch(req, name) {
 self.addEventListener("fetch", e => {
   const req = e.request; if (req.method !== "GET") return;
   const u = new URL(req.url);
-  if (u.origin === location.origin && u.pathname.includes("/art/")) { e.respondWith(cacheFirst(req, MEDIA).catch(() => fetch(req))); return; } // איורי הפתיחים: פעם אחת, ונשארים
+  if (u.origin === location.origin && (u.pathname.includes("/art/") || u.pathname.includes("/img/p/"))) { e.respondWith(cacheFirst(req, MEDIA).catch(() => fetch(req))); return; } // איורי הפתיחים: פעם אחת, ונשארים
   if (u.origin === location.origin) { e.respondWith(appFetch(req, V)); return; }
   if (u.hostname === "tiles.openfreemap.org") {
     if (/\.(pbf|png|json)$/.test(u.pathname) && !u.pathname.startsWith("/styles")) e.respondWith(cacheFirst(req, MAP, tileKey(req.url)).catch(() => Response.error()));

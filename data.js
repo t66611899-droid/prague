@@ -27,6 +27,7 @@ const TRIP = {
     rieg:      {name:"גני ריגר",           cz:"Riegrovy sady",         lat:50.08018, lng:14.44050, q:"Riegrovy sady, Praha"},
     primark:   {name:"Primark",            cz:"",                      lat:50.08091, lng:14.42881, q:"Primark, Václavské náměstí 47, Praha"},
     palladium: {name:"Palladium",          cz:"",                      lat:50.08943, lng:14.42964, q:"Palladium, Náměstí Republiky, Praha"},
+    footshop:  {name:"Footshop",           cz:"Na Příkopě",            lat:50.08610, lng:14.42687, q:"Footshop, Na Příkopě, Praha"},
     mypeople:  {name:"My People Bar",      cz:"Michalská 20",          lat:50.08582, lng:14.42001, q:"My People Bar, Michalská 20, Praha"},
     manifesto: {name:"שוק האוכל",          cz:"Manifesto Market Anděl", lat:50.06935, lng:14.40413, q:"Manifesto Market Anděl, Praha"}
   },
@@ -66,7 +67,7 @@ const TRIP = {
       {t:"11:00", n:"שוק הכריסמס בכיכר השלום", at:"miru", w:"5 דק' מהמלון"},
       {t:"12:00", n:"גני ריגר", at:"rieg", w:"תצפית"},
       {t:"13:00", n:"Primark", at:"primark", w:"3 קומות"},
-      {t:"13:30", n:"Footshop – סניקרס במבצע", at:"prik"},
+      {t:"13:30", n:"Footshop – סניקרס במבצע", at:"footshop"},
       {t:"15:30", n:"Palladium", at:"palladium", w:"Tax Free מעל 2001 Kč בקבלה אחת"},
       {t:"17:30", n:"שוק האוכל Manifesto", at:"manifesto", w:"רק כרטיס, בלי מזומן"},
       {t:"20:00", n:"מלון · לארוז ולנוח", at:"hotel", w:"לשקול את התיק: מעל 8 ק\"ג? מזוודה אונליין (€40), לא בשער (€60) · לנוח", big:true},
@@ -103,17 +104,18 @@ TRIP.info = {
   neruda:    {ic:"🌆", ty:"view", wiki:"Nerudova", stay:"20 דק'", d:"הרחוב התלול שיורד מהטירה למאלה סטראנה, עם שלטי בתים עתיקים במקום מספרים. הכי יפה בירידה כשמחשיך והפנסים נדלקים."},
   duplex:    {ic:"🎧", ty:"party", big:true, d:"מועדון על גג בכיכר ואצלב, עם מרפסת שמשקיפה על כל הכיכר. צריך תעודה מזהה פיזית בכניסה. המלון במרחק רבע שעה הליכה."},
   dancing:   {ic:"🏢", ty:"sight", lm:true, g:"dance", wiki:"Dancing_House", stay:"10 דק'", one:"קוראים לו \"ג'ינג'ר ופרד\", על שם זוג הרקדנים מהוליווד.", d:"בניין מעוקל של פרנק גרי שנראה כמו זוג רוקד. עוצרים לתמונה מהצד של הנהר וממשיכים הלאה."},
-  naplavka:  {ic:"🌊", ty:"view", stay:"20–30 דק'", d:"הטיילת שעל שפת הנהר, מתחת לגובה הרחוב. ברבורים, סירות ונוף לטירה. הליכה שקטה דרומה עד וישהראד."},
+  naplavka:  {file:"Náplavka na Rašínově nábřeží v zimě - panoramio.jpg", ic:"🌊", ty:"view", stay:"20–30 דק'", d:"הטיילת שעל שפת הנהר, מתחת לגובה הרחוב. ברבורים, סירות ונוף לטירה. הליכה שקטה דרומה עד וישהראד."},
   vys:       {ic:"🏯", ty:"view", big:true, wiki:"Vyšehrad", stay:"שעה וחצי", d:"מבצר עתיק על צוק מעל הנהר, עם חומות שאפשר ללכת עליהן ונוף פתוח לכל העיר. הרבה פחות תיירים מהטירה, וכנסייה ניאו-גותית יפה באמצע."},
   letna:     {ic:"🌳", ty:"view", big:true, wiki:"Prague_Metronome", stay:"45 דק'", d:"פארק על גבעה עם המטרונום הענק, במקום שבו עמד פעם פסל סטלין. סקייטרים, צעירים והתצפית הכי טובה על הגשרים של פראג."},
   kuz:       {ic:"🧥", ty:"shop", stay:"שעה", d:"חנות וינטג' ויד שנייה ב-Holešovice, השכונה ההיפסטרית של פראג. שווה לחטט, יש מציאות."},
   epic:      {ic:"🎧", ty:"party", big:true, d:"אחד המועדונים הגדולים בפראג, עם סאונד ותאורה ברמה גבוהה. צריך תעודה מזהה פיזית, והכרטיס בתמונות בטלפון."},
-  miru:      {ic:"🎄", ty:"food", wiki:"Náměstí_Míru", stay:"30–45 דק'", d:"\"כיכר השלום\", עם כנסיית לודמילה הקדושה ושוק כריסמס שכונתי ונעים. פחות תיירותי וזול יותר מהשווקים במרכז."},
-  rieg:      {ic:"🌳", ty:"view", wiki:"Riegrovy_Sady", stay:"30 דק'", d:"פארק שכונתי על גבעה ב-Vinohrady. מהמדשאה המשופעת יש נוף ישר לטירה, והמקומיים באים לכאן לשקיעה."},
+  miru:      {file:"Praha, Vinohrady, náměstí Míru, kostel svaté Ludmily.jpg", ic:"🎄", ty:"food", wiki:"Náměstí_Míru", stay:"30–45 דק'", d:"\"כיכר השלום\", עם כנסיית לודמילה הקדושה ושוק כריסמס שכונתי ונעים. פחות תיירותי וזול יותר מהשווקים במרכז."},
+  rieg:      {file:"Riegrovy sady a Chopinova.jpg", ic:"🌳", ty:"view", wiki:"Riegrovy_Sady", stay:"30 דק'", d:"פארק שכונתי על גבעה ב-Vinohrady. מהמדשאה המשופעת יש נוף ישר לטירה, והמקומיים באים לכאן לשקיעה."},
   primark:   {ic:"🛍️", ty:"shop", in:true, stay:"שעה", d:"שלוש קומות של בגדים זולים בראש כיכר ואצלב. טוב לשכבות חמות, כפפות וגרביים אם קר לך."},
+  footshop:  {ic:"👟", ty:"shop", in:true, stay:"30–45 דק'", d:"חנות סניקרס גדולה ברחוב Na Příkopě."},
   mypeople:  {ic:"🍻", ty:"food", in:true, stay:"שעה", d:"בר שוטים בעיר העתיקה, 10 דק' הליכה מ-EPIC. לאכול לפני."},
   palladium: {ic:"🛍️", ty:"shop", in:true, wiki:"Palladium_(Prague)", stay:"שעה וחצי", d:"הקניון הגדול במרכז: כ-200 חנויות, קומת אוכל ושירותים נקיים. חם בפנים, אז זה גם מקום טוב להתחמם."},
-  manifesto: {ic:"🍜", ty:"food", in:true, stay:"שעה", d:"שוק אוכל מעוצב עם דוכנים מכל העולם ואווירה צעירה. יש הרבה אפשרויות בלי בשר. משלמים רק בכרטיס."}
+  manifesto: {file:"Praha Smichov Ostrovskeho Manifesto.jpg", ic:"🍜", ty:"food", in:true, stay:"שעה", d:"שוק אוכל מעוצב עם דוכנים מכל העולם ואווירה צעירה. יש הרבה אפשרויות בלי בשר. משלמים רק בכרטיס."}
 };
 // "שווה אם אתה בסביבה" — לא בתוכנית, מופיעים על המפה. הקואורדינטות אומתו מול OpenStreetMap.
 TRIP.extras = [

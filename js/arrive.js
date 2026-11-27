@@ -108,3 +108,6 @@ if (!LS.get("planFix5")) { let ch = false; const day = k => plan.find(x => x.dat
 if (!LS.get("planFix6")) { let ch = false; const x = plan.find(d => d.date === "2026-12-03");
   if (x) { const n = x.stops.length; x.stops = x.stops.filter(s => s.n !== "קונים ב-Footshop"); ch = x.stops.length !== n; }
   if (ch && LS.get("plan")) savePlan(); LS.set("planFix6", 1); }
+/* planFix7: Footshop מקבל נקודה משלו על המפה (החנות עצמה, לא כל הרחוב) */
+if (!LS.get("planFix7")) { let ch = false; plan.forEach(d => d.stops.forEach(s => { if (/^Footshop/.test(s.n) && s.at === "prik") { s.at = "footshop"; ch = true; } }));
+  if (ch && LS.get("plan")) savePlan(); LS.set("planFix7", 1); }

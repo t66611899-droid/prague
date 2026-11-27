@@ -104,3 +104,7 @@ if (!LS.get("planFix5")) { let ch = false; const day = k => plan.find(x => x.dat
   put("2026-12-02", { id: "d2mp", m: 21 * 60, n: "My People Bar – שוטים עם קסדה (לאכול לפני)", at: "mypeople", w: "Michalská 20", big: false, il: false });
   put("2026-12-03", { id: "d3fs", m: 13 * 60 + 30, n: "Footshop – סניקרס במבצע", at: "prik", w: "", big: false, il: false });
   if (ch && LS.get("plan")) savePlan(); LS.set("planFix5", 1); }
+/* planFix6: התחנה הישנה "קונים ב-Footshop" (14:00) יורדת, כי יש עכשיו Footshop ב-13:30 */
+if (!LS.get("planFix6")) { let ch = false; const x = plan.find(d => d.date === "2026-12-03");
+  if (x) { const n = x.stops.length; x.stops = x.stops.filter(s => s.n !== "קונים ב-Footshop"); ch = x.stops.length !== n; }
+  if (ch && LS.get("plan")) savePlan(); LS.set("planFix6", 1); }

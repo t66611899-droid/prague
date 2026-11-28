@@ -132,6 +132,7 @@ css.textContent = `
 #dayStrip::-webkit-scrollbar{display:none}
 #dayStrip[hidden]{display:none}
 #dayStrip span{flex:none;font-size:.8rem;font-weight:600;padding:6px 10px;border-radius:999px;background:var(--card2);white-space:nowrap}
+#sheet[data-state="mid"] #sheetBody{overflow-y:auto!important}
 #list .st-main{padding:14px 0;min-height:74px;gap:12px}
 #list .st-t{width:3.3em;font-size:1.38rem;font-weight:800;color:var(--ink)}
 #list .st.big .st-t{color:var(--red-ink)}
@@ -150,6 +151,8 @@ css.textContent = `
 `;
 document.head.appendChild(css);
 if (typeof window.sheetHeights === "function") window.sheetHeights = (o => function () { const H = o.apply(this, arguments); try { const lh = $("#listHead"); if (lh && !isDesktop()) H.mid = Math.max(H.low + 80, Math.min(lh.offsetTop + lh.offsetHeight + 190 + ($("#grab") ? $("#grab").offsetHeight : 0), innerHeight * 0.62)); } catch (e) {} return H; })(window.sheetHeights);
+/* באמצע: הרשימה נגללת, וגלילה פותחת את הגיליון עד למעלה (אחרת זה נראה תקוע) */
+const hookScroll = () => { const sb = $("#sheetBody"); if (!sb) return setTimeout(hookScroll, 400); sb.addEventListener("scroll", () => { try { if (sheetState === "mid" && sb.scrollTop > 10 && !isDesktop()) setSheet("full"); } catch (e) {} }, { passive: true }); }; hookScroll();
 (window.__mods = window.__mods || {}).daylist = "ok";
 } catch (err) { try { (window.__mods = window.__mods || {}).daylist = "fail"; } catch (e) {} }
 })();

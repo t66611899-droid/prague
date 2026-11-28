@@ -27,7 +27,7 @@ function mkPin(lead, n, st, color, di) {
 }
 function drawDay(di, color, withStatus) {
   const L = withStatus ? live(di) : null, groups = new Map(); let n = 0;
-  plan[di].stops.forEach(s => { const l = loc(s); if (!l || isHotel(s)) return; n++; const k = l.lat.toFixed(4) + "," + l.lng.toFixed(4); if (!groups.has(k)) groups.set(k, { l, items: [] }); groups.get(k).items.push({ s, n }); });
+  plan[di].stops.forEach(s => { const l = loc(s); if (!l || isHotel(s) || (window.__optNo && window.__optNo(plan[di].date, s))) return; /* "לא הולך": לא על המפה */ n++; const k = l.lat.toFixed(4) + "," + l.lng.toFixed(4); if (!groups.has(k)) groups.set(k, { l, items: [] }); groups.get(k).items.push({ s, n }); });
   for (const g of groups.values()) {
     const sts = g.items.map(x => withStatus ? stopStatus(x.s, L) : ""), gone = x => ["done", "skip", "past", "later"].includes(x);
     const lead = g.items[sts.indexOf("next")] || g.items[sts.indexOf("now")] || g.items.find((x, i) => !gone(sts[i])) || g.items[g.items.length - 1];

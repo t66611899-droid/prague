@@ -153,3 +153,43 @@ if (typeof window.sheetHeights === "function") window.sheetHeights = (o => funct
 (window.__mods = window.__mods || {}).daylist = "ok";
 } catch (err) { try { (window.__mods = window.__mods || {}).daylist = "fail"; } catch (e) {} }
 })();
+
+/* אופציונלי: ✅ הולך / ❌ לא הולך. תחנה אופציונלית = השם מתחיל ב"אופציה" או ההערה ב"אופציונלי" (גשר טרויה, Manifesto).
+   בלי החלטה: שני כפתורים קטנים. הולך: תחנה רגילה. לא הולך: שורה אפורה דקה, נגיעה מחזירה. ההחלטה נשמרת בטלפון (optDec) לפי תאריך ושם, אז עדכונים לא מוחקים אותה. */
+(function () {
+try {
+const isOpt = s => /^אופציה/.test(s.n || "") || /^אופציונלי/.test(s.w || "");
+const okey = (d, s) => d + "|" + s.n, od = () => LS.get("optDec", {}) || {};
+window.__optNo = (date, s) => { try { return isOpt(s) && od()[okey(date, s)] === "no"; } catch (e) { return false; } };
+/* "לא הולך": גם הקו של היום עוקף את התחנה (רק התצוגה; התוכנית עצמה לא משתנה) */
+if (typeof window.dayLine === "function") window.dayLine = (o => function (di) { const d = plan[di]; if (!d || !d.stops.some(s => window.__optNo(d.date, s))) return o.apply(this, arguments); const keep = d.stops; try { d.stops = keep.filter(s => !window.__optNo(d.date, s)); return o.apply(this, arguments); } finally { d.stops = keep; } })(window.dayLine);
+function setO(date, s, v) { const d = od(); if (v) d[okey(date, s)] = v; else delete d[okey(date, s)]; LS.set("optDec", d); try { renderAll(); } catch (e) {} buzz(8); }
+const old = window.renderList;
+window.renderList = function () {
+  const r = old.apply(this, arguments);
+  try { if (editMode) return r; const day = plan[curDay]; if (!day) return r;
+    $$("#list li.st[data-id]").forEach(li => { const s = findStop(li.dataset.id); if (!s || !isOpt(s)) return; const v = od()[okey(day.date, s)] || "";
+      if (v === "no") { li.className = "st optno"; li.innerHTML = `<button class="opt-thin" type="button"><span>❌ ${fmtT(s.m)} · ${esc(s.n.replace(/^אופציה:\s*/, ""))}</span><u>להחזיר</u></button>`; }
+      else if (v === "go") { const b = li.querySelector(".st-x b"); if (b) b.textContent = b.textContent.replace(/^אופציה:\s*/, ""); const nt = li.querySelector(".nt1"); if (nt) nt.innerHTML = nt.innerHTML.replace(/^אופציונלי\s*·\s*/, ""); }
+      else { li.classList.add("optrow"); li.insertAdjacentHTML("beforeend", `<div class="opt-row"><button class="opt-b go" type="button">✅ הולך</button><button class="opt-b no" type="button">❌ לא הולך</button></div>`); }
+      li.querySelectorAll(".opt-b,.opt-thin").forEach(b => ["click", "pointerdown"].forEach(ev => b.addEventListener(ev, e => { e.stopPropagation(); if (ev !== "click") return; setO(day.date, s, b.classList.contains("go") ? "go" : b.classList.contains("no") ? "no" : ""); })));
+    });
+  } catch (e) {}
+  return r;
+};
+const css = document.createElement("style");
+css.textContent = `
+#list .st.optrow{flex-wrap:wrap}
+#list .opt-row{flex-basis:100%;display:flex;gap:8px;padding:0 0 12px;padding-inline-start:calc(3.3em + 48px)}
+.opt-row.in{padding:0;margin-top:16px;display:flex;gap:8px}
+.opt-b{font:inherit;font-size:.8rem;font-weight:700;padding:6px 14px;border-radius:999px;border:1px solid var(--line);background:var(--card2);color:var(--ink);cursor:pointer}
+.opt-b.on{background:var(--ink);color:var(--card);border-color:var(--ink)}
+#list .st.optno{min-height:0;border-bottom:1px dashed var(--line)}
+#list .opt-thin{width:100%;display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 2px;background:none;border:0;font:inherit;font-size:.82rem;color:var(--mut);cursor:pointer;text-align:start}
+#list .opt-thin span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#list .opt-thin u{flex:none;font-weight:700;color:var(--ink)}
+`;
+document.head.appendChild(css);
+(window.__mods = window.__mods || {}).optional = "ok";
+} catch (err) { try { (window.__mods = window.__mods || {}).optional = "fail"; } catch (e) {} }
+})();

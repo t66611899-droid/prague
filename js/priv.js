@@ -9,9 +9,9 @@ try {
 let P = null, loading = false;
 async function load() {
   if (loading) return; loading = true;
-  try { const it = ((typeof tix !== "undefined" && tix && tix.pv) || [])[0]; if (!it) { P = null; return; }
-    const b = await imgGet("tk:" + it.id).catch(() => null); if (!b) { P = null; return; }
-    const j = JSON.parse(await b.text()); if (j && j.v === 1) { const had = !!P; P = j; if (!had) try { renderList(); } catch (e) {} } }
+  try { let best = null; /* כמה גרסאות של הפריט: לוקחים את החדשה ביותר (rev) */
+    for (const it of ((typeof tix !== "undefined" && tix && tix.pv) || [])) { const b = await imgGet("tk:" + it.id).catch(() => null); if (!b) continue; try { const j = JSON.parse(await b.text()); if (j && j.v === 1 && (!best || (j.rev || 0) >= (best.rev || 0))) best = j; } catch (e) {} }
+    if (!best) { P = null; return; } const had = !!P, ch = !P || P.rev !== best.rev; P = best; if (!had || ch) try { renderList(); } catch (e) {} }
   catch (e) {} finally { loading = false; }
 }
 const nowP = () => { const T = tripNow(), w = T.w; return { d: dstr(w), m: w.getUTCHours() * 60 + w.getUTCMinutes() }; };
@@ -50,7 +50,7 @@ function open() {
   $("#pvDone").onclick = () => { LS.set("pvD", 1); closeModal(); try { renderList(); } catch (e) {} toast("✓", 1200); };
 }
 const kick = () => { if (!window.__ui) return setTimeout(kick, 400); load(); };
-kick(); setInterval(() => { if (!P && !document.hidden) load(); }, 20000);
+kick(); setInterval(() => { if (!document.hidden) load(); }, 60000);
 (window.__mods = window.__mods || {}).priv = "ok";
 } catch (err) { try { (window.__mods = window.__mods || {}).priv = "fail"; } catch (e) {} }
 })();

@@ -170,7 +170,7 @@ const bigPassHtml = () => `<div class="in-bp"><div class="slot"><i></i></div><di
   <div class="hd"><b>BOARDING PASS</b><span>כרטיס עלייה</span></div>
   <div class="rt"><div><b>TLV</b><small>Tel Aviv</small></div><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 16v-2l-8-5V3.500a1.500 1.500 0 0 0-3 0V9l-8 5v2l8-2.500V19l-2 1.500V22l3.500-1 3.500 1v-1.500L13 19v-5.500z" fill="currentColor"/></svg><div><b>PRG</b><small>Prague</small></div></div>
   <div class="gr"><span><small>טיסה</small><b>QS1285</b></span><span><small>תאריך</small><b>30.11</b></span><span><small>המראה · ישראל</small><b>18:25</b></span><span><small>נוסע</small><b>עומר</b></span></div>
-  <div class="perf"></div>${barcode(54, 2026, 46)}<div class="stamp">צ'ק-אין<br>נפתח</div></div></div></div>`;
+  <div class="perf"></div>${barcode(54, 2026, 46)}<div class="stamp">ישר<br>לדלפק</div></div></div></div>`;
 const BOARD = [["17:55", "LO 152", "WARSAW", "DEPARTED"], ["18:10", "A3 929", "ATHENS", "GATE CLOSED"], ["18:25", "QS 1285", "PRAGUE", null], ["18:40", "FR 2416", "BUDAPEST", "ON TIME"]];
 const boardStatus = () => { const left = (FLY_AT + fltAdj("out")) - nowMs(); return left <= 60 * 6e4 ? "BOARDING" : left <= 3 * 36e5 ? "CHECK-IN" : "ON TIME"; };
 const boardHtml = () => `<div class="in-board" dir="ltr"><div class="bh"><span>DEPARTURES</span><span>יציאות</span></div>${BOARD.map(r => `<div class="br${r[3] ? "" : " mine"}">${[r[0], r[1], r[2], r[3] || boardStatus()].map((c, j) => `<span class="c${j}">${c.split("").map(ch => `<i data-c="${ch === " " ? "&nbsp;" : ch}">${ch === " " ? "&nbsp;" : ""}</i>`).join("")}</span>`).join("")}</div>`).join("")}</div>`;

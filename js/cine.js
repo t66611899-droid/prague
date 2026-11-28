@@ -8,7 +8,7 @@
 (function () {
 "use strict";
 try {
-const CINE_MISSION = ["לנחות, למצוא את המעטפה, ולהבין שהגעת לבד עד לכאן", "לשרוד את הקור, לעלות על הסירה ב-19:00, ולהגיד \"היי\" ראשון. פעם אחת לפחות", "לכבוש את התצפיות ולהגיע ל-EPIC עם דרכון. אף אחד שם לא מכיר אותך, תנצל את זה", "תיק עד 8 ק\"ג, Duplex אחרי חצות. לישון תספיק בארץ", "מס עירוני, יציאה ב-09:45, המראה ב-12:45. הביתה חוזר מישהו קצת אחר"];
+const CINE_MISSION = ["לנחות, למצוא את המעטפה, ולהבין שהגעת לבד עד לכאן", "לשרוד את הקור, לעלות על הסירה ב-19:00, ולהגיד \"היי\" ראשון. פעם אחת לפחות", "לכבוש את התצפיות ולהגיע ל-EPIC עם דרכון. אף אחד שם לא מכיר אותך, תנצל את זה", "תיק עד 8 ק\"ג, Duplex אחרי חצות. לישון תספיק בארץ", "מס עירוני, Bolt ב-09:00, המראה ב-12:45. הביתה חוזר מישהו קצת אחר"];
 const cineLight = () => REDUCED || saver || (navigator.deviceMemory && navigator.deviceMemory < 3) || (navigator.hardwareConcurrency && navigator.hardwareConcurrency < 4) || (window._batt && window._batt.level < 0.2 && !window._batt.charging) || QS.get("cine") === "light";
 const canFly = () => !cineLight() && typeof map !== "undefined" && map && map.isStyleLoaded && map.isStyleLoaded(); // המפה מוכנה לטיסת מצלמה
 const cineSeen = () => LS.get("cineSeen", {});

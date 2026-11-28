@@ -30,7 +30,7 @@ function quickHtml(ph) {
   const badge = '<i id="updBadge" hidden>0</i>', upd = `<button data-q="upd">${ico("bell")}<span>עדכונים</span>${badge}</button>`, more = QB("", "dots", "עוד", 'data-q="more"'), cl = QB("", "spark", "Claude", 'data-q="claude"');
   const n = (() => { try { return prepLeft(); } catch (e) { return 0; } })();
   if (ph === "before") return QB("prep", "check", n ? `הכנות · ${n}` : "הכנות ✓") + QB("tix", "ticket", "כרטיסים") + QB("talk", "talk", "לדבר") + cl + more + `<span hidden>${badge}</span>`;
-  if (ph === "flight") return QB("fl1", "ticket", "כרטיס עלייה") + QB("tlv", "car", "לנתב\"ג") + QB("prep", "check", n ? `הכנות · ${n}` : "הכנות ✓") + cl + more + `<span hidden>${badge}</span>`;
+  if (ph === "flight") return QB("fl1", "ticket", "כרטיס הטיסה") + QB("tlv", "car", "לנתב\"ג") + QB("prep", "check", n ? `הכנות · ${n}` : "הכנות ✓") + cl + more + `<span hidden>${badge}</span>`;
   if (ph === "return") return QB("fl2", "ticket", "טיסה חזור") + QB("arr", "bed", "המלון") + QB("air", "plane", "לשדה") + upd + cl + more;
   const esim = (() => { try { const T = tripNow(); return T.dayIdx === 0 || (T.dayIdx === 1 && T.min < 600); } catch (e) { return false; } })() ? `<button data-h="esim"><span>📶 eSIM</span></button>` : "";
   return esim + QB("hotel", "bed", "המלון") + QB("moment", "camera", "רגע להורים") + cl + upd + QB("", "send", "ווטסאפ", 'data-q="wa"') + more;
@@ -50,8 +50,8 @@ function cardBefore() {
 function cardFlight() {
   const ms = Math.max(0, (FLIGHT_OUT + fltAdj("out")) - tripNow().w.getTime()), h = Math.floor(ms / 36e5), mi = Math.floor(ms % 36e5 / 6e4), has = flightTicket("fl1");
   return `<div class="nx-top"><span class="nx-k">✈️ היום טסים</span><span class="nx-when fx">המראה 18:25 (ישראל) · עוד ${h ? h + " שע' ו-" : ""}${mi} דק'</span></div>
-    <div class="nx-row"><div class="nx-main static"><span class="nx-ic">🛫</span><span class="nx-tx"><b>QS1285 · נתב"ג טרמינל 3</b><small>שעון ישראל: להגיע עד 15:25 · הדלפק נסגר 17:25 · נחיתה 21:35 שעון פראג</small></span></div>
-    <button class="btn pri nx-go" data-h="fl1">${has ? "כרטיס עלייה" : "הכרטיסים"}</button></div>`;
+    <div class="nx-row"><div class="nx-main static"><span class="nx-ic">🛫</span><span class="nx-tx"><b>QS1285 · נתב"ג טרמינל 3</b><small>שעון ישראל: להגיע עד 15:25 · ישר לדלפק, נסגר 17:25 · נחיתה 21:35 שעון פראג</small></span></div>
+    <button class="btn pri nx-go" data-h="fl1">${has ? "כרטיס הטיסה" : "הכרטיסים"}</button></div>`;
 }
 /* בפראג וביום החזרה: הכרטיס הקיים (הבא במסלול), רק שהפעולה הראשית היא ניווט חי בתוך האפליקציה */
 function upgradeNext() {

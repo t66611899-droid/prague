@@ -111,3 +111,14 @@ if (!LS.get("planFix6")) { let ch = false; const x = plan.find(d => d.date === "
 /* planFix7: Footshop מקבל נקודה משלו על המפה (החנות עצמה, לא כל הרחוב) */
 if (!LS.get("planFix7")) { let ch = false; plan.forEach(d => d.stops.forEach(s => { if (/^Footshop/.test(s.n) && s.at === "prik") { s.at = "footshop"; ch = true; } }));
   if (ch && LS.get("plan")) savePlan(); LS.set("planFix7", 1); }
+/* planFix8 (28.11): 4.12 יוצאים ב-09:00 ב-Bolt ובשדה בסביבות 09:45; אין צ'ק-אין אונליין; LITE. רק טקסט ושעות, שום דבר לא נמחק */
+if (!LS.get("planFix8")) { let ch = false; const set = (s, k, v) => { if (s[k] !== v) { s[k] = v; ch = true; } };
+  plan.forEach(d => d.stops.forEach(s => {
+    if (d.date === "2026-12-04" && s.n === "קמים וסוגרים תיק") { set(s, "m", 8 * 60 + 15); set(s, "w", "מעיל ונעליים החדשות עליך, את הקופסה זורקים"); }
+    if (d.date === "2026-12-04" && /^מס עירוני/.test(s.n)) { set(s, "m", 9 * 60); set(s, "w", "200 Kč · Bolt לשדה (גיבוי: מטרו C→A + טרוליבוס 59)"); }
+    if (d.date === "2026-12-04" && /^בשדה/.test(s.n)) { set(s, "m", 9 * 60 + 45); set(s, "w", "Tax Free קודם: הדלפק לפני הצ'ק-אין, בצד שמאל · EES · ישר לדלפק, נסגר 12:05"); }
+    if (s.n === "המראה QS1285") set(s, "w", "ישר לדלפק, נסגר 17:25 (שעון ישראל)");
+    if (d.date === "2026-12-03" && /^מלון · לארוז/.test(s.n)) set(s, "w", "LITE: תיק אחד 55×40×23 עד 8 ק\"ג · מעל? מזוודה באתר מראש, בשער כ-€60 · לנוח");
+  }));
+  plan.forEach(d => { if (d.date === "2026-12-04") d.stops.sort((a, b) => a.m - b.m); });
+  if (ch && LS.get("plan")) savePlan(); LS.set("planFix8", 1); }

@@ -28,7 +28,7 @@ if (VK) { try { const has = /[#&]k=/.test(location.hash || ""), clean = () => hi
   if (isStandalone()) { if (has) clean(); }
   else if (/iPhone|iPad|iPod/.test(navigator.userAgent)) { if (!has) history.replaceState(null, "", location.pathname + location.search + "#k=" + VK); const ml = document.querySelector('link[rel="manifest"]'); if (ml) ml.remove(); } /* כדי ש"הוסף למסך הבית" ישמור את הכתובת הזאת, עם המפתח */
   else if (has) clean(); } catch (e) {} }
-let syncing = false; const VGEN = 3;
+let syncing = false; const VGEN = 4;
 const haveCount = async () => { let n = Object.values(me || {}).filter(x => x && (typeof x !== "object" || Object.keys(x).length)).length; for (const l of Object.values(tix || {})) for (const it of l) if (await imgGet("tk:" + it.id).catch(() => null)) n++; if (await imgGet(DOOR).catch(() => null)) n++; return n; };
 const looksMissing = async () => { const m = me || {}; if (!m.rc || !m.ec || !m.h1 || !m.pol || !apiTok() || !(m.contactsAll || []).some(c => c && c.p)) return true; let f = 0; for (const [k, need] of Object.entries(EXPECT)) f += Math.min((tix[k] || []).length, need); return f < 12 || !(await imgGet(DOOR).catch(() => null)); };
 /* ---------- מסך "להחזיר הכול": אף פעם לא מסך ריק בלי הסבר ----------

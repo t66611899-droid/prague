@@ -122,3 +122,7 @@ if (!LS.get("planFix8")) { let ch = false; const set = (s, k, v) => { if (s[k] !
   }));
   plan.forEach(d => { if (d.date === "2026-12-04") d.stops.sort((a, b) => a.m - b.m); });
   if (ch && LS.get("plan")) savePlan(); LS.set("planFix8", 1); }
+/* planFix9 (28.11): לילות קרים (עד −8°): חוזרים ב-Bolt ב-1.12, ואחרי EPIC רק ב-Bolt */
+if (!LS.get("planFix9")) { let ch = false; plan.forEach(d => d.stops.forEach(s => { if (s.n !== "חזרה למלון" || s.w) return;
+    if (d.date === "2026-12-01") { s.w = "Bolt, לא ברגל: בלילה עד −8°"; ch = true; } if (d.date === "2026-12-02") { s.w = "רק ב-Bolt, לא ברגל (בלילה עד −8°)"; ch = true; } }));
+  if (ch && LS.get("plan")) savePlan(); LS.set("planFix9", 1); }

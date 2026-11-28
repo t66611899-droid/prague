@@ -53,6 +53,7 @@ function moveHere() { const ls = {}; for (let i = 0; i < localStorage.length; i+
 async function moveExport(onStep) {
   const ls = {}; for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k.startsWith("prg.") && moveKeyOk(k.slice(4))) ls[k.slice(4)] = localStorage.getItem(k); }
   let files = (await idbAll().catch(() => [])).filter(([k, v]) => v instanceof Blob && !/^drop:/.test(k));
+  try { const tx = JSON.parse(ls.tix || "{}"), ids = new Set((tx.pv || []).map(x => "tk:" + x.id)); if (tx.pv) { delete tx.pv; ls.tix = JSON.stringify(tx); } files = files.filter(([k]) => !ids.has(k)); } catch (e) {} /* פריט pv נשאר רק בכספת ובטלפון */
   let total = files.reduce((a, [, b]) => a + b.size, 0);
   if (total > 22e6) { const upIds = new Set(); try { JSON.parse(ls.jr || "[]").forEach(m => (m.media || []).forEach(x => { if (x.full) upIds.add(x.id); })); } catch (e) {} // יותר מדי: מוותרים על קבצי יומן שכבר אצל ההורים (נשארים בשרת)
     files = files.filter(([k]) => !upIds.has(k)); total = files.reduce((a, [, b]) => a + b.size, 0); }

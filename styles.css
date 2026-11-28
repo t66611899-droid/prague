@@ -1029,3 +1029,4 @@ html.alldays .pin:not(.tuck) .pin-n{width:24px;height:24px;font-size:11.5px;bord
 .pc-more:empty{display:none}
 .pv-l{margin:6px 0 0;padding-inline-start:18px;line-height:1.55;list-style:disc}
 .pv-l li{margin:3px 0;display:list-item}
+.pv-add{font:inherit;font-size:12.5px;font-weight:700;border:0;border-radius:999px;padding:6px 10px;background:color-mix(in srgb,var(--must) 22%,var(--card));color:var(--ink);cursor:pointer;white-space:nowrap}

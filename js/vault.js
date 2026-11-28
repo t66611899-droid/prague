@@ -28,7 +28,7 @@ if (VK) { try { const has = /[#&]k=/.test(location.hash || ""), clean = () => hi
   if (isStandalone()) { if (has) clean(); }
   else if (/iPhone|iPad|iPod/.test(navigator.userAgent)) { if (!has) history.replaceState(null, "", location.pathname + location.search + "#k=" + VK); const ml = document.querySelector('link[rel="manifest"]'); if (ml) ml.remove(); } /* כדי ש"הוסף למסך הבית" ישמור את הכתובת הזאת, עם המפתח */
   else if (has) clean(); } catch (e) {} }
-let syncing = false;
+let syncing = false; const VGEN = 2;
 const haveCount = async () => { let n = Object.values(me || {}).filter(x => x && (typeof x !== "object" || Object.keys(x).length)).length; for (const l of Object.values(tix || {})) for (const it of l) if (await imgGet("tk:" + it.id).catch(() => null)) n++; if (await imgGet(DOOR).catch(() => null)) n++; return n; };
 const looksMissing = async () => { const m = me || {}; if (!m.rc || !m.ec || !m.h1 || !m.pol || !apiTok() || !(m.contactsAll || []).some(c => c && c.p)) return true; let f = 0; for (const [k, need] of Object.entries(EXPECT)) f += Math.min((tix[k] || []).length, need); return f < 12 || !(await imgGet(DOOR).catch(() => null)); };
 /* ---------- מסך "להחזיר הכול": אף פעם לא מסך ריק בלי הסבר ----------
@@ -72,12 +72,12 @@ async function autoSync(force, ui) {
   if (isOffline()) { if (show) guard("fail", "offline"); return "offline"; }
   syncing = true; let out = "ok";
   try {
-    let bk = bkGet(); const due = !bk || !bk.syncT || Date.now() - bk.syncT > 12 * 36e5;
+    let bk = bkGet(); const due = !bk || !bk.syncT || Date.now() - bk.syncT > 12 * 36e5 || bk.gen !== VGEN; /* VGEN עולה כשמשהו נוסף לכספת מהמחשב: כל טלפון מושך פעם אחת בפתיחה הבאה */
     const k8 = VK.slice(0, 8), newKey = !!(bk && bk.k8 !== k8); /* קישור אישי חדש: מסתנכרנים מול הכספת שלו */
     if (!(force || !bk || !bk.vk || !bk.synced || newKey || due || miss)) return "fresh";
     if (show) guard("work");
     let R = null; try { R = await restoreFetch(VK); } catch (e) { if (e.message !== "none") { out = WHY[e.message] ? e.message : "err"; if (show) guard(out === "code" ? "nokey" : "fail", out); return out; } } /* בעיית רשת: ננסה שוב, ובינתיים לא מעלים כלום */
-    if (R) { const before = await haveCount(); await restoreApply(R); bk = bkGet(); Object.assign(bk, { vk: 1, synced: 1, syncT: Date.now(), k8 }); bkSet(bk); const after = await haveCount();
+    if (R) { const before = await haveCount(); await restoreApply(R); bk = bkGet(); Object.assign(bk, { vk: 1, synced: 1, syncT: Date.now(), k8, gen: VGEN }); bkSet(bk); const after = await haveCount();
       guard("off");
       if (after > before || ui) { try { renderAll(); } catch (e) {} toast("הכול כאן ✓ הפרטים והכרטיסים חזרו", 3600); try { const t = (($("#mbody h2") || {}).textContent || ""); if (!$("#modal").hidden) { if (/הכרטיסים/.test(t)) openTickets(); else if (/מה יש אצלי/.test(t)) openHave(); } } catch (e) {} } }
     else if (miss) { if (show) guard("stale", "none"); return "none"; } /* אין עותק מאחורי המפתח הזה וגם כאן חסר: לא יוצרים עותק ריק, מבקשים את הקישור העדכני */

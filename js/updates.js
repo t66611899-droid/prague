@@ -78,7 +78,7 @@ function buildUpdates() {
   else out.push({ lvl: 0, ic: "🌅", t: `זריחה ${fmtT(sun.rise)} · שקיעה ${fmtT(sun.set)}`, b: "בדצמבר יש בערך 8 שעות אור. את הנופים עושים לפני ארבע.", src: "sun" });
   if (outdoor) out.push({ lvl: 1, ic: "🔦", t: `${outdoor.n}: כבר חשוך ב${partOfDay(outdoor.m)}`, b: `השקיעה ב-${fmtT(sun.set)}. אם חשוב לך הנוף באור יום, שווה להקדים.`, act: { stopId: outdoor.id }, src: "sun" });
   // כדאי לדעת להיום
-  if (day.stops.some(s => ["duplex", "epic"].includes(s.at) && !marks[s.id])) out.push({ lvl: 0, ic: "🪪", t: "הערב יש מועדון", b: "דרכון פיזי בכיס פנימי עם רוכסן (צילום לא מתקבל), ומטען נייד. הביתה רק ב-Bolt מהאפליקציה, לא ברגל: בלילה עד −8°.", src: "tip" });
+  if (day.stops.some(s => ["duplex", "epic"].includes(s.at) && !marks[s.id])) out.push({ lvl: 0, ic: "🪪", t: "הערב יש מועדון", b: "רישיון נהיגה פיזי (לא צילום), הדרכון בכספת במלון. ומטען נייד. הביתה רק ב-Bolt מהאפליקציה, לא ברגל: בלילה עד −8°.", src: "tip" });
   return out.sort((a, b) => b.lvl - a.lvl);
 }
 let _upd = [];

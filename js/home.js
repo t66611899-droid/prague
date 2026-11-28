@@ -86,3 +86,70 @@ setInterval(() => { try { if (phase() !== lastPh || (curDay === 0 && (lastPh ===
 (window.__mods = window.__mods || {}).home = "ok";
 } catch (err) { try { (window.__mods = window.__mods || {}).home = "fail: " + (err && err.message || err); } catch (e) {} }
 })();
+
+/* daylist: "היום שלי" נקי וברור. רק תצוגה: לא נוגע בנתונים, בתוכנית, בכספת, בכרטיסים, במפה או ב-service worker.
+   • ציר זמן: שעה בגדול ← שם ← שורה אחת קצרה ← נווט. בלי "בוקר/צהריים" במקום השעה, ובלי השם הצ'כי בשורה.
+   • הבא בתור מודגש: "הבא בתור · בעוד 40 דק'".
+   • פס אחד קטן למעלה עם התזכורות של היום (דרכון / Bolt / קור), במקום שיהיו מפוזרות.
+   • הרשימה עולה מיד אחרי הכרטיס "הבא" והקיצורים. הנגן של היום יורד לסוף.
+   מוגן: אם משהו כאן נכשל, הרשימה נשארת כמו שהייתה. */
+(function () {
+try {
+const STRIP = {
+  "2026-11-30": ["🛂 דרכון ביד", "✈️ ישר לדלפק · נסגר 17:25 (ישראל)", "📶 eSIM בנחיתה", "💵 Bolt במזומן"],
+  "2026-12-01": ["🪪 דרכון פיזי ל-Duplex", "🚕 הביתה ב-Bolt", "🥶 בלילה עד −8°"],
+  "2026-12-02": ["🪪 דרכון פיזי ל-EPIC", "🚕 אחרי EPIC רק Bolt", "🥶 בלילה עד −8°"],
+  "2026-12-03": ["🪪 דרכון פיזי ל-Duplex", "🎒 תיק עד 8 ק\"ג", "🧾 Tax Free מעל 2001 Kč"],
+  "2026-12-04": ["🛂 דרכון ביד", "🚕 Bolt ב-09:00", "🧾 Tax Free משמאל לפני הדלפקים", "✈️ הדלפק נסגר 12:05"]
+};
+function strip(day) {
+  let s = $("#dayStrip"); const items = STRIP[day.date] || [];
+  if (!s) { s = document.createElement("div"); s.id = "dayStrip"; const lh = $("#listHead"); if (!lh) return; lh.parentNode.insertBefore(s, lh); }
+  s.hidden = !items.length; s.innerHTML = items.map(t => `<span>${esc(t)}</span>`).join("");
+}
+const inMin = s => { try { const T = tripNow(); if (T.dayIdx !== curDay) return null; return Math.round(pm(s) - T.min); } catch (e) { return null; } };
+const old = window.renderList;
+window.renderList = function () {
+  const r = old.apply(this, arguments);
+  try {
+    const day = plan[curDay], list = $("#list"); if (!day || !list) return r; strip(day); if (editMode) return r;
+    list.querySelectorAll("li.st[data-id]").forEach(li => {
+      const s = findStop(li.dataset.id); if (!s) return;
+      const t = li.querySelector(".st-t"); if (t && !t.classList.contains("num")) t.innerHTML = `${fmtT(s.m)}${s.il ? "<i>ישראל</i>" : ""}`;
+      if (li.classList.contains("next")) { const x = li.querySelector(".st-x"), m = inMin(s), p = li.querySelector(".pill"); if (p) p.remove();
+        if (x && !x.querySelector(".nx-in")) x.insertAdjacentHTML("afterbegin", `<small class="nx-in">הבא בתור${m != null && m > 0 ? ` · בעוד ${fmtDur(m)}` : m != null && m > -5 ? " · עכשיו" : ""}</small>`); }
+    });
+  } catch (e) {}
+  return r;
+};
+/* הרשימה מוקדם יותר בגיליון; המצב האמצעי מראה גם כמה שורות ממנה */
+const css = document.createElement("style");
+css.textContent = `
+#sheetBody{display:flex;flex-direction:column}
+#sheetBody > *{flex-shrink:0}
+#nextCard{order:1}#nxMore{order:2}#quick{order:3}#dayStrip{order:4}#listHead{order:5}#list{order:6}#player{order:7}#sheetBody > :not(#nextCard):not(#nxMore):not(#quick):not(#dayStrip):not(#listHead):not(#list):not(#player){order:8}
+#dayStrip{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:10px 0 2px;margin:0 -14px;padding-inline:14px}
+#dayStrip::-webkit-scrollbar{display:none}
+#dayStrip[hidden]{display:none}
+#dayStrip span{flex:none;font-size:.8rem;font-weight:600;padding:6px 10px;border-radius:999px;background:var(--card2);white-space:nowrap}
+#list .st-main{padding:14px 0;min-height:74px;gap:12px}
+#list .st-t{width:3.3em;font-size:1.38rem;font-weight:800;color:var(--ink)}
+#list .st.big .st-t{color:var(--red-ink)}
+#list .st-t i{font-size:.62rem;font-weight:600}
+#list .cz1{display:none}
+#list .cz1 + .nt1::before{content:none}
+#list .st-x{gap:3px}
+#list .st-x b{font-size:1.02rem}
+#list .st-ic{width:36px;height:36px;font-size:1.05rem}
+#list .nx-in{display:block;font-size:.76rem;font-weight:800;color:#8a5a00;white-space:normal;overflow:visible}
+#list .pvrow .sub2{flex-wrap:wrap;row-gap:3px}
+#list .pvrow .sub2 > span{white-space:normal}
+#list .pvrow .pv-tag{flex:0 1 auto!important;max-width:100%;overflow:visible;text-overflow:clip;line-height:1.35}
+:root[data-theme="dark"] #list .nx-in{color:var(--must)}
+#list .st.next::before{background:color-mix(in srgb,var(--must) 18%,transparent);box-shadow:inset 3px 0 0 var(--must)}
+`;
+document.head.appendChild(css);
+if (typeof window.sheetHeights === "function") window.sheetHeights = (o => function () { const H = o.apply(this, arguments); try { const lh = $("#listHead"); if (lh && !isDesktop()) H.mid = Math.max(H.low + 80, Math.min(lh.offsetTop + lh.offsetHeight + 190 + ($("#grab") ? $("#grab").offsetHeight : 0), innerHeight * 0.62)); } catch (e) {} return H; })(window.sheetHeights);
+(window.__mods = window.__mods || {}).daylist = "ok";
+} catch (err) { try { (window.__mods = window.__mods || {}).daylist = "fail"; } catch (e) {} }
+})();

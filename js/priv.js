@@ -33,13 +33,13 @@ function trackHotel() { try { if (!P || LS.get("pvH", null) || !P.hs) return; co
 const fmt = s => esc(String(s || "")).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>").replace(/(&#39;|&quot;|')([A-Za-z][^'"&]*?)(\1)/g, '<bdi dir="ltr">$1$2$3</bdi>'); /* משפט באנגלית בתוך עברית: בכיוון הנכון */
 let setAdded = function (d) { LS.set("pvA", d || ""); if (!d) LS.set("pvD", 0); try { renderList(); } catch (e) {} buzz(8); };
 function row(s) {
-  const on = added() === s.date, dn = on && done(), note = on ? String(s.note || "").replace(/^[^·]*אפשרות[^·]*·\s*/, "") : s.note;
-  const li = document.createElement("li"); li.className = "st pvrow" + (on ? " pvon" : "") + (dn ? " done" : ""); li.style.setProperty("--c", "#5c6470");
-  li.innerHTML = `<button class="st-main" type="button"><span class="st-t">${fmtT(s.m)}</span><span class="st-ic">${on ? "🌙" : "🔒"}</span><span class="st-x"><b>${esc(P.name || "זמן חופשי")}</b>${note ? `<small class="sub2"><span class="nt1">${esc(note)}</span></small>` : ""}</span></button>`
-    + (on ? (P.lat ? `<a class="st-nav" href="${navUrl({ lat: P.lat, lng: P.lng })}" target="_blank" rel="noopener">נווט</a>` : `<span class="st-nav off"></span>`) + `<button class="st-chk" type="button" aria-label="${dn ? "בטל סימון" : "סמן שבוצע"}" aria-pressed="${dn}"></button>`
-      : `<button class="st-nav pv-add" type="button" aria-label="להוסיף ליום">➕ הוסף</button><span class="st-chk" style="visibility:hidden"></span>`);
+  const on = added() === s.date, dn = on && done(), note = String(s.note || "").replace(/^[^·]*אפשרות[^·]*·\s*/, "");
+  const li = document.createElement("li"); li.className = "st pvrow" + (on ? " pvon" : "") + (dn ? " done" : ""); li.style.setProperty("--c", "#7a4fe0");
+  li.innerHTML = `<button class="st-main" type="button"><span class="st-t">${fmtT(s.m)}</span><span class="st-ic">🌙</span><span class="st-x"><b>${esc(P.t || P.name || "")}</b><small class="sub2"><span class="pv-tag">אופציונלי · מחליט במקום</span>${note ? `<span class="nt1">${esc(note)}</span>` : ""}</small></span></button>`
+    + (P.lat ? `<a class="st-nav" href="${navUrl({ lat: P.lat, lng: P.lng })}" target="_blank" rel="noopener" aria-label="ניווט הליכה">נווט</a>` : `<span class="st-nav off"></span>`)
+    + (on ? `<button class="st-chk" type="button" aria-label="${dn ? "בטל סימון" : "סמן שבוצע"}" aria-pressed="${dn}"></button>` : `<span class="st-chk" style="visibility:hidden"></span>`);
   li.querySelectorAll("button,a").forEach(b => ["click", "pointerdown"].forEach(ev => b.addEventListener(ev, e => { e.stopPropagation(); if (ev !== "click") return;
-    if (b.classList.contains("st-main")) open(s); else if (b.classList.contains("pv-add")) { setAdded(s.date); toast("נוסף ליום ✓", 1400); } else if (b.classList.contains("st-chk")) { LS.set("pvD", dn ? 0 : 1); renderList(); buzz(8); } })));
+    if (b.classList.contains("st-main")) open(s); else if (b.classList.contains("st-chk")) { LS.set("pvD", dn ? 0 : 1); renderList(); buzz(8); } })));
   return li;
 }
 const old = window.renderList;
@@ -51,10 +51,12 @@ window.renderList = function () {
 };
 function open(s) {
   if (!P) return; const on = s && added() === s.date;
-  openModal(`<h2>🔒 ${esc(P.t || P.name || "")}</h2>${P.sub ? `<p class="sub">${fmt(P.sub)}</p>` : ""}
-    ${(P.sec || []).map(x => `<div class="card soft"><b>${fmt(x.h)}</b>${(x.li || []).length ? `<ul class="pv-l">${x.li.map(l => `<li>${fmt(l)}</li>`).join("")}</ul>` : ""}</div>`).join("")}
-    <div class="row wrap">${P.lat ? `<a class="btn pri" href="${navUrl({ lat: P.lat, lng: P.lng })}" target="_blank" rel="noopener">🚶 ניווט הליכה</a>` : ""}${s ? `<button class="btn" id="pvAdd">${on ? "➖ להוריד מהיום" : "➕ להוסיף ליום"}</button>` : ""}<button class="btn" id="pvDone">✓ הייתי</button></div>
-    <p class="fine">נשמר רק בכספת המוצפנת ובטלפון הזה. לא במפה, לא ביומן ולא אצל ההורים.</p>`);
+  openModal(`<div class="hero" style="--c:#7a4fe0"><span>🌙</span></div>
+    <div class="pc"><h2 dir="auto" style="text-align:right">${esc(P.t || P.name || "")}</h2><p class="meta">${s ? `<span>🕐 ${fmtT(s.m)}</span>` : ""}<span>✨ אופציונלי · מחליט במקום</span></p>
+    ${P.sub ? `<p class="pc-what">${fmt(P.sub)}</p>` : ""}
+    ${(P.sec || []).map(x => `<div class="pv-sec"><h3>${fmt(x.h)}</h3>${(x.li || []).length ? `<ul class="pv-l">${x.li.map(l => `<li>${fmt(l)}</li>`).join("")}</ul>` : ""}</div>`).join("")}
+    <div class="pc-btns">${P.lat ? `<a class="btn pri" href="${navUrl({ lat: P.lat, lng: P.lng })}" target="_blank" rel="noopener">🚶 נווט</a>` : ""}${s ? `<button class="btn" id="pvAdd">${on ? "➖ מהיום" : "➕ ליום"}</button>` : ""}<button class="btn" id="pvDone">✓ הייתי</button></div>
+    <p class="fine">רק בכספת המוצפנת ובטלפון הזה. לא ביומן, בהתראות, בשיתוף או אצל ההורים.</p></div>`, "place");
   const ad = $("#pvAdd"); if (ad) ad.onclick = () => { closeModal(); setAdded(on ? "" : s.date); toast(on ? "הורד מהיום" : "נוסף ליום ✓", 1400); };
   $("#pvDone").onclick = () => { LS.set("pvD", 1); closeModal(); try { renderList(); } catch (e) {} toast("✓", 1200); };
 }
